@@ -1,0 +1,51 @@
+$black: #000000;
+$white: #ffffff;
+$success-green: #79bd9a !default;
+$error-red: #df405a !default;
+$warning-red: #ff5050 !default;
+$gold-star: #ca8f04 !default;
+
+$red-bookmark: $warning-red;
+
+$classic-base-color: #6c0eff;
+$classic-primary-color: #ffffff;
+$classic-secondary-color: #ffffff;
+$classic-highlight-color: #9ec5e2;
+
+$base-shadow-color: $black !default;
+$base-overlay-background: $black !default;
+$base-border-color: $white !default;
+$simple-background-color: $black !default;
+$valid-value-color: $success-green !default;
+$error-value-color: $error-red !default;
+
+$ui-base-color: $classic-base-color !default;                  // Darkest
+$ui-base-lighter-color: $white !default;                       // Lighter darkest
+$ui-primary-color: $classic-primary-color !default;            // Lighter
+$ui-secondary-color: $classic-secondary-color !default;        // Lightest
+$ui-highlight-color: $classic-highlight-color !default;
+
+$primary-text-color: $white !default;
+$darker-text-color: $ui-primary-color !default;
+$dark-text-color: $ui-base-lighter-color !default;
+$secondary-text-color: $ui-secondary-color !default;
+$highlight-text-color: lighten($ui-highlight-color, 8%) !default;
+$action-button-color: $ui-base-lighter-color !default;
+$passive-text-color: $gold-star !default;
+$active-passive-text-color: $success-green !default;
+
+$inverted-text-color: $white !default;
+$lighter-text-color: $ui-base-lighter-color !default;
+$light-text-color: $ui-primary-color !default;
+
+$cjk-langs: ja, ko, zh-CN, zh-HK, zh-TW;
+
+$media-modal-media-max-width: 100%;
+
+$media-modal-media-max-height: 80%;
+
+$no-gap-breakpoint: 1175px;
+
+$font-sans-serif: 'mastodon-font-sans-serif' !default;
+$font-display: 'mastodon-font-display' !default;
+$font-monospace: 'mastodon-font-monospace' !default;
