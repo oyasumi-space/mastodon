@@ -127,7 +127,7 @@ RSpec.describe MediaAttachment, type: :model do
   end
 
   describe 'ogg with cover art' do
-    let(:media) { MediaAttachment.create(account: Fabricate(:account), file: attachment_fixture('boop.ogg')) }
+    let(:media) { MediaAttachment.create(account: Fabricate(:account), file: attachment_fixture('select.ogg')) }
 
     it 'detects it as an audio file' do
       expect(media.type).to eq 'audio'
@@ -146,7 +146,7 @@ RSpec.describe MediaAttachment, type: :model do
     end
 
     it 'gives the file a random name' do
-      expect(media.file_file_name).to_not eq 'boop.ogg'
+      expect(media.file_file_name).to_not eq 'select.ogg'
     end
   end
 
