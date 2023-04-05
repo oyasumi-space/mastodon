@@ -5,6 +5,10 @@ body {
   image-rendering: pixelated;
 }
 
+body * {
+  image-rendering: auto;
+}
+
 @keyframes space-parallax {
   0% {
     background-position-x: 1023px;
