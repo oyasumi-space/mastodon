@@ -67,3 +67,10 @@ body * {
 .getting-started__wrapper {
   background: transparent;
 }
+
+.compose-form {
+  .autosuggest-textarea__textarea,
+  .spoiler-input__input {
+    color: $white;
+  }
+}
