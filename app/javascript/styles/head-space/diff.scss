@@ -72,5 +72,57 @@ body * {
   .autosuggest-textarea__textarea,
   .spoiler-input__input {
     color: $white;
+    background: $black;
+  }
+  .autosuggest-textarea__suggestions {
+    color: $white;
+    background: $black;
+  }
+  .compose-form__modifiers {
+    color: $white;
+    background: $black;
+  }
+  .compose-form__buttons-wrapper {
+    color: $white;
+    background: $black;
+  }
+}
+
+.privacy-dropdown__option {
+  &:hover,
+  &.active {
+    color: $ui-box-color;
+    .privacy-dropdown__option__content {
+      color: $ui-box-color;
+
+      strong {
+        color: $ui-box-color;
+      }
+    }
+  }
+}
+
+.privacy-dropdown__option__content {
+  color: $ui-box-lighter-color;
+
+  strong {
+    color: $ui-box-lighter-color;
+  }
+}
+
+// .compose-form__poll-wrapper .button.button-secondary,
+// .compose-form .autosuggest-textarea__textarea::placeholder,
+// .compose-form .spoiler-input__input::placeholder,
+// .report-dialog-modal__textarea::placeholder,
+.language-dropdown__dropdown__results__item__common-name {
+// .compose-form .icon-button {
+  color: $ui-box-color;
+}
+
+.language-dropdown__dropdown__results__item.active {
+  color: $ui-box-color;
+
+  .language-dropdown__dropdown__results__item__common-name {
+    color: $ui-box-color;
   }
 }
