@@ -69,22 +69,20 @@ body * {
 }
 
 .compose-form {
+  .compose-form__warning,
+  .reply-indicator,
   .autosuggest-textarea__textarea,
-  .spoiler-input__input {
-    color: $white;
-    background: $black;
-  }
-  .autosuggest-textarea__suggestions {
-    color: $white;
-    background: $black;
-  }
-  .compose-form__modifiers {
-    color: $white;
-    background: $black;
-  }
+  .spoiler-input__input,
+  .autosuggest-textarea__suggestions,
+  .compose-form__modifiers,
   .compose-form__buttons-wrapper {
     color: $white;
     background: $black;
+  }
+
+  .reply-indicator__display-name,
+  .reply-indicator__content {
+    color: $white;
   }
 }
 
