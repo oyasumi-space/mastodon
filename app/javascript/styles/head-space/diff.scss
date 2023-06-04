@@ -56,6 +56,16 @@ body * {
   backdrop-filter: blur(4px);
 }
 
+.ui__header {
+  background: transparent !important;
+  backdrop-filter: blur(4px);
+}
+
+.navigation-panel {
+  background: transparent !important;
+  backdrop-filter: blur(4px);
+}
+
 .button {
   color: $black;
 }
