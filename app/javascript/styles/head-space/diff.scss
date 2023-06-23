@@ -94,6 +94,15 @@ body * {
   .reply-indicator__content {
     color: $white;
   }
+
+  .autosuggest-textarea__suggestions__item {
+    &:hover,
+    &:focus,
+    &:active,
+    &.selected {
+      background: lighten($black, 10%);
+    }
+  }
 }
 
 .privacy-dropdown__option {
