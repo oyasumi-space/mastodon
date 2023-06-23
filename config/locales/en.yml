@@ -1598,6 +1598,7 @@ en:
     default: Mastodon (Dark)
     mastodon-light: Mastodon (Light)
     head-space: Head Space (⚠️Beta⚠️)
+    head-space-static: Head Space (Static) (⚠️Beta⚠️)
     head-space-en: Head Space (EN Font) (⚠️Beta⚠️)
     head-space-jp: Head Space (JP Font) (⚠️Beta⚠️)
   time:
