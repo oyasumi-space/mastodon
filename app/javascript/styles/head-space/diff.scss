@@ -20,50 +20,50 @@ body * {
 
 .column {
   > .scrollable {
-    background: transparent;
-    backdrop-filter: blur(4px);
+    background: $omori-background;
+    backdrop-filter: $omori-backdrop-filter;
   }
 }
 
 .column-header {
-  background: transparent;
-  backdrop-filter: blur(4px);
+  background: $omori-background;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .tabs-bar__wrapper {
-  background: transparent;
-  backdrop-filter: blur(4px);
+  background: $omori-background;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .search__input {
-  background: transparent;
-  backdrop-filter: blur(4px);
+  background: $omori-background;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .navigation-bar {
-  backdrop-filter: blur(4px);
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .empty-column-indicator {
-  background: transparent;
+  background: $omori-background;
 }
 
 .notification__filter-bar {
-  backdrop-filter: blur(4px);
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .link-footer {
-  backdrop-filter: blur(4px);
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .ui__header {
-  background: transparent !important;
-  backdrop-filter: blur(4px);
+  background: $omori-background !important;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .navigation-panel {
-  background: transparent !important;
-  backdrop-filter: blur(4px);
+  background: $omori-background !important;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .button {
@@ -71,11 +71,11 @@ body * {
 }
 
 .column-link {
-  background: transparent;
+  background: $omori-background;
 }
 
 .getting-started__wrapper {
-  background: transparent;
+  background: $omori-background;
 }
 
 .compose-form {
