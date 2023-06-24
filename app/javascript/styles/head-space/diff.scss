@@ -78,6 +78,10 @@ body * {
   background: $omori-background;
 }
 
+.column-header__button {
+  background: $omori-background;
+}
+
 .compose-form {
   .compose-form__warning,
   .reply-indicator,
