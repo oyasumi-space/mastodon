@@ -147,3 +147,13 @@ body * {
     color: $ui-box-color;
   }
 }
+
+.search-popout {
+  color: $black;
+  h4, li, ul, em {
+    color: $black;
+  }
+  em {
+    font-weight: bold;
+  }
+}
