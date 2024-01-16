@@ -143,7 +143,7 @@
   "compose_form.hashtag_warning": "由於此帖文並非公開，因此它不會列在標籤下。只有公開帖文才可以經標籤搜尋。",
   "compose_form.lock_disclaimer": "你的用戶狀態沒有{locked}，任何人都能立即關注你，然後看到「只有關注者能看」的文章。",
   "compose_form.lock_disclaimer.lock": "鎖定",
-  "compose_form.placeholder": "你在想甚麼？",
+  "compose_form.placeholder": "正在等待某件事情的發生嗎？",
   "compose_form.poll.add_option": "新增選擇",
   "compose_form.poll.duration": "投票期限",
   "compose_form.poll.option_placeholder": "第 {number} 個選擇",

@@ -143,7 +143,7 @@
   "compose_form.hashtag_warning": "由於這則嘟文設定為非公開，將不會列於任何主題標籤下。只有公開的嘟文才能藉由主題標籤被找到。",
   "compose_form.lock_disclaimer": "您的帳號尚未 {locked}。任何人皆能跟隨您並看到您設定成只對跟隨者顯示的嘟文。",
   "compose_form.lock_disclaimer.lock": "上鎖",
-  "compose_form.placeholder": "正在想些什麼嗎？",
+  "compose_form.placeholder": "正在等待某件事情的發生嗎？",
   "compose_form.poll.add_option": "新增選項",
   "compose_form.poll.duration": "投票期限",
   "compose_form.poll.option_placeholder": "第 {number} 個選項",

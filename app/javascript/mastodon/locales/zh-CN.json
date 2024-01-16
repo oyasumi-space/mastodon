@@ -143,7 +143,7 @@
   "compose_form.hashtag_warning": "这条嘟文被设置为“不公开”，因此它不会出现在任何话题标签的列表下。只有公开的嘟文才能通过话题标签进行搜索。",
   "compose_form.lock_disclaimer": "你的账户没有{locked}。任何人都可以在关注你后立即查看仅关注者可见的嘟文。",
   "compose_form.lock_disclaimer.lock": "开启保护",
-  "compose_form.placeholder": "想写什么？",
+  "compose_form.placeholder": "正在等待某件事情的发生吗？",
   "compose_form.poll.add_option": "添加选项",
   "compose_form.poll.duration": "投票期限",
   "compose_form.poll.option_placeholder": "选项 {number}",

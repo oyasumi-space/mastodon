@@ -143,7 +143,7 @@
   "compose_form.hashtag_warning": "이 게시물은 전체공개가 아니기 때문에 어떤 해시태그로도 검색 되지 않습니다. 전체공개로 게시 된 게시물만이 해시태그로 검색될 수 있습니다.",
   "compose_form.lock_disclaimer": "이 계정은 {locked}상태가 아닙니다. 누구나 이 계정을 팔로우 하여 팔로워 전용의 게시물을 볼 수 있습니다.",
   "compose_form.lock_disclaimer.lock": "비공개",
-  "compose_form.placeholder": "지금 무슨 생각을 하고 있나요?",
+  "compose_form.placeholder": "무슨 일이 벌어지길 기다리는 중이야?",
   "compose_form.poll.add_option": "항목 추가",
   "compose_form.poll.duration": "투표 기간",
   "compose_form.poll.option_placeholder": "{number}번 항목",
