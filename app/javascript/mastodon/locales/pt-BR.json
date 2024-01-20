@@ -143,7 +143,7 @@
   "compose_form.hashtag_warning": "Esta publicação não será exibida sob nenhuma hashtag, já que não é pública. Apenas postagens públicas podem ser pesquisadas por meio de hashtags.",
   "compose_form.lock_disclaimer": "Seu perfil não está {locked}. Qualquer um pode te seguir e ver os toots privados.",
   "compose_form.lock_disclaimer.lock": "trancado",
-  "compose_form.placeholder": "No que você está pensando?",
+  "compose_form.placeholder": "Esperando algo acontecer?",
   "compose_form.poll.add_option": "Adicionar opção",
   "compose_form.poll.duration": "Duração da enquete",
   "compose_form.poll.option_placeholder": "Opção {number}",
