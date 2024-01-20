@@ -1,4 +1,148 @@
+/*
+ * Please don't remove this long comment for something.
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
 setTimeout(() => {
+  const print = (str) => {
+    // eslint-disable-next-line no-console
+    console.log('%c' + str, 'font-size: 0.5rem; font-family: monospace;');
+  }
+
   const something = [
     "............. ...   ............................... ..... ............. ..... ..",
     "...........           .    ..       .   . .. ...    .  ..     .. ...    .  ..   ",
@@ -164,14 +308,13 @@ setTimeout(() => {
     ".. .. . . ............ ........ .... ..... ...... .... .............. .... .....",
   ];
 
-  let index = 0
+  let index = 0;
   const intervalId = setInterval(() => {
     if (something.length <= index) {
       clearInterval(intervalId);
       return;
     }
-    // eslint-disable-next-line no-console
-    console.log('%c' + something[index], 'font-size: 0.5rem; font-family: monospace;');
+    print(something[index]);
     index++;
   }, 16);
 
