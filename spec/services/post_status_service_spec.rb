@@ -194,13 +194,15 @@ RSpec.describe PostStatusService, type: :service do
 
   context 'with mutual visibility' do
     let(:sender) { Fabricate(:user).account }
-    let(:io_account) { Fabricate(:account, domain: 'misskey.io', uri: 'https://misskey.io/actor') }
+    let(:io_account) { Fabricate(:account, domain: 'misskey.io', uri: 'https://misskey.io/actor', inbox_url: 'https://misskey.io/inbox') }
     let(:local_account) { Fabricate(:account) }
-    let(:remote_account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
+    let(:remote_account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', inbox_url: 'https://example.com/inbox') }
     let(:follower) { Fabricate(:account) }
     let(:followee) { Fabricate(:account) }
 
     before do
+      stub_request(:post, 'https://misskey.io/inbox').to_return(status: 200)
+      stub_request(:post, 'https://example.com/inbox').to_return(status: 200)
       Fabricate(:instance_info, domain: 'misskey.io', software: 'misskey')
       io_account.follow!(sender)
       local_account.follow!(sender)
