@@ -1,11 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
-# Please see https://docs.docker.com/engine/reference/builder for information about
-# the extended buildx capabilities used in this file.
-# Make sure multiarch TARGETPLATFORM is available for interpolation
-# See: https://docs.docker.com/build/building/multi-platform/
-ARG TARGETPLATFORM=${TARGETPLATFORM}
-ARG BUILDPLATFORM=${BUILDPLATFORM}
+FROM ghcr.io/moritzheiber/ruby-jemalloc:3.2.3-slim as ruby
+FROM node:${NODE_VERSION} as build
 
 # Ruby image to use for base image, change with [--build-arg RUBY_VERSION="3.2.2"]
 ARG RUBY_VERSION="3.2.2"

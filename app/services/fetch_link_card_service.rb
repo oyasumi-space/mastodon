@@ -20,7 +20,7 @@ class FetchLinkCardService < BaseService
     @status       = status
     @original_url = parse_urls
 
-    return if @original_url.nil? || @status.with_preview_card? || !@status.account.link_preview?
+    return if @original_url.nil? || @status.with_preview_card?
 
     @url = @original_url.to_s
 
@@ -88,6 +88,10 @@ class FetchLinkCardService < BaseService
   end
 
   def referenced_urls
+    referenced_urls_raw.filter { |uri| ActivityPub::TagManager.instance.uri_to_resource(uri, Status, url: true).present? }
+  end
+
+  def referenced_urls_raw
     unless @status.local?
       document = Nokogiri::HTML(@status.text)
       document.search('a[href^="http://"]', 'a[href^="https://"]').each do |link|

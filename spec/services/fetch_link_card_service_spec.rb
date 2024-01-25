@@ -7,6 +7,7 @@ RSpec.describe FetchLinkCardService, type: :service do
 
   let(:html) { '<!doctype html><title>Hello world</title>' }
   let(:oembed_cache) { nil }
+  let(:custom_before) { false }
 
   before do
     stub_request(:get, 'http://example.com/html').to_return(headers: { 'Content-Type' => 'text/html' }, body: html)
@@ -30,7 +31,7 @@ RSpec.describe FetchLinkCardService, type: :service do
 
     Rails.cache.write('oembed_endpoint:example.com', oembed_cache) if oembed_cache
 
-    subject.call(status)
+    subject.call(status) unless custom_before
   end
 
   context 'with a local status' do
@@ -236,30 +237,51 @@ RSpec.describe FetchLinkCardService, type: :service do
       end
     end
 
-    context 'with URL of reference' do
-      let(:status) { Fabricate(:status, text: 'RT http://example.com/html') }
-
-      it 'creates preview card' do
-        expect(status.preview_card).to be_nil
-      end
-    end
-
-    context 'with URL of reference and normal page' do
+    context 'with URI of reference and normal page' do
       let(:status) { Fabricate(:status, text: 'RT http://example.com/text http://example.com/html') }
+      let(:custom_before) { true }
+
+      before { Fabricate(:status, uri: 'http://example.com/text') }
 
       it 'creates preview card' do
+        subject.call(status)
         expect(status.preview_card).to_not be_nil
         expect(status.preview_card.url).to eq 'http://example.com/html'
         expect(status.preview_card.title).to eq 'Hello world'
       end
     end
 
-    context 'with URL but author is not allow preview card' do
-      let(:account) { Fabricate(:user, settings: { link_preview: false }).account }
-      let(:status) { Fabricate(:status, text: 'http://example.com/html', account: account) }
+    context 'with URI of reference' do
+      let(:status) { Fabricate(:status, text: 'RT http://example.com/text') }
+      let(:custom_before) { true }
 
-      it 'not create preview card' do
+      before { Fabricate(:status, uri: 'http://example.com/text') }
+
+      it 'does not create preview card' do
+        subject.call(status)
         expect(status.preview_card).to be_nil
+      end
+    end
+
+    context 'with URL of reference' do
+      let(:status) { Fabricate(:status, text: 'RT http://example.com/text') }
+      let(:custom_before) { true }
+
+      before { Fabricate(:status, uri: 'http://example.com/text/activity', url: 'http://example.com/text') }
+
+      it 'does not create preview card' do
+        subject.call(status)
+        expect(status.preview_card).to be_nil
+      end
+    end
+
+    context 'with reference normal URL' do
+      let(:status) { Fabricate(:status, text: 'RT http://example.com/html') }
+
+      it 'creates preview card' do
+        expect(status.preview_card).to_not be_nil
+        expect(status.preview_card.url).to eq 'http://example.com/html'
+        expect(status.preview_card.title).to eq 'Hello world'
       end
     end
   end
@@ -282,14 +304,6 @@ RSpec.describe FetchLinkCardService, type: :service do
     it 'ignores URLs to hashtags' do
       expect(a_request(:get, 'https://quitter.se/tag/wannacry')).to_not have_been_made
     end
-
-    context 'with URL but author is not allow preview card' do
-      let(:account) { Fabricate(:account, domain: 'example.com', settings: { link_preview: false }) }
-
-      it 'not create link preview' do
-        expect(status.preview_card).to be_nil
-      end
-    end
   end
 
   context 'with a remote status of reference' do
@@ -298,8 +312,12 @@ RSpec.describe FetchLinkCardService, type: :service do
       RT <a href="http://example.com/html" target="_blank" rel="noopener noreferrer" title="http://example.com/html">Hello</a>&nbsp;
       TEXT
     end
+    let(:custom_before) { true }
+
+    before { Fabricate(:status, uri: 'http://example.com/html') }
 
     it 'creates preview card' do
+      subject.call(status)
       expect(status.preview_card).to be_nil
     end
   end
@@ -311,8 +329,12 @@ RSpec.describe FetchLinkCardService, type: :service do
       <a href="http://example.com/html_sub" target="_blank" rel="noopener noreferrer" title="http://example.com/html_sub">Hello</a>&nbsp;
       TEXT
     end
+    let(:custom_before) { true }
+
+    before { Fabricate(:status, uri: 'http://example.com/html') }
 
     it 'creates preview card' do
+      subject.call(status)
       expect(status.preview_card).to_not be_nil
       expect(status.preview_card.url).to eq 'http://example.com/html_sub'
       expect(status.preview_card.title).to eq 'Hello world'
