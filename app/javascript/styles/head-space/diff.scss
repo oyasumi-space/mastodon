@@ -13,8 +13,9 @@ body * {
   0% {
     background-position-x: 1023px;
   }
+
   100% {
-    background-position-x: 0px;
+    background-position-x: 0;
   }
 }
 
@@ -28,6 +29,10 @@ body * {
 .column-header {
   background: $omori-background;
   backdrop-filter: $omori-backdrop-filter;
+}
+
+.column-back-button {
+  background: transparent;
 }
 
 .tabs-bar__wrapper {
@@ -50,6 +55,11 @@ body * {
 
 .notification__filter-bar {
   backdrop-filter: $omori-backdrop-filter;
+}
+
+.notification__filter-bar,
+.account__section-headline {
+  background: transparent;
 }
 
 .link-footer {
@@ -113,6 +123,7 @@ body * {
   &:hover,
   &.active {
     color: $ui-box-color;
+
     .privacy-dropdown__option__content {
       color: $ui-box-color;
 
@@ -136,7 +147,7 @@ body * {
 // .compose-form .spoiler-input__input::placeholder,
 // .report-dialog-modal__textarea::placeholder,
 .language-dropdown__dropdown__results__item__common-name {
-// .compose-form .icon-button {
+  // .compose-form .icon-button {
   color: $ui-box-color;
 }
 
@@ -150,9 +161,14 @@ body * {
 
 .search-popout {
   color: $black;
-  h4, li, ul, em {
+
+  h4,
+  li,
+  ul,
+  em {
     color: $black;
   }
+
   em {
     font-weight: bold;
   }
