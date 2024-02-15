@@ -483,7 +483,7 @@ GEM
       net-protocol
     net-ssh (7.1.0)
     nio4r (2.7.0)
-    nokogiri (1.16.0)
+    nokogiri (1.16.2)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     oj (3.16.3)
@@ -727,7 +727,7 @@ GEM
       rufus-scheduler (~> 3.2)
       sidekiq (>= 6, < 8)
       tilt (>= 1.4.0)
-    sidekiq-unique-jobs (7.1.30)
+    sidekiq-unique-jobs (7.1.33)
       brpoplpush-redis_script (> 0.1.1, <= 2.0.0)
       concurrent-ruby (~> 1.0, >= 1.0.5)
       redis (< 5.0)
