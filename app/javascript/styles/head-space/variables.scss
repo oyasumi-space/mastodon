@@ -7,7 +7,7 @@ $gold-star: #ca8f04 !default;
 
 $red-bookmark: $warning-red;
 
-$classic-base-color: #6c0eff;
+$classic-base-color: transparent;
 $classic-primary-color: #ffffff;
 $classic-secondary-color: #ffffff;
 $classic-highlight-color: #9ec5e2;
@@ -19,10 +19,10 @@ $simple-background-color: $white !default;
 $valid-value-color: $success-green !default;
 $error-value-color: $error-red !default;
 
-$ui-base-color: $classic-base-color !default;                  // Darkest
-$ui-base-lighter-color: $white !default;                       // Lighter darkest
-$ui-primary-color: $classic-primary-color !default;            // Lighter
-$ui-secondary-color: $classic-secondary-color !default;        // Lightest
+$ui-base-color: $classic-base-color !default; // Darkest
+$ui-base-lighter-color: $white !default; // Lighter darkest
+$ui-primary-color: $classic-primary-color !default; // Lighter
+$ui-secondary-color: $classic-secondary-color !default; // Lightest
 $ui-highlight-color: $classic-highlight-color !default;
 $ui-box-color: $black !default;
 $ui-box-lighter-color: lighten($ui-box-color, 26%) !default;
@@ -54,3 +54,13 @@ $font-monospace: 'mastodon-font-monospace' !default;
 
 $omori-backdrop-filter: blur(4px) !default;
 $omori-background: transparent !default;
+$mari: 1.43s;
+
+:root {
+  --dropdown-border-color: #{lighten($black, 12%)} !important;
+  --dropdown-background-color: #{lighten($black, 4%)} !important;
+  --dropdown-shadow: 0 20px 25px -5px #{rgba($base-shadow-color, 0.25)},
+    0 8px 10px -6px #{rgba($base-shadow-color, 0.25)} !important;
+  --modal-background-color: #{darken($black, 4%)} !important;
+  --modal-border-color: #{lighten($black, 4%)} !important;
+}

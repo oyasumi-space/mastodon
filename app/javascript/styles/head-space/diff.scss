@@ -1,8 +1,15 @@
 body {
+  background-color: #6c0eff;
   background-image: url('./head-space/images/space_parallax.png');
+  transition: background-image $mari;
   background-size: 1023px 397px !important;
   animation: space-parallax 32s infinite linear;
   image-rendering: pixelated;
+}
+
+body.admin {
+  background: url('./head-space/images/space_parallax.png');
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 body * {
@@ -32,7 +39,8 @@ body * {
 }
 
 .column-back-button {
-  background: transparent;
+  background: $omori-background;
+  backdrop-filter: $omori-backdrop-filter;
 }
 
 .tabs-bar__wrapper {
@@ -117,6 +125,37 @@ body * {
       background: lighten($black, 10%);
     }
   }
+
+  .autosuggest-input {
+    // border: 2px solid $black;
+    border-radius: 0;
+
+    .spoiler-input__input {
+      // border: 4px solid $white;
+      border-radius: 0;
+    }
+  }
+
+  .spoiler-input.spoiler-input--visible {
+    margin-bottom: 16px;
+  }
+
+  .compose-form__highlightable {
+    // border: 2px solid $black;
+    border-radius: 0;
+
+    .compose-form__autosuggest-wrapper {
+      // border: 4px solid $white;
+      // border-bottom: none;
+      border-radius: 0;
+    }
+
+    .compose-form__buttons-wrapper {
+      // border: 4px solid $white;
+      // border-top: none;
+      border-radius: 0;
+    }
+  }
 }
 
 .privacy-dropdown__option {
@@ -171,5 +210,126 @@ body * {
 
   em {
     font-weight: bold;
+  }
+}
+
+.simple_form {
+  select {
+    border: 2px solid $white;
+    border-radius: 0;
+
+    option {
+      color: $black;
+    }
+  }
+}
+
+.simple_form input[type='text'],
+.simple_form input[type='number'],
+.simple_form input[type='email'],
+.simple_form input[type='password'],
+.simple_form input[type='url'],
+.simple_form input[type='datetime-local'],
+.simple_form textarea {
+  border: 2px solid $white;
+  border-radius: 0;
+}
+
+.account__avatar {
+  img {
+    transition: opacity $mari;
+  }
+}
+
+.drawer__header {
+  backdrop-filter: $omori-backdrop-filter;
+}
+
+.drawer__inner__mastodon {
+  background-image: none;
+  transition: background-image $mari;
+  background-size: contain;
+
+  img {
+    transition: opacity $mari;
+  }
+}
+
+.status {
+  border-bottom: 1px solid #fff8;
+}
+
+html {
+  scrollbar-color: black white;
+}
+
+.rules-list {
+  li {
+    border-bottom: 1px solid #fff8;
+  }
+}
+
+.account {
+  border-bottom: 1px solid #fff8;
+}
+
+.react-toggle-track {
+  background-color: $black;
+}
+
+.simple_form {
+  .hint {
+    code {
+      background: #0008;
+    }
+  }
+
+  input[type='text'],
+  input[type='number'],
+  input[type='email'],
+  input[type='password'],
+  input[type='url'],
+  input[type='datetime-local'],
+  textarea {
+    border: 1px solid #fff8;
+
+    &:hover {
+      border-color: #fff;
+    }
+  }
+
+  select {
+    border: 1px solid #fff8;
+  }
+}
+
+/* April fools */
+
+body.april-fools,
+body.april-fools-force {
+  background-color: #fda6e7;
+  background-image: url('./head-space/images/sweet_parallax.png');
+  transition: background-image $mari;
+
+  .account__avatar {
+    img {
+      content: url('./head-space/images/sweetheart_ohohoho.png');
+    }
+  }
+
+  .drawer__inner__mastodon {
+    background-image: url('./head-space/images/sweetheart_mascot.png');
+    transition: background-image $mari;
+
+    img {
+      opacity: 0;
+      transition: opacity $mari;
+    }
+  }
+
+  .announcements {
+    img.announcements__mastodon {
+      content: url('./head-space/images/sweetheart_mascot.png');
+    }
   }
 }

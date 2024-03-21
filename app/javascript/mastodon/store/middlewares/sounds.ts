@@ -40,11 +40,31 @@ export const soundsMiddleware = (): Middleware<unknown, RootState> => {
   void ready(() => {
     soundCache.boop = createAudio([
       {
+        src: `${assetHost}/sounds/boop.ogg`,
+        type: 'audio/ogg',
+      },
+      {
+        src: `${assetHost}/sounds/boop.mp3`,
+        type: 'audio/mpeg',
+      },
+    ]);
+    soundCache.select = createAudio([
+      {
         src: `${assetHost}/sounds/select.ogg`,
         type: 'audio/ogg',
       },
       {
         src: `${assetHost}/sounds/select.mp3`,
+        type: 'audio/mpeg',
+      },
+    ]);
+    soundCache.ohoho = createAudio([
+      {
+        src: `${assetHost}/sounds/ohoho.ogg`,
+        type: 'audio/ogg',
+      },
+      {
+        src: `${assetHost}/sounds/ohoho.mp3`,
         type: 'audio/mpeg',
       },
     ]);

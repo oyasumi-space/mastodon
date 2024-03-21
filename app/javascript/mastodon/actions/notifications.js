@@ -99,14 +99,14 @@ export function updateNotifications(notification, intlMessages, intlLocale) {
         type: NOTIFICATIONS_UPDATE,
         notification,
         usePendingItems: preferPendingItems,
-        meta: (playSound && !filtered) ? { sound: 'boop' } : undefined,
+        meta: (playSound && !filtered) ? { sound: isAprilFools() ? 'ohoho' : 'select' } : undefined,
       });
 
       fetchRelatedRelationships(dispatch, [notification]);
     } else if (playSound && !filtered) {
       dispatch({
         type: NOTIFICATIONS_UPDATE_NOOP,
-        meta: { sound: 'boop' },
+        meta: { sound: isAprilFools() ? 'ohoho' : 'select' },
       });
     }
 
@@ -314,4 +314,8 @@ export function setBrowserPermission (value) {
     type: NOTIFICATIONS_SET_BROWSER_PERMISSION,
     value,
   };
+}
+
+function isAprilFools() {
+  return document.body.classList.contains("april-fools");
 }
