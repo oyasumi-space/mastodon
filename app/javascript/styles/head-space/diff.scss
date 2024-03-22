@@ -7,11 +7,6 @@ body {
   image-rendering: pixelated;
 }
 
-body.admin {
-  background: url('./head-space/images/space_parallax.png');
-  backdrop-filter: $omori-backdrop-filter;
-}
-
 body * {
   image-rendering: auto;
 }
@@ -331,5 +326,17 @@ body.april-fools-force {
     img.announcements__mastodon {
       content: url('./head-space/images/sweetheart_mascot.png');
     }
+  }
+}
+
+body.admin {
+  background: url('./head-space/images/space_parallax.png');
+
+  .content-wrapper {
+    backdrop-filter: $omori-backdrop-filter;
+  }
+
+  .sidebar > ul {
+    backdrop-filter: $omori-backdrop-filter;
   }
 }
