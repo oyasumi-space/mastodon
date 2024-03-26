@@ -337,7 +337,7 @@ export function uploadCompose(files) {
         if (status === 200) {
           dispatch(uploadComposeSuccess(data, file));
 
-          if (defaultSensitive && !spoiler) {
+          if (defaultSensitive && !spoiler && (media.size + i) === 0) {
             dispatch(changeComposeSpoilerness());
           }
         } else if (status === 202) {
