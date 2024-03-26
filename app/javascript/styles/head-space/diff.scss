@@ -7,6 +7,11 @@ body {
   image-rendering: pixelated;
 }
 
+body.lighter {
+  background-color: #6c0eff;
+  background-image: url('./head-space/images/space_parallax.png');
+}
+
 body * {
   image-rendering: auto;
 }
@@ -300,6 +305,14 @@ html {
   select {
     border: 1px solid #fff8;
   }
+}
+
+.container-alt {
+  backdrop-filter: $omori-backdrop-filter;
+}
+
+.rules-list li::before {
+  color: $black;
 }
 
 /* April fools */
