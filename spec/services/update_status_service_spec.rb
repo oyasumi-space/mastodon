@@ -279,7 +279,7 @@ RSpec.describe UpdateStatusService, type: :service do
 
     it 'bypass ng words' do
       text = 'ng word test'
-      Fabricate(:ng_word, keyword: 'test', stranger: false)
+      Form::AdminSettings.new(ng_words: 'test').save
 
       expect { subject.call(status, status.account_id, text: text, bypass_validation: true) }.to_not raise_error
     end
