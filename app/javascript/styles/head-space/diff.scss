@@ -315,6 +315,11 @@ html {
   color: $black;
 }
 
+.search-results {
+  backdrop-filter: $omori-backdrop-filter;
+  background-color: rgba(0, 0, 0, 50%);
+}
+
 /* April fools */
 
 body.april-fools,
