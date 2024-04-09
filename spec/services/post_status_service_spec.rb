@@ -666,8 +666,7 @@ RSpec.describe PostStatusService, type: :service do
     it 'does not hit ng words for mention to self' do
       account = Fabricate(:account, username: 'cool', domain: nil)
       text = 'ng word test @cool'
-      Form::AdminSettings.new(stranger_mention_from_local_ng: '1').save
-      Fabricate(:ng_word, keyword: 'test', stranger: true)
+      Form::AdminSettings.new(ng_words_for_stranger_mention: 'test', stranger_mention_from_local_ng: '1').save
 
       status = subject.call(account, text: text)
 
@@ -737,8 +736,7 @@ RSpec.describe PostStatusService, type: :service do
       target_status = Fabricate(:status)
       account = target_status.account
       text = "ng word test BT: #{ActivityPub::TagManager.instance.uri_for(target_status)}"
-      Form::AdminSettings.new(stranger_mention_from_local_ng: '1').save
-      Fabricate(:ng_word, keyword: 'test', stranger: true)
+      Form::AdminSettings.new(ng_words_for_stranger_mention: 'test', stranger_mention_from_local_ng: '1').save
 
       status = subject.call(account, text: text)
 
