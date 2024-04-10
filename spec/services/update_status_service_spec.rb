@@ -277,6 +277,13 @@ RSpec.describe UpdateStatusService, type: :service do
       expect { subject.call(status, status.account_id, text: text) }.to raise_error(Mastodon::ValidationError)
     end
 
+    it 'bypass ng words' do
+      text = 'ng word test'
+      Form::AdminSettings.new(ng_words: 'test').save
+
+      expect { subject.call(status, status.account_id, text: text, bypass_validation: true) }.to_not raise_error
+    end
+
     it 'not hit ng words' do
       text = 'ng word aiueo'
       Form::AdminSettings.new(ng_words: 'test').save
