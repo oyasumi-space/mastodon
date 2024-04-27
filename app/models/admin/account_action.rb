@@ -52,9 +52,8 @@ class Admin::AccountAction
       process_reports!
     end
 
-    process_email!
+    process_notification!
     process_queue!
-    notify!
   end
 
   def report
@@ -108,10 +107,6 @@ class Admin::AccountAction
     log_action(:create, @warning) if @warning.text.present? && type == 'none'
   end
 
-  def notify!
-    LocalNotificationWorker.perform_async(target_account.id, @warning.id, 'AccountWarning', 'warning') if @warning && %w(none sensitive silence).include?(type)
-  end
-
   def process_reports!
     # If we're doing "mark as resolved" on a single report,
     # then we want to keep other reports open in case they
@@ -163,8 +158,11 @@ class Admin::AccountAction
     queue_suspension_worker! if type == 'suspend'
   end
 
-  def process_email!
-    UserMailer.warning(target_account.user, warning).deliver_later! if warnable?
+  def process_notification!
+    return unless warnable?
+
+    UserMailer.warning(target_account.user, warning).deliver_later!
+    LocalNotificationWorker.perform_async(target_account.id, warning.id, 'AccountWarning', 'moderation_warning')
   end
 
   def warnable?

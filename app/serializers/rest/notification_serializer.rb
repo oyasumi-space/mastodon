@@ -3,15 +3,13 @@
 class REST::NotificationSerializer < ActiveModel::Serializer
   attributes :id, :type, :created_at
 
-  has_many :statuses, serializer: REST::StatusSerializer, if: :warning_type?
-
-  belongs_to :from_account_web, key: :account, serializer: REST::AccountSerializer
+  belongs_to :from_account, key: :account, serializer: REST::AccountSerializer
   belongs_to :target_status, key: :status, if: :status_type?, serializer: REST::StatusSerializer
   belongs_to :report, if: :report_type?, serializer: REST::ReportSerializer
   belongs_to :emoji_reaction, if: :emoji_reaction_type?, serializer: REST::NotifyEmojiReactionSerializer
-  belongs_to :account_warning, if: :warning_type?, serializer: REST::AccountWarningSerializer
   belongs_to :list, if: :list_status_type?, serializer: REST::ListSerializer
   belongs_to :account_relationship_severance_event, key: :event, if: :relationship_severance_event?, serializer: REST::AccountRelationshipSeveranceEventSerializer
+  belongs_to :account_warning, key: :moderation_warning, if: :moderation_warning_event?, serializer: REST::AccountWarningSerializer
 
   def id
     object.id.to_s
@@ -23,10 +21,6 @@ class REST::NotificationSerializer < ActiveModel::Serializer
 
   def report_type?
     object.type == :'admin.report'
-  end
-
-  def warning_type?
-    object.type == :warning
   end
 
   def emoji_reaction_type?
@@ -45,7 +39,7 @@ class REST::NotificationSerializer < ActiveModel::Serializer
     object.type == :severed_relationships
   end
 
-  def statuses
-    Status.where(id: object.account_warning.status_ids).to_a
+  def moderation_warning_event?
+    object.type == :moderation_warning
   end
 end

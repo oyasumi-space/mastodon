@@ -10,7 +10,6 @@ import ImmutablePureComponent from 'react-immutable-pure-component';
 
 import { HotKeys } from 'react-hotkeys';
 
-import DangerousIcon from '@/material-icons/400-24px/dangerous-fill.svg?react';
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import FlagIcon from '@/material-icons/400-24px/flag-fill.svg?react';
 import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
@@ -30,6 +29,7 @@ import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import FollowRequestContainer from '../containers/follow_request_container';
 
+import { ModerationWarning } from './moderation_warning';
 import { RelationshipsSeveranceEvent } from './relationships_severance_event';
 import Report from './report';
 
@@ -44,18 +44,10 @@ const messages = defineMessages({
   listStatus: { id: 'notification.list_status', defaultMessage: '{name} post is added on {listName}' },
   statusReference: { id: 'notification.status_reference', defaultMessage: '{name} refered your post' },
   update: { id: 'notification.update', defaultMessage: '{name} edited a post' },
-  warning: { id: 'notification.warning', defaultMessage: 'You have been warned and did something. Check your mailbox' },
-  warning_none: { id: 'notification.warning.none', defaultMessage: 'You have been warned. Check your mailbox.' },
-  warning_disable: { id: 'notification.warning.disable', defaultMessage: 'You have been warned and disabled account. Check your mailbox.' },
-  warning_force_cw: { id: 'notification.warning.force_cw', defaultMessage: 'You have been warned and one or more statuses have been added warning messages. Check your mailbox.' },
-  warning_mark_statuses_as_sensitive: { id: 'notification.warning.mark_statuses_as_sensitive', defaultMessage: 'You have been warned and some statuses have been marked as sensitive. Check your mailbox.' },
-  warning_delete_statuses: { id: 'notification.warning.delete_statuses', defaultMessage: 'You have been warned and one or more statuses have been deleted. Check your mailbox.' },
-  warning_sensitive: { id: 'notification.warning.sensitive', defaultMessage: 'You have been warned and your account has been marked as sensitive. Check your mailbox.' },
-  warning_silence: { id: 'notification.warning.silence', defaultMessage: 'You have been warned and your account has been silenced. Check your mailbox.' },
-  warning_suspend: { id: 'notification.warning.suspend', defaultMessage: 'You have been warned and your account has been suspended. Check your mailbox.' },
   adminSignUp: { id: 'notification.admin.sign_up', defaultMessage: '{name} signed up' },
   adminReport: { id: 'notification.admin.report', defaultMessage: '{name} reported {target}' },
   relationshipsSevered: { id: 'notification.relationships_severance_event', defaultMessage: 'Lost connections with {name}' },
+  moderationWarning: { id: 'notification.moderation_warning', defaultMessage: 'Your have received a moderation warning' },
 });
 
 const notificationForScreenReader = (intl, message, timestamp) => {
@@ -482,47 +474,6 @@ class Notification extends ImmutablePureComponent {
       </HotKeys>
     );
   }
-
-  renderWarning (notification) {
-    const { intl, unread } = this.props;
-
-    const preMessageKey = `warning_${notification.getIn(['account_warning', 'action'])}`;
-    const messageKey = Object.keys(messages).includes(preMessageKey) ? preMessageKey : 'warning';
-    const text = notification.getIn(['account_warning', 'text']);
-
-    return (
-      <HotKeys handlers={this.getHandlers()}>
-        <div className={classNames('notification notification-warning focusable', { unread })} tabIndex={0} aria-label={notificationForScreenReader(intl, intl.formatMessage(messages.statusReference, { name: notification.getIn(['account', 'acct']) }), notification.get('created_at'))}>
-          <div className='notification__message'>
-            <div className='notification__favourite-icon-wrapper'>
-              <Icon id='exclamation-triangle' icon={DangerousIcon} className='star-icon' fixedWidth />
-            </div>
-
-            <span title={notification.get('created_at')}>
-              {intl.formatMessage(messages[messageKey])}
-            </span>
-          </div>
-
-          {text && <div className='notification__warning-text'>{text}</div>}
-
-          {notification.get('statuses').map((status_id) => (
-            <StatusContainer
-              key={status_id}
-              id={status_id}
-              muted
-              withDismiss
-              hidden={!!this.props.hidden}
-              getScrollPosition={this.props.getScrollPosition}
-              updateScrollBottom={this.props.updateScrollBottom}
-              cachedMediaWidth={this.props.cachedMediaWidth}
-              cacheMediaWidth={this.props.cacheMediaWidth}
-              withoutEmojiReactions
-            />
-          ))}
-        </div>
-      </HotKeys>
-    );
-  }
   
   renderRelationshipsSevered (notification) {
     const { intl, unread, hidden } = this.props;
@@ -540,6 +491,27 @@ class Notification extends ImmutablePureComponent {
             target={event.get('target_name')}
             followersCount={event.get('followers_count')}
             followingCount={event.get('following_count')}
+            hidden={hidden}
+          />
+        </div>
+      </HotKeys>
+    );
+  }
+
+  renderModerationWarning (notification) {
+    const { intl, unread, hidden } = this.props;
+    const warning = notification.get('moderation_warning');
+
+    if (!warning) {
+      return null;
+    }
+
+    return (
+      <HotKeys handlers={this.getHandlers()}>
+        <div className={classNames('notification notification-moderation-warning focusable', { unread })} tabIndex={0} aria-label={notificationForScreenReader(intl, intl.formatMessage(messages.moderationWarning), notification.get('created_at'))}>
+          <ModerationWarning
+            action={warning.get('action')}
+            id={warning.get('id')}
             hidden={hidden}
           />
         </div>
@@ -626,10 +598,10 @@ class Notification extends ImmutablePureComponent {
       return this.renderUpdate(notification, link);
     case 'poll':
       return this.renderPoll(notification, account);
-    case 'warning':
-      return this.renderWarning(notification);
     case 'severed_relationships':
       return this.renderRelationshipsSevered(notification);
+    case 'moderation_warning':
+      return this.renderModerationWarning(notification);
     case 'admin.sign_up':
       return this.renderAdminSignUp(notification, account, link);
     case 'admin.report':

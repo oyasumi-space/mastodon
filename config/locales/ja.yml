@@ -1500,6 +1500,7 @@ ja:
       title_actions:
         delete_statuses: 投稿の削除
         disable: アカウント凍結
+        force_cw: 投稿に警告文を追加
         mark_statuses_as_sensitive: 投稿を閲覧注意としてマーク
         none: 警告
         sensitive: アカウントを閲覧注意としてマーク

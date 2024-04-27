@@ -133,9 +133,6 @@ export function updateNotifications(notification, intlMessages, intlLocale) {
       if (notification.status) {
         dispatch(importFetchedStatus(notification.status));
       }
-      if (notification.statuses) {
-        dispatch(importFetchedStatuses(notification.statuses));
-      }
 
       if (notification.report) {
         dispatch(importFetchedAccount(notification.report.target_account));
@@ -182,7 +179,6 @@ const excludeTypesFromFilter = filter => {
     'status',
     'list_status',
     'update',
-    'account_warning',
     'admin.sign_up',
     'admin.report',
   ]);
@@ -241,10 +237,7 @@ export function expandNotifications({ maxId, forceLoad } = {}, done = noOp) {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
 
       dispatch(importFetchedAccounts(response.data.map(item => item.account)));
-      dispatch(importFetchedStatuses(
-        response.data.map(item => item.status).filter(status => !!status)
-          .concat(response.data.flatMap(item => item.statuses || []))
-      ));
+      dispatch(importFetchedStatuses(response.data.map(item => item.status).filter(status => !!status)));
       dispatch(importFetchedAccounts(response.data.filter(item => item.report).map(item => item.report.target_account)));
 
       dispatch(expandNotificationsSuccess(response.data, next ? next.uri : null, isLoadingMore, isLoadingRecent, isLoadingRecent && preferPendingItems));
