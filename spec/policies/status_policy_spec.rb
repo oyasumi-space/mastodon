@@ -57,6 +57,34 @@ RSpec.describe StatusPolicy, type: :model do
         expect(subject).to_not permit(viewer, status)
       end
 
+      it 'grants access when limited and account is viewer' do
+        status.visibility = :limited
+
+        expect(subject).to permit(status.account, status)
+      end
+
+      it 'grants access when limited and viewer is mentioned' do
+        status.visibility = :limited
+        status.mentions = [Fabricate(:mention, account: alice)]
+
+        expect(subject).to permit(alice, status)
+      end
+
+      it 'grants access when limited and non-owner viewer is mentioned and mentions are loaded' do
+        status.visibility = :limited
+        status.mentions = [Fabricate(:mention, account: bob)]
+        status.mentions.load
+
+        expect(subject).to permit(bob, status)
+      end
+
+      it 'denies access when limited and viewer is not mentioned' do
+        viewer = Fabricate(:account)
+        status.visibility = :limited
+
+        expect(subject).to_not permit(viewer, status)
+      end
+
       it 'grants access when private and account is viewer' do
         status.visibility = :private
 

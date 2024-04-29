@@ -5,7 +5,9 @@ class ActivityPub::EmojiSerializer < ActivityPub::Serializer
 
   context_extensions :emoji
 
-  attributes :id, :type, :name, :updated
+  attributes :id, :type, :name, :is_sensitive, :updated
+
+  attribute :license, if: -> { object.license.present? }
 
   has_one :icon, serializer: ActivityPub::ImageSerializer
 

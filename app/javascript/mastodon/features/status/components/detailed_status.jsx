@@ -13,11 +13,13 @@ import EditedTimestamp from 'mastodon/components/edited_timestamp';
 import { getHashtagBarForStatus } from 'mastodon/components/hashtag_bar';
 import { Icon }  from 'mastodon/components/icon';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
+import { enableEmojiReaction } from 'mastodon/initial_state';
 
 import { Avatar } from '../../../components/avatar';
 import { DisplayName } from '../../../components/display_name';
 import MediaGallery from '../../../components/media_gallery';
 import StatusContent from '../../../components/status_content';
+import StatusEmojiReactionsBar from '../../../components/status_emoji_reactions_bar';
 import Audio from '../../audio';
 import scheduleIdleTask from '../../ui/util/schedule_idle_task';
 import Video from '../../video';
@@ -27,8 +29,17 @@ import Card from './card';
 const messages = defineMessages({
   public_short: { id: 'privacy.public.short', defaultMessage: 'Public' },
   unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Unlisted' },
+  public_unlisted_short: { id: 'privacy.public_unlisted.short', defaultMessage: 'Public unlisted' },
+  login_short: { id: 'privacy.login.short', defaultMessage: 'Login only' },
   private_short: { id: 'privacy.private.short', defaultMessage: 'Followers only' },
+  limited_short: { id: 'privacy.limited.short', defaultMessage: 'Limited menbers only' },
+  mutual_short: { id: 'privacy.mutual.short', defaultMessage: 'Mutual followers only' },
+  circle_short: { id: 'privacy.circle.short', defaultMessage: 'Circle members only' },
   direct_short: { id: 'privacy.direct.short', defaultMessage: 'Mentioned people only' },
+  searchability_public_short: { id: 'searchability.public.short', defaultMessage: 'Public' },
+  searchability_private_short: { id: 'searchability.unlisted.short', defaultMessage: 'Followers' },
+  searchability_direct_short: { id: 'searchability.private.short', defaultMessage: 'Reactionners' },
+  searchability_limited_short: { id: 'searchability.direct.short', defaultMessage: 'Self only' },
 });
 
 class DetailedStatus extends ImmutablePureComponent {
@@ -53,6 +64,8 @@ class DetailedStatus extends ImmutablePureComponent {
       available: PropTypes.bool,
     }),
     onToggleMediaVisibility: PropTypes.func,
+    onEmojiReact: PropTypes.func,
+    onUnEmojiReact: PropTypes.func,
   };
 
   state = {
@@ -146,10 +159,13 @@ class DetailedStatus extends ImmutablePureComponent {
     }
 
     let media           = '';
+    let isCardMediaWithSensitive = false;
     let applicationLink = '';
     let reblogLink = '';
     let reblogIcon = 'retweet';
     let favouriteLink = '';
+    let emojiReactionsLink = '';
+    let statusReferencesLink = '';
     let edited = '';
 
     if (this.props.measureHeight) {
@@ -217,8 +233,18 @@ class DetailedStatus extends ImmutablePureComponent {
           />
         );
       }
-    } else if (status.get('spoiler_text').length === 0) {
-      media = <Card sensitive={status.get('sensitive')} onOpenMedia={this.props.onOpenMedia} card={status.get('card', null)} />;
+    } else if (status.get('card')) {
+      media = <Card sensitive={status.get('sensitive') && !status.get('spoiler_text')} onOpenMedia={this.props.onOpenMedia} card={status.get('card', null)} />;
+      isCardMediaWithSensitive = status.get('spoiler_text').length > 0;
+    }
+
+    let emojiReactionsBar = null;
+    if (status.get('emoji_reactions')) {
+      const emojiReactions = status.get('emoji_reactions');
+      const emojiReactionPolicy = status.getIn(['account', 'other_settings', 'emoji_reaction_policy']) || 'allow';
+      if (emojiReactions.size > 0 && enableEmojiReaction && emojiReactionPolicy !== 'block') {
+        emojiReactionsBar = <StatusEmojiReactionsBar emojiReactions={emojiReactions} status={status} onEmojiReact={this.props.onEmojiReact} onUnEmojiReact={this.props.onUnEmojiReact} />;
+      }
     }
 
     if (status.get('application')) {
@@ -228,14 +254,29 @@ class DetailedStatus extends ImmutablePureComponent {
     const visibilityIconInfo = {
       'public': { icon: 'globe', text: intl.formatMessage(messages.public_short) },
       'unlisted': { icon: 'unlock', text: intl.formatMessage(messages.unlisted_short) },
+      'public_unlisted': { icon: 'cloud', text: intl.formatMessage(messages.public_unlisted_short) },
+      'login': { icon: 'key', text: intl.formatMessage(messages.login_short) },
       'private': { icon: 'lock', text: intl.formatMessage(messages.private_short) },
+      'limited': { icon: 'get-pocket', text: intl.formatMessage(messages.limited_short) },
+      'mutual': { icon: 'exchange', text: intl.formatMessage(messages.mutual_short) },
+      'circle': { icon: 'user-circle', text: intl.formatMessage(messages.circle_short) },
       'direct': { icon: 'at', text: intl.formatMessage(messages.direct_short) },
     };
 
-    const visibilityIcon = visibilityIconInfo[status.get('visibility')];
+    const visibilityIcon = visibilityIconInfo[status.get('limited_scope') || status.get('visibility_ex')];
     const visibilityLink = <> · <Icon id={visibilityIcon.icon} title={visibilityIcon.text} /></>;
 
-    if (['private', 'direct'].includes(status.get('visibility'))) {
+    const searchabilityIconInfo = {
+      'public': { icon: 'globe', text: intl.formatMessage(messages.searchability_public_short) },
+      'private': { icon: 'unlock', text: intl.formatMessage(messages.searchability_private_short) },
+      'direct': { icon: 'lock', text: intl.formatMessage(messages.searchability_direct_short) },
+      'limited': { icon: 'at', text: intl.formatMessage(messages.searchability_limited_short) },
+    };
+
+    const searchabilityIcon = searchabilityIconInfo[status.get('searchability')];
+    const searchabilityLink = <> · <Icon id={searchabilityIcon.icon} title={searchabilityIcon.text} /></>;
+
+    if (['private', 'direct'].includes(status.get('visibility_ex'))) {
       reblogLink = '';
     } else if (this.context.router) {
       reblogLink = (
@@ -283,6 +324,46 @@ class DetailedStatus extends ImmutablePureComponent {
       );
     }
 
+    if (this.context.router) {
+      emojiReactionsLink = (
+        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/emoji_reactions`} className='detailed-status__link'>
+          <Icon id='smile-o' />
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('emoji_reactions_count')} />
+          </span>
+        </Link>
+      );
+    } else {
+      emojiReactionsLink = (
+        <a href={`/interact/${status.get('id')}?type=emoji_reactions`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <Icon id='smile-o' />
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('emoji_reactions_count')} />
+          </span>
+        </a>
+      );
+    }
+
+    if (this.context.router) {
+      statusReferencesLink = (
+        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/references`} className='detailed-status__link'>
+          <Icon id='link' />
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('status_referred_by_count')} />
+          </span>
+        </Link>
+      );
+    } else {
+      statusReferencesLink = (
+        <a href={`/interact/${status.get('id')}?type=references`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <Icon id='link' />
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('status_referred_by_count')} />
+          </span>
+        </a>
+      );
+    }
+
     if (status.get('edited_at')) {
       edited = (
         <>
@@ -298,7 +379,7 @@ class DetailedStatus extends ImmutablePureComponent {
     return (
       <div style={outerStyle}>
         <div ref={this.setRef} className={classNames('detailed-status', { compact })}>
-          {status.get('visibility') === 'direct' && (
+          {status.get('visibility_ex') === 'direct' && (
             <div className='status__prepend'>
               <div className='status__prepend-icon-wrapper'><Icon id='at' className='status__prepend-icon' fixedWidth /></div>
               <FormattedMessage id='status.direct_indicator' defaultMessage='Private mention' />
@@ -317,14 +398,16 @@ class DetailedStatus extends ImmutablePureComponent {
             {...statusContentProps}
           />
 
-          {media}
+          {(!isCardMediaWithSensitive || !status.get('hidden')) && media}
 
-          {expanded && hashtagBar}
+          {(!status.get('spoiler_text') || expanded) && hashtagBar}
+
+          {emojiReactionsBar}
 
           <div className='detailed-status__meta'>
             <a className='detailed-status__datetime' href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} target='_blank' rel='noopener noreferrer'>
               <FormattedDate value={new Date(status.get('created_at'))} hour12={false} year='numeric' month='short' day='2-digit' hour='2-digit' minute='2-digit' />
-            </a>{edited}{visibilityLink}{applicationLink}{reblogLink} · {favouriteLink}
+            </a>{edited}{visibilityLink}{searchabilityLink}{applicationLink}{reblogLink} · {favouriteLink} · {emojiReactionsLink} - {statusReferencesLink}
           </div>
         </div>
       </div>

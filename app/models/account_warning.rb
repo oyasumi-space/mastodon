@@ -20,6 +20,7 @@ class AccountWarning < ApplicationRecord
   enum action: {
     none: 0,
     disable: 1_000,
+    force_cw: 1_200,
     mark_statuses_as_sensitive: 1_250,
     delete_statuses: 1_500,
     sensitive: 2_000,

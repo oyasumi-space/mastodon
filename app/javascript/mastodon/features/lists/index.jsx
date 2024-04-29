@@ -22,6 +22,7 @@ import NewListForm from './components/new_list_form';
 const messages = defineMessages({
   heading: { id: 'column.lists', defaultMessage: 'Lists' },
   subheading: { id: 'lists.subheading', defaultMessage: 'Your lists' },
+  with_antenna: { id: 'lists.with_antenna', defaultMessage: 'Antenna' },
 });
 
 const getOrderedLists = createSelector([state => state.get('lists')], lists => {
@@ -76,7 +77,8 @@ class Lists extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {lists.map(list =>
-            <ColumnLink key={list.get('id')} to={`/lists/${list.get('id')}`} icon='list-ul' text={list.get('title')} />,
+            (<ColumnLink key={list.get('id')} to={`/lists/${list.get('id')}`} icon='list-ul' text={list.get('title')}
+            badge={(list.get('antennas') && list.get('antennas').size > 0) ? intl.formatMessage(messages.with_antenna) : undefined} />),
           )}
         </ScrollableList>
 

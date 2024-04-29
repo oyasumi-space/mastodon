@@ -24,4 +24,12 @@ class ActivityPub::Parser::CustomEmojiParser
   rescue ArgumentError
     nil
   end
+
+  def is_sensitive # rubocop:disable Naming/PredicateName
+    (@json['isSensitive'].presence || false)
+  end
+
+  def license
+    @json['license'] || @json['licence']
+  end
 end

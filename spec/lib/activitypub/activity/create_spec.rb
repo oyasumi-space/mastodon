@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe ActivityPub::Activity::Create do
-  let(:sender) { Fabricate(:account, followers_url: 'http://example.com/followers', domain: 'example.com', uri: 'https://example.com/actor') }
+  let(:sender_bio) { '' }
+  let(:sender) { Fabricate(:account, followers_url: 'http://example.com/followers', domain: 'example.com', uri: 'https://example.com/actor', note: sender_bio) }
 
   let(:json) do
     {
@@ -130,8 +131,12 @@ RSpec.describe ActivityPub::Activity::Create do
     context 'when fetching' do
       subject { described_class.new(json, sender) }
 
+      let(:sender_software) { 'mastodon' }
+      let(:custom_before) { false }
+
       before do
-        subject.perform
+        Fabricate(:instance_info, domain: 'example.com', software: sender_software)
+        subject.perform unless custom_before
       end
 
       context 'when object publication date is below ISO8601 range' do
@@ -427,11 +432,56 @@ RSpec.describe ActivityPub::Activity::Create do
 
           expect(status).to_not be_nil
           expect(status.visibility).to eq 'limited'
+          expect(status.limited_scope).to eq 'none'
         end
 
         it 'creates silent mention' do
           status = sender.statuses.first
           expect(status.mentions.first).to be_silent
+        end
+      end
+
+      context 'when limited_scope' do
+        let(:recipient) { Fabricate(:account) }
+
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            to: ActivityPub::TagManager.instance.uri_for(recipient),
+            limitedScope: 'Mutual',
+          }
+        end
+
+        it 'creates status' do
+          status = sender.statuses.first
+
+          expect(status).to_not be_nil
+          expect(status.visibility).to eq 'limited'
+          expect(status.limited_scope).to eq 'mutual'
+        end
+      end
+
+      context 'when invalid limited_scope' do
+        let(:recipient) { Fabricate(:account) }
+
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            to: ActivityPub::TagManager.instance.uri_for(recipient),
+            limitedScope: 'IdosdsazsF',
+          }
+        end
+
+        it 'creates status' do
+          status = sender.statuses.first
+
+          expect(status).to_not be_nil
+          expect(status.visibility).to eq 'limited'
+          expect(status.limited_scope).to eq 'none'
         end
       end
 
@@ -456,6 +506,230 @@ RSpec.describe ActivityPub::Activity::Create do
 
           expect(status).to_not be_nil
           expect(status.visibility).to eq 'direct'
+        end
+      end
+
+      context 'when searchability' do
+        let(:searchable_by) { 'https://www.w3.org/ns/activitystreams#Public' }
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            to: 'https://www.w3.org/ns/activitystreams#Public',
+            searchableBy: searchable_by,
+          }
+        end
+
+        context 'with explicit public address' do
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'public'
+          end
+        end
+
+        context 'with public with as:Public' do
+          let(:searchable_by) { 'as:Public' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'public'
+          end
+        end
+
+        context 'with public with Public' do
+          let(:searchable_by) { 'Public' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'public'
+          end
+        end
+
+        context 'with private' do
+          let(:searchable_by) { 'http://example.com/followers' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'private'
+          end
+        end
+
+        context 'with direct' do
+          let(:searchable_by) { '' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'direct'
+          end
+        end
+
+        context 'with direct when not specify' do
+          let(:searchable_by) { nil }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to be_nil
+          end
+        end
+
+        context 'with limited' do
+          let(:searchable_by) { 'kmyblue:Limited' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'limited'
+          end
+        end
+
+        context 'with limited old spec' do
+          let(:searchable_by) { 'as:Limited' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'limited'
+          end
+        end
+
+        context 'with bio' do
+          let(:searchable_by) { nil }
+
+          context 'with public' do
+            let(:sender_bio) { '#searchable_by_all_users' }
+
+            it 'create status' do
+              status = sender.statuses.first
+
+              expect(status).to_not be_nil
+              expect(status.searchability).to eq 'public'
+            end
+          end
+
+          context 'with private' do
+            let(:sender_bio) { '#searchable_by_followers_only' }
+
+            it 'create status' do
+              status = sender.statuses.first
+
+              expect(status).to_not be_nil
+              expect(status.searchability).to eq 'private'
+            end
+          end
+
+          context 'with direct' do
+            let(:sender_bio) { '#searchable_by_reacted_users_only' }
+
+            it 'create status' do
+              status = sender.statuses.first
+
+              expect(status).to_not be_nil
+              expect(status.searchability).to eq 'direct'
+            end
+          end
+
+          context 'with limited' do
+            let(:sender_bio) { '#searchable_by_nobody' }
+
+            it 'create status' do
+              status = sender.statuses.first
+
+              expect(status).to_not be_nil
+              expect(status.searchability).to eq 'limited'
+            end
+          end
+
+          context 'without hashtags' do
+            let(:sender_bio) { '' }
+
+            it 'create status' do
+              status = sender.statuses.first
+
+              expect(status).to_not be_nil
+              expect(status.searchability).to be_nil
+            end
+          end
+        end
+      end
+
+      context 'when searchability from misskey server' do
+        let(:sender_software) { 'misskey' }
+        let(:to) { 'https://www.w3.org/ns/activitystreams#Public' }
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            to: to,
+          }
+        end
+
+        context 'without specify searchability from misskey' do
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'public'
+          end
+        end
+
+        context 'without specify searchability from misskey which visibility is private' do
+          let(:to) { 'http://example.com/followers' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'limited'
+          end
+        end
+      end
+
+      context 'with multible searchabilities' do
+        let(:sender_bio) { '#searchable_by_nobody' }
+        let(:searchable_by) { 'https://www.w3.org/ns/activitystreams#Public' }
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            to: 'https://www.w3.org/ns/activitystreams#Public',
+            searchableBy: searchable_by,
+          }
+        end
+
+        it 'create status' do
+          status = sender.statuses.first
+
+          expect(status).to_not be_nil
+          expect(status.searchability).to eq 'public'
+        end
+
+        context 'with misskey' do
+          let(:sender_software) { 'misskey' }
+          let(:searchable_by) { 'kmyblue:Limited' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to eq 'limited'
+          end
         end
       end
 
@@ -524,6 +798,80 @@ RSpec.describe ActivityPub::Activity::Create do
         it 'creates status' do
           status = sender.statuses.first
           expect(status).to_not be_nil
+        end
+      end
+
+      context 'with mentions domain block reject_reply' do
+        before do
+          Fabricate(:domain_block, domain: 'example.com', severity: :noop, reject_reply: true)
+          subject.perform
+        end
+
+        let(:custom_before) { true }
+        let(:recipient) { Fabricate(:account) }
+
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            tag: [
+              {
+                type: 'Mention',
+                href: ActivityPub::TagManager.instance.uri_for(recipient),
+              },
+            ],
+          }
+        end
+
+        it 'creates status' do
+          status = sender.statuses.first
+
+          expect(status).to be_nil
+        end
+      end
+
+      context 'with mentions domain block reject_reply_exclude_followers' do
+        before do
+          Fabricate(:domain_block, domain: 'example.com', severity: :noop, reject_reply_exclude_followers: true)
+          recipient.follow!(sender) if follow
+          subject.perform
+        end
+
+        let(:custom_before) { true }
+        let(:follow) { false }
+        let(:recipient) { Fabricate(:account) }
+
+        let(:object_json) do
+          {
+            id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+            type: 'Note',
+            content: 'Lorem ipsum',
+            tag: [
+              {
+                type: 'Mention',
+                href: ActivityPub::TagManager.instance.uri_for(recipient),
+              },
+            ],
+          }
+        end
+
+        context 'when follower' do
+          let(:follow) { true }
+
+          it 'creates status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+          end
+        end
+
+        context 'when not follower' do
+          it 'creates status' do
+            status = sender.statuses.first
+
+            expect(status).to be_nil
+          end
         end
       end
 
@@ -1065,6 +1413,55 @@ RSpec.describe ActivityPub::Activity::Create do
 
       it 'does not create anything' do
         expect(sender.statuses.count).to eq 0
+      end
+    end
+
+    context 'when bearcaps' do
+      subject { described_class.new(json, sender) }
+
+      before do
+        stub_request(:get, 'https://example.com/statuses/1234567890')
+          .with(headers: { 'Authorization' => 'Bearer test_ohagi_token' })
+          .to_return(status: 200, body: Oj.dump(object_json), headers: {})
+
+        subject.perform
+      end
+
+      let!(:recipient) { Fabricate(:account) }
+      let(:object_json) do
+        {
+          id: 'https://example.com/statuses/1234567890',
+          type: 'Note',
+          content: 'Lorem ipsum',
+          to: ActivityPub::TagManager.instance.uri_for(recipient),
+          attachment: [
+            {
+              type: 'Document',
+              mediaType: 'image/png',
+              url: 'http://example.com/attachment.png',
+            },
+          ],
+        }
+      end
+      let(:json) do
+        {
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+          type: 'Create',
+          actor: ActivityPub::TagManager.instance.uri_for(sender),
+          object: "bear:?#{{ u: 'https://example.com/statuses/1234567890', t: 'test_ohagi_token' }.to_query}",
+        }.with_indifferent_access
+      end
+
+      it 'creates status' do
+        status = sender.statuses.first
+
+        expect(status).to_not be_nil
+        expect(status.text).to eq 'Lorem ipsum'
+        expect(status.mentions.map(&:account)).to include(recipient)
+        expect(status.mentions.count).to eq 1
+        expect(status.visibility).to eq 'limited'
+        expect(status.media_attachments.map(&:remote_url)).to include('http://example.com/attachment.png')
       end
     end
   end

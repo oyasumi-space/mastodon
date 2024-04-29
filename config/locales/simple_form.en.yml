@@ -45,20 +45,34 @@ en:
         current_password: For security purposes please enter the password of the current account
         current_username: To confirm, please enter the username of the current account
         digest: Only sent after a long period of inactivity and only if you have received any personal messages in your absence
+        discoverable: Allow your account to be discovered by strangers through recommendations, trends and other features
+        discoverable_local: Disable the setting on federated servers. The setting is available this server only for avoiding full-text search on other servers
+        dissubscribable: Your post is not picked by antenna
         email: You will be sent a confirmation e-mail
+        group: Reps sent to this account will be automatically BT'd and distributed to all accounts you follow!
+        group_allow_private_message: Posts are duplicated and cannot be edited or deleted by the post
         header: PNG, GIF or JPG. At most %{size}. Will be downscaled to %{dimensions}px
         inbox_url: Copy the URL from the frontpage of the relay you want to use
         irreversible: Filtered posts will disappear irreversibly, even if filter is later removed
         locale: The language of the user interface, e-mails and push notifications
         password: Use at least 8 characters
+        person: This is normal account
         phrase: Will be matched regardless of casing in text or content warning of a post
         scopes: Which APIs the application will be allowed to access. If you select a top-level scope, you don't need to select individual ones.
         setting_aggregate_reblogs: Do not show new boosts for posts that have been recently boosted (only affects newly-received boosts)
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
+        setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
+        setting_default_searchability: kmyblue・Fedibirdでは検索許可設定に基づき検索されます。Misskeyでは当設定に関係なく、全ての公開・ローカル公開・未収載投稿が検索されます。Mastodon・Firefishでは検索許可の代わりにプロフィール設定の「公開投稿を他のサーバーで自由に検索できるようにする」設定が適用されます
         setting_default_sensitive: Sensitive media is hidden by default and can be revealed with a click
         setting_display_media_default: Hide media marked as sensitive
         setting_display_media_hide_all: Always hide media
         setting_display_media_show_all: Always show media
+        setting_dtl_force_subscribable: Your post can be detected local user's antenna to subscribe deep timeline
+        setting_dtl_force_with_tag: "With using #%{tag} tag, your post settings will be changed forcibly"
+        setting_dtl_menu: Show DTL menu on web
+        setting_emoji_reaction_policy: Even with this setting, users on other servers are free to put their stamp on the post and share it within the same server. If you simply want to remove the stamp from your own screen, you can disable it from the appearance settings
+        setting_enable_emoji_reaction: If turn off, other users still can react your posts
+        setting_single_ref_to_quote: If this server does not have target post, target server maybe cannot read your quote
         setting_use_blurhash: Gradients are based on the colors of the hidden visuals but obfuscate any details
         setting_use_pending_items: Hide timeline updates behind a click instead of automatically scrolling the feed
         username: You can use letters, numbers, and underscores
@@ -86,6 +100,7 @@ en:
         media_cache_retention_period: Downloaded media files will be deleted after the specified number of days when set to a positive value, and re-downloaded on demand.
         peers_api_enabled: A list of domain names this server has encountered in the fediverse. No data is included here about whether you federate with a given server, just that your server knows about it. This is used by services that collect statistics on federation in a general sense.
         profile_directory: The profile directory lists all users who have opted-in to be discoverable.
+        receive_other_servers_emoji_reaction: It can cause load. It is recommended to enable it only when there are few people.
         require_invite_text: When sign-ups require manual approval, make the “Why do you want to join?” text input mandatory rather than optional
         site_contact_email: How people can reach you for legal or support inquiries.
         site_contact_username: How people can reach you on Mastodon.
@@ -94,6 +109,7 @@ en:
         site_terms: Use your own privacy policy or leave blank to use the default. Can be structured with Markdown syntax.
         site_title: How people may refer to your server besides its domain name.
         status_page_url: URL of a page where people can see the status of this server during an outage
+        streaming_other_servers_emoji_reaction: Check your server network capacity. A lot of data streaming.
         theme: Theme that logged out visitors and new users see.
         thumbnail: A roughly 2:1 image displayed alongside your server information.
         timeline_preview: Logged out visitors will be able to browse the most recent public posts available on the server.
@@ -138,6 +154,7 @@ en:
         events: Select events to send
         template: Compose your own JSON payload using variable interpolation. Leave blank for default JSON.
         url: Where events will be sent to
+    kmyblue: kmyblue
     labels:
       account:
         discoverable: Feature profile and posts in discovery algorithms
@@ -184,44 +201,90 @@ en:
         context: Filter contexts
         current_password: Current password
         data: Data
+        discoverable: Suggest account to others
+        discoverable_local: Disallow suggesting account on other servers
         display_name: Display name
+        dissubscribable: Reject any subscriptions
         email: E-mail address
         expires_in: Expire after
         fields: Extra fields
+        group: This is a group account
+        group_allow_private_message: For group accounts, duplicate private or direct message
         header: Header picture
         honeypot: "%{label} (do not fill in)"
         inbox_url: URL of the relay inbox
         irreversible: Drop instead of hide
         locale: Interface language
         max_uses: Max number of uses
+        my_actor_type: Account type
         new_password: New password
         note: Bio
         otp_attempt: Two-factor code
         password: Password
+        person: This is a normal account
         phrase: Keyword or phrase
         setting_advanced_layout: Enable advanced web interface
         setting_aggregate_reblogs: Group boosts in timelines
         setting_always_send_emails: Always send e-mail notifications
         setting_auto_play_gif: Auto-play animated GIFs
+        setting_bio_markdown: Enable profile markdown
+        setting_bookmark_category_needed: Category selection needed when registering bookmark on web
         setting_boost_modal: Show confirmation dialog before boosting
         setting_default_language: Posting language
         setting_default_privacy: Posting privacy
+        setting_default_reblog_privacy: Reblogging privacy
+        setting_default_searchability: Searchability of your own post
+        setting_default_searchability_of_search: Your search setting
         setting_default_sensitive: Always mark media as sensitive
         setting_delete_modal: Show confirmation dialog before deleting a post
         setting_disable_swiping: Disable swiping motions
+        setting_disallow_unlisted_public_searchability: Disallow everyone searchability when unlisted visibility
         setting_display_media: Media display
         setting_display_media_default: Default
+        setting_display_media_expand: Show more medias
         setting_display_media_hide_all: Hide all
         setting_display_media_show_all: Show all
+        setting_dtl_force_subscribable: Ignore your dissubscribable setting when using the DTL tag
+        setting_dtl_force_with_tag: Post with DTL tag
+        setting_emoji_reaction_streaming_notify_impl2: Enable stamp notification compat with Nyastodon, Catstodon, glitch-soc
+        setting_enable_emoji_reaction: Use stamp function
+        setting_enable_login_privacy: Enable login visibility
+        setting_emoji_reaction_policy: Stamp receive/display policy
+        setting_emoji_reaction_policy_items:
+          allow: Allow all
+          block: Block
+          followers_only: Followers only
+          following_only: Followings only
+          mutuals_only: Mutuals only
+          outside_only: Followings or followers only
         setting_expand_spoilers: Always expand posts marked with content warnings
+        setting_hide_followers_count: Hide followers count
+        setting_hide_following_count: Hide following count
         setting_hide_network: Hide your social graph
+        setting_hide_recent_emojis: Hide recent emojis
+        setting_hide_statuses_count: Hide statuses count
+        setting_lock_follow_from_bot: Request approval about bot follow
+        setting_noai: Set noai meta tags
+        setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
         setting_reduce_motion: Reduce motion in animations
+        setting_reject_public_unlisted_subscription: Reject sending public unlisted posts to Misskey, Calckey
+        setting_reject_unlisted_subscription: Reject sending unlisted posts to Misskey, Calckey
+        setting_send_without_domain_blocks: Send your post to all server with administrator set as rejecting-post-server for protect you [DEPRECATED]
+        setting_show_application: Disclose application used to send posts
+        setting_show_emoji_reaction_on_timeline: Show all stamps on timeline
+        setting_simple_timeline_menu: Reduce post menu on timeline
+        setting_single_ref_to_quote: Deliver single reference to other server as quote
+        setting_stay_privacy: Not change privacy after post
+        setting_stop_emoji_reaction_streaming: Disable stamp streamings
         setting_system_font_ui: Use system's default font
         setting_theme: Site theme
+        setting_translatable_private: Allow other users translation of your private posts
         setting_trends: Show today's trends
         setting_unfollow_modal: Show confirmation dialog before unfollowing someone
+        setting_unsafe_limited_distribution: Send limit posts with unsafe way to other servers
         setting_use_blurhash: Show colorful gradients for hidden media
         setting_use_pending_items: Slow mode
+        setting_use_public_index: Include permitted accounts post to results of search
         severity: Severity
         sign_in_token_attempt: Security code
         title: Title
@@ -229,25 +292,40 @@ en:
         username: Username
         username_or_email: Username or Email
         whole_word: Whole word
+      dtl_force_with_tag:
+        full: Visibility is unlisted, searchability is everyone
+        none: No changes
+        searchability: Searchability is everyone
       email_domain_block:
         with_dns_records: Include MX records and IPs of the domain
+      emoji_reactions:
+        deny_from_all: Block all stamps
+        must_be_follower: Block stamps from non-followers
+        must_be_following: Block stamps from people you don't follow
       featured_tag:
         name: Hashtag
       filters:
         actions:
           hide: Hide completely
           warn: Hide with a warning
+        options:
+          exclude_follows: Exclude following users
+          exclude_localusers: Exclude local users
       form_admin_settings:
         activity_api_enabled: Publish aggregate statistics about user activity in the API
         backups_retention_period: User archive retention period
         bootstrap_timeline_accounts: Always recommend these accounts to new users
+        check_lts_version_only: Check kmyblue LTS version only when update check
         closed_registrations_message: Custom message when sign-ups are not available
         content_cache_retention_period: Content cache retention period
         custom_css: Custom CSS
+        enable_emoji_reaction: Enable stamp function
         mascot: Custom mascot (legacy)
         media_cache_retention_period: Media cache retention period
         peers_api_enabled: Publish list of discovered servers in the API
         profile_directory: Enable profile directory
+        receive_other_servers_emoji_reaction: Receive stamp between other server users
+        registration_button_message: Register button message
         registrations_mode: Who can sign-up
         require_invite_text: Require a reason to join
         show_domain_blocks: Show domain blocks
@@ -259,6 +337,7 @@ en:
         site_terms: Privacy Policy
         site_title: Server name
         status_page_url: Status page URL
+        streaming_other_servers_emoji_reaction: Streaming stamp between other server users
         theme: Default theme
         thumbnail: Server thumbnail
         timeline_preview: Allow unauthenticated access to public timelines

@@ -6,13 +6,14 @@ class ResolveURLService < BaseService
 
   USERNAME_STATUS_RE = %r{/@(?<username>#{Account::USERNAME_RE})/(?<status_id>[0-9]+)\Z}
 
-  def call(url, on_behalf_of: nil)
+  def call(url, on_behalf_of: nil, fetch_remote: true)
     @url          = url
     @on_behalf_of = on_behalf_of
+    @fetch_remote = fetch_remote
 
     if local_url?
       process_local_url
-    elsif !fetched_resource.nil?
+    elsif fetch_remote && !fetched_resource.nil?
       process_url
     else
       process_url_from_db
@@ -37,7 +38,7 @@ class ResolveURLService < BaseService
       return account unless account.nil?
     end
 
-    return unless @on_behalf_of.present? && [401, 403, 404].include?(fetch_resource_service.response_code)
+    return unless @on_behalf_of.present? && (!@fetch_remote || [401, 403, 404].include?(fetch_resource_service.response_code))
 
     # It may happen that the resource is a private toot, and thus not fetchable,
     # but we can return the toot if we already know about it.

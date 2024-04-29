@@ -246,6 +246,207 @@ RSpec.describe Account do
     end
   end
 
+  describe '#allow_emoji_reaction?' do
+    let(:policy) { :allow }
+    let(:reactioned) { Fabricate(:user, settings: { emoji_reaction_policy: policy }).account }
+    let(:followee) { Fabricate(:account) }
+    let(:follower) { Fabricate(:account) }
+    let(:mutual) { Fabricate(:account) }
+    let(:anyone) { Fabricate(:account) }
+
+    before do
+      follower.follow!(reactioned)
+      reactioned.follow!(followee)
+      mutual.follow!(reactioned)
+      reactioned.follow!(mutual)
+    end
+
+    context 'when policy is arrow' do
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be true
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be true
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be true
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+      end
+    end
+
+    context 'when policy is following_only' do
+      let(:policy) { :following_only }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be true
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be false
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+      end
+    end
+
+    context 'when policy is followers_only' do
+      let(:policy) { :followers_only }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be false
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be true
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+      end
+    end
+
+    context 'when policy is mutuals_only' do
+      let(:policy) { :mutuals_only }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be false
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be false
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+      end
+    end
+
+    context 'when policy is outside_only' do
+      let(:policy) { :outside_only }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be true
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be true
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+      end
+    end
+
+    context 'when policy is block' do
+      let(:policy) { :block }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be false
+      end
+
+      it 'allows follower' do
+        expect(reactioned.allow_emoji_reaction?(follower)).to be false
+      end
+
+      it 'allows mutual' do
+        expect(reactioned.allow_emoji_reaction?(mutual)).to be false
+      end
+
+      it 'allows self' do
+        expect(reactioned.allow_emoji_reaction?(reactioned)).to be false
+      end
+    end
+
+    context 'when reactioned is remote user' do
+      let(:reactioned) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor', settings: { emoji_reaction_policy: :following_only }) }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be true
+      end
+    end
+
+    context 'when reactor is remote user' do
+      let(:anyone) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor/anyone') }
+      let(:policy) { :following_only }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
+      end
+
+      it 'allows followee' do
+        expect(reactioned.allow_emoji_reaction?(followee)).to be true
+      end
+    end
+
+    context 'when both are remote user' do
+      let(:reactioned) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor', settings: { emoji_reaction_policy: policy }) }
+      let(:anyone) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor/anyone') }
+      let(:followee) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor/followee') }
+
+      it 'allows anyone' do
+        expect(reactioned.allow_emoji_reaction?(anyone)).to be true
+      end
+
+      context 'with blocking' do
+        let(:policy) { :block }
+
+        it 'allows anyone' do
+          expect(reactioned.allow_emoji_reaction?(anyone)).to be true
+        end
+      end
+    end
+  end
+
   describe '#favourited?' do
     subject { Fabricate(:account) }
 
@@ -843,18 +1044,18 @@ RSpec.describe Account do
     describe 'matches_display_name' do
       it 'matches display name which starts with the given string' do
         match = Fabricate(:account, display_name: 'pattern and suffix')
-        Fabricate(:account, display_name: 'prefix and pattern')
+        account = Fabricate(:account, display_name: 'prefix and pattern')
 
-        expect(described_class.matches_display_name('pattern')).to eq [match]
+        expect(described_class.matches_display_name('pattern')).to contain_exactly(match, account)
       end
     end
 
     describe 'matches_username' do
       it 'matches display name which starts with the given string' do
         match = Fabricate(:account, username: 'pattern_and_suffix')
-        Fabricate(:account, username: 'prefix_and_pattern')
+        account = Fabricate(:account, username: 'prefix_and_pattern')
 
-        expect(described_class.matches_username('pattern')).to eq [match]
+        expect(described_class.matches_username('pattern')).to contain_exactly(match, account)
       end
     end
 

@@ -1,4 +1,3 @@
----
 nl:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ nl:
         events: Ingeschakelde gebeurtenissen
         template: Sjabloon Payload
         url: Eindpunt URL
-    'no': Nee
+    'no': 'Nee'
     not_recommended: Niet aanbevolen
     overridden: Overschreven
     recommended: Aanbevolen
@@ -331,4 +330,4 @@ nl:
     title:
       sessions:
         webauthn: Gebruik een van uw beveiligingssleutels om in te loggen
-    'yes': Ja
+    'yes': 'Ja'

@@ -122,6 +122,10 @@ module ApplicationHelper
       fa_icon('globe', title: I18n.t('statuses.visibilities.public'))
     elsif status.unlisted_visibility?
       fa_icon('unlock', title: I18n.t('statuses.visibilities.unlisted'))
+    elsif status.public_unlisted_visibility?
+      fa_icon('cloud', title: I18n.t('statuses.visibilities.public_unlisted'))
+    elsif status.login_visibility?
+      fa_icon('key', title: I18n.t('statuses.visibilities.login'))
     elsif status.private_visibility? || status.limited_visibility?
       fa_icon('lock', title: I18n.t('statuses.visibilities.private'))
     elsif status.direct_visibility?
@@ -187,10 +191,14 @@ module ApplicationHelper
       text: [params[:title], params[:text], params[:url]].compact.join(' '),
     }
 
-    permit_visibilities = %w(public unlisted private direct)
-    default_privacy     = current_account&.user&.setting_default_privacy
+    permit_visibilities = %w(public unlisted public_unlisted login private direct)
+    permit_searchabilities = %w(public unlisted public_unlisted login private direct)
+    default_privacy = current_account&.user&.setting_default_privacy
     permit_visibilities.shift(permit_visibilities.index(default_privacy) + 1) if default_privacy.present?
     state_params[:visibility] = params[:visibility] if permit_visibilities.include? params[:visibility]
+    default_searchability = current_account&.user&.setting_default_searchability
+    permit_searchabilities.shift(permit_searchabilities.index(default_privacy) + 1) if default_searchability.present?
+    state_params[:searchability] = params[:searchability] if permit_searchabilities.include? params[:searchability]
 
     if user_signed_in? && current_user.functional?
       state_params[:settings]          = state_params[:settings].merge(Web::Setting.find_by(user: current_user)&.data || {})
@@ -230,6 +238,12 @@ module ApplicationHelper
 
   def prerender_custom_emojis(html, custom_emojis, other_options = {})
     EmojiFormatter.new(html, custom_emojis, other_options.merge(animate: prefers_autoplay?)).to_s
+  end
+
+  def prerender_custom_emojis_from_hash(html, custom_emojis_hash)
+    # rubocop:disable Style/OpenStructUse
+    prerender_custom_emojis(html, JSON.parse([custom_emojis_hash].to_json, object_class: OpenStruct))
+    # rubocop:enable Style/OpenStructUse
   end
 
   private

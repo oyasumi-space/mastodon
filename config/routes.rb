@@ -24,13 +24,20 @@ Rails.application.routes.draw do
     /home
     /public
     /public/local
+    /public/local/fixed
     /public/remote
     /conversations
     /lists/(*any)
+    /antennasw/(*any)
+    /antennast/(*any)
+    /circles
     /notifications
     /favourites
+    /emoji_reactions
     /bookmarks
+    /bookmark_categories/(*any)
     /pinned
+    /reaction_deck
     /start
     /directory
     /explore/(*any)
@@ -119,6 +126,7 @@ Rails.application.routes.draw do
       end
 
       resources :replies, only: [:index], module: :activitypub
+      resources :references, only: [:index], module: :activitypub
     end
 
     resources :followers, only: [:index], controller: :follower_accounts
@@ -174,6 +182,7 @@ Rails.application.routes.draw do
       end
     end
   end
+  resources :antennas, except: [:show]
 
   resource :relationships, only: [:show, :update]
   resource :statuses_cleanup, controller: :statuses_cleanup, only: [:show, :update]

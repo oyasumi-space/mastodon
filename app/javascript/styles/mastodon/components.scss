@@ -420,6 +420,13 @@ body > [data-popper-placement] {
     inset-inline-end: 0;
   }
 
+  .expiration-dropdown {
+    position: absolute;
+    top: 32px;
+    right: 4px;
+    transform: scale(1.2);
+  }
+
   .compose-form__autosuggest-wrapper {
     position: relative;
   }
@@ -755,8 +762,9 @@ body > [data-popper-placement] {
   vertical-align: middle;
   object-fit: contain;
   margin: -0.2ex 0.15em 0.2ex;
-  width: 16px;
-  height: 16px;
+  min-width: 20px;
+  max-width: min(8em, 100%);
+  height: 20px;
 
   img {
     width: auto;
@@ -831,7 +839,8 @@ body > [data-popper-placement] {
   }
 
   .emojione {
-    width: 20px;
+    min-width: 20px;
+    max-width: min(8em, 100%);
     height: 20px;
     margin: -3px 0 0;
   }
@@ -912,7 +921,8 @@ body > [data-popper-placement] {
   overflow-y: auto;
 
   .emojione {
-    width: 20px;
+    min-width: 20px;
+    max-width: min(8em, 100%);
     height: 20px;
     margin: -3px 0 0;
   }
@@ -1107,6 +1117,7 @@ body > [data-popper-placement] {
 
     .status__content,
     .status__action-bar,
+    .status__emoji-reactions-bar,
     .media-gallery,
     .video-player,
     .audio-player,
@@ -1289,6 +1300,49 @@ body > [data-popper-placement] {
   }
 }
 
+.status__emoji-reactions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 12px 0 2px 4px;
+
+  .emoji-reactions-bar__button {
+    background: $emoji-reaction-color;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    height: 24px;
+
+    &.toggled {
+      background: $emoji-reaction-selected-color;
+    }
+
+    > .emoji {
+      display: block;
+      height: 20px;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.44);
+      }
+
+      img {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 20px;
+      }
+    }
+
+    .count {
+      display: block;
+      margin: 0 2px;
+      color: $ui-secondary-color;
+    }
+  }
+}
+
 .status__action-bar {
   display: flex;
   justify-content: space-between;
@@ -1327,7 +1381,8 @@ body > [data-popper-placement] {
     line-height: 24px;
 
     .emojione {
-      width: 24px;
+      min-width: 24px;
+      max-width: min(8em, 100%);
       height: 24px;
       margin: -1px 0 0;
     }
@@ -1590,6 +1645,10 @@ a .account__avatar {
   display: flex;
   align-items: center;
   gap: 4px;
+
+  .fa-times {
+    color: $ui-secondary-color;
+  }
 }
 
 .account-authorize {
@@ -1788,6 +1847,11 @@ a.account__display-name {
       animation: spring-rotate-out 1s linear;
     }
   }
+}
+
+.notification__warning-text {
+  padding: 16px 16px 16px 48px;
+  color: $darker-text-color;
 }
 
 .notification__display-name {
@@ -2050,7 +2114,7 @@ a.account__display-name {
     font: inherit;
     display: block;
     width: 100%;
-    padding: 10px 14px;
+    padding: 8px 10px;
     border: 0;
     margin: 0;
     background: transparent;
@@ -2180,8 +2244,8 @@ $ui-header-height: 55px;
   &__links {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 10px;
+    gap: 8px;
+    padding: 0 9px;
     overflow: hidden;
 
     .button {
@@ -3299,6 +3363,8 @@ $ui-header-height: 55px;
   white-space: nowrap;
   border: 0;
   border-left: 4px solid transparent;
+  position: relative;
+  z-index: 0;
 
   &:hover,
   &:focus,
@@ -3348,7 +3414,8 @@ $ui-header-height: 55px;
   margin-inline-end: 5px;
 }
 
-.column-link__badge {
+.column-link__badge,
+.column-link__command {
   display: inline-block;
   border-radius: 4px;
   font-size: 12px;
@@ -3357,6 +3424,12 @@ $ui-header-height: 55px;
   background: $ui-base-color;
   padding: 4px 8px;
   margin: -6px 10px;
+}
+
+.column-link__command {
+  position: absolute;
+  right: 0;
+  z-index: 1;
 }
 
 .column-subheading {
@@ -3504,6 +3577,19 @@ $ui-header-height: 55px;
 
   @media screen and (width <= 600px) {
     font-size: 16px;
+  }
+}
+
+.circle-item {
+  display: flex;
+
+  .column-link {
+    flex: 1;
+  }
+
+  .icon-button {
+    align-self: center;
+    margin: 0 8px;
   }
 }
 
@@ -3721,6 +3807,7 @@ a.status-card {
   margin: 0;
   width: 100%;
   height: 100%;
+  max-height: 286px;
   object-fit: cover;
   background-size: cover;
   background-position: center center;
@@ -4318,6 +4405,10 @@ a.status-card {
   text-align: center;
 }
 
+.detailed-status__button .emoji-button {
+  padding: 0;
+}
+
 .column-settings__outer {
   background: lighten($ui-base-color, 8%);
   padding: 15px;
@@ -4329,6 +4420,10 @@ a.status-card {
   display: block;
   font-weight: 500;
   margin-bottom: 10px;
+}
+
+.column-settings__section--with-margin {
+  margin-top: 10px;
 }
 
 .column-settings__row--with-margin {
@@ -4442,6 +4537,108 @@ a.status-card {
 .column-settings__row {
   .text-btn:not(.column-header__permission-btn) {
     margin-bottom: 15px;
+  }
+
+  &__antenna {
+    margin-left: 12px;
+  }
+}
+
+.column-content-select {
+  &__control {
+    @include search-input;
+
+    &::placeholder {
+      color: lighten($darker-text-color, 4%);
+    }
+
+    &::-moz-focus-inner {
+      border: 0;
+    }
+
+    &::-moz-focus-inner,
+    &:focus,
+    &:active {
+      outline: 0 !important;
+    }
+
+    &:focus {
+      background: lighten($ui-base-color, 4%);
+    }
+
+    @media screen and (width <= 600px) {
+      font-size: 16px;
+    }
+  }
+
+  &__placeholder {
+    color: $dark-text-color;
+    padding-inline-start: 2px;
+    font-size: 12px;
+  }
+
+  &__value-container {
+    padding-inline-start: 6px;
+  }
+
+  &__multi-value {
+    background: lighten($ui-base-color, 8%);
+
+    &__remove {
+      cursor: pointer;
+
+      &:hover,
+      &:active,
+      &:focus {
+        background: lighten($ui-base-color, 12%);
+        color: lighten($darker-text-color, 4%);
+      }
+    }
+  }
+
+  &__multi-value__label,
+  &__input,
+  &__input-container {
+    color: $darker-text-color;
+  }
+
+  &__clear-indicator,
+  &__dropdown-indicator {
+    cursor: pointer;
+    transition: none;
+    color: $dark-text-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+      color: lighten($dark-text-color, 4%);
+    }
+  }
+
+  &__indicator-separator {
+    background-color: lighten($ui-base-color, 8%);
+  }
+
+  &__menu {
+    @include search-popout;
+
+    padding: 0;
+    background: $ui-secondary-color;
+  }
+
+  &__menu-list {
+    padding: 6px;
+  }
+
+  &__option {
+    color: $inverted-text-color;
+    border-radius: 4px;
+    font-size: 14px;
+
+    &--is-focused,
+    &--is-selected {
+      background: darken($ui-secondary-color, 10%);
+    }
   }
 }
 
@@ -4822,7 +5019,8 @@ a.status-card {
   filter: none;
 }
 
-.privacy-dropdown__dropdown {
+.privacy-dropdown__dropdown,
+.expiration-dropdown__dropdown {
   background: $simple-background-color;
   box-shadow: var(--dropdown-shadow);
   border-radius: 4px;
@@ -4838,16 +5036,19 @@ a.status-card {
   }
 }
 
-.modal-root__container .privacy-dropdown {
+.modal-root__container .privacy-dropdown,
+.modal-root__container .expiration-dropdown {
   flex-grow: 0;
 }
 
-.modal-root__container .privacy-dropdown__dropdown {
+.modal-root__container .privacy-dropdown__dropdown,
+.modal-root__container .ezpiration-dropdown__dropdown {
   pointer-events: auto;
   z-index: 9999;
 }
 
-.privacy-dropdown__option {
+.privacy-dropdown__option,
+.expiration-dropdown__option {
   color: $inverted-text-color;
   padding: 10px;
   cursor: pointer;
@@ -4897,19 +5098,35 @@ a.status-card {
   }
 }
 
-.privacy-dropdown.active {
-  .privacy-dropdown__value {
+.privacy-dropdown.active,
+.expiration-dropdown.active {
+  .privacy-dropdown__value,
+  .expiration-dropdown__value {
     background: $simple-background-color;
     border-radius: 4px 4px 0 0;
   }
 
-  &.top .privacy-dropdown__value {
+  &.top .privacy-dropdown__value,
+  &.top .expiration-dropdown__value {
     border-radius: 0 0 4px 4px;
   }
 
-  .privacy-dropdown__dropdown {
+  .privacy-dropdown__dropdown,
+  .expiration-dropdown__dropdown {
     display: block;
     box-shadow: var(--dropdown-shadow);
+  }
+}
+
+.privacy-dropdown .privacy-dropdown__value.searchability {
+  position: relative;
+
+  .searchability-dropdown__value-overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: purple;
+    pointer-events: none;
   }
 }
 
@@ -6168,7 +6385,8 @@ a.status-card {
     line-height: 24px;
 
     .emojione {
-      width: 24px;
+      min-width: 24px;
+      max-width: min(8em, 100%);
       height: 24px;
       margin: -1px 0 0;
     }
@@ -6296,10 +6514,31 @@ a.status-card {
   position: relative;
   width: 100%;
   min-height: 64px;
+  max-height: 60vh;
   display: grid;
   grid-template-columns: 50% 50%;
   grid-template-rows: 50% 50%;
   gap: 2px;
+
+  &--row3 {
+    grid-template-rows: 34% 33% 33%;
+  }
+
+  &--row4 {
+    grid-template-rows: 25% 25% 25% 25%;
+  }
+
+  &--column3 {
+    grid-template-columns: 33% 34% 33%;
+  }
+
+  &--column4 {
+    grid-template-columns: 25% 25% 25% 25%;
+  }
+
+  &__compact {
+    max-height: 24vh;
+  }
 }
 
 .media-gallery__item {
@@ -7287,6 +7526,133 @@ noscript {
   }
 }
 
+.antenna-list-detail {
+  font-size: 12px;
+  margin-left: 24px;
+
+  .group {
+    margin-right: 16px;
+
+    i.fa {
+      color: $light-text-color;
+      margin-right: 4px;
+      font-size: 10px;
+    }
+  }
+}
+
+.antenna-setting {
+  margin: 8px 16px 32px;
+
+  h2 {
+    font-size: 20px;
+    margin: 40px 0 16px;
+    font-weight: bold;
+  }
+
+  h3 {
+    font-size: 16px;
+    margin: 40px 0 16px;
+    font-weight: bold;
+  }
+
+  .alert {
+    color: $warning-red;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+}
+
+.setting-radio-panel {
+  display: flex;
+  margin-top: 24px;
+
+  .setting-radio-panel__item {
+    font-size: 16px;
+    text-align: center;
+    flex: 1;
+    height: 40px;
+    line-height: 40px;
+    margin: 16px 0;
+    background: lighten($ui-base-color, 4%);
+    color: $darker-text-color;
+    border: 0;
+
+    &__active {
+      color: $primary-text-color;
+      background: $ui-primary-color;
+    }
+  }
+}
+
+.setting-text-list {
+  .add-text-form {
+    display: flex;
+    gap: 8px;
+
+    label {
+      flex: 1 1 auto;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.setting-text-list-item {
+  display: flex;
+  font-size: 14px;
+  margin: 8px 0;
+
+  i.fa {
+    color: $darker-text-color;
+  }
+
+  .label {
+    flex: 1;
+    margin: 0 8px;
+  }
+}
+
+.reaction_deck_container {
+  &__row {
+    display: flex;
+    height: 32px;
+    margin: 8px 16px 12px 4px;
+
+    .handle {
+      font-size: 24px;
+    }
+
+    .reaction_deck__emoji {
+      flex: 1;
+    }
+  }
+}
+
+.reaction_deck__emoji {
+  &__wrapper {
+    display: flex;
+
+    .emojione {
+      min-width: 24px;
+      height: 24px;
+    }
+
+    .emoji-button {
+      margin-left: 20px;
+      margin-right: 24px;
+      padding: 0;
+    }
+
+    &__content {
+      display: flex;
+      flex: 1;
+    }
+  }
+}
+
 .focal-point {
   position: relative;
   cursor: move;
@@ -7491,7 +7857,8 @@ noscript {
       margin-bottom: 16px;
 
       .emojione {
-        width: 22px;
+        min-width: 22px;
+        max-width: min(8em, 100%);
         height: 22px;
       }
 
@@ -9246,12 +9613,6 @@ noscript {
       h6 {
         color: $secondary-text-color;
         font-size: inherit;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      p {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

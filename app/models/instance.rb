@@ -19,6 +19,7 @@ class Instance < ApplicationRecord
     belongs_to :domain_block
     belongs_to :domain_allow
     belongs_to :unavailable_domain # skipcq: RB-RL1031
+    belongs_to :instance_info
   end
 
   scope :searchable, -> { where.not(domain: DomainBlock.select(:domain)) }

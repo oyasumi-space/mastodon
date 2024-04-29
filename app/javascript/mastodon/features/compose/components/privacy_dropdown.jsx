@@ -9,6 +9,7 @@ import { supportsPassiveEvents } from 'detect-passive-events';
 import Overlay from 'react-overlays/Overlay';
 
 import { Icon }  from 'mastodon/components/icon';
+import { enableLoginPrivacy } from 'mastodon/initial_state';
 
 import { IconButton } from '../../../components/icon_button';
 
@@ -17,8 +18,16 @@ const messages = defineMessages({
   public_long: { id: 'privacy.public.long', defaultMessage: 'Visible for all' },
   unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Unlisted' },
   unlisted_long: { id: 'privacy.unlisted.long', defaultMessage: 'Visible for all, but opted-out of discovery features' },
+  public_unlisted_short: { id: 'privacy.public_unlisted.short', defaultMessage: 'Public unlisted' },
+  public_unlisted_long: { id: 'privacy.public_unlisted.long', defaultMessage: 'Visible for all without GTL' },
+  login_short: { id: 'privacy.login.short', defaultMessage: 'Login only' },
+  login_long: { id: 'privacy.login.long', defaultMessage: 'Login user only' },
   private_short: { id: 'privacy.private.short', defaultMessage: 'Followers only' },
   private_long: { id: 'privacy.private.long', defaultMessage: 'Visible for followers only' },
+  mutual_short: { id: 'privacy.mutual.short', defaultMessage: 'Mutual' },
+  mutual_long: { id: 'privacy.mutual.long', defaultMessage: 'Mutual follows only' },
+  circle_short: { id: 'privacy.circle.short', defaultMessage: 'Circle' },
+  circle_long: { id: 'privacy.circle.long', defaultMessage: 'Circle members only' },
   direct_short: { id: 'privacy.direct.short', defaultMessage: 'Mentioned people only' },
   direct_long: { id: 'privacy.direct.long', defaultMessage: 'Visible for mentioned users only' },
   change_privacy: { id: 'privacy.change', defaultMessage: 'Adjust status privacy' },
@@ -114,7 +123,7 @@ class PrivacyDropdownMenu extends PureComponent {
   setFocusRef = c => {
     this.focusedItem = c;
   };
-
+  
   render () {
     const { style, items, value } = this.props;
 
@@ -147,6 +156,7 @@ class PrivacyDropdown extends PureComponent {
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     noDirect: PropTypes.bool,
+    noLimited: PropTypes.bool,
     container: PropTypes.func,
     disabled: PropTypes.bool,
     intl: PropTypes.object.isRequired,
@@ -223,14 +233,26 @@ class PrivacyDropdown extends PureComponent {
 
     this.options = [
       { icon: 'globe', value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
+      { icon: 'cloud', value: 'public_unlisted', text: formatMessage(messages.public_unlisted_short), meta: formatMessage(messages.public_unlisted_long) },
+      { icon: 'key', value: 'login', text: formatMessage(messages.login_short), meta: formatMessage(messages.login_long) },
       { icon: 'unlock', value: 'unlisted', text: formatMessage(messages.unlisted_short), meta: formatMessage(messages.unlisted_long) },
       { icon: 'lock', value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
+      { icon: 'exchange', value: 'mutual', text: formatMessage(messages.mutual_short), meta: formatMessage(messages.mutual_long) },
+      { icon: 'user-circle', value: 'circle', text: formatMessage(messages.circle_short), meta: formatMessage(messages.circle_long) },
+      { icon: 'at', value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
     ];
+    this.selectableOptions = [...this.options];
 
-    if (!this.props.noDirect) {
-      this.options.push(
-        { icon: 'at', value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
-      );
+    if (!enableLoginPrivacy) {
+      this.selectableOptions = this.selectableOptions.filter((opt) => opt.value !== 'login');
+    }
+
+    if (this.props.noDirect) {
+      this.selectableOptions = this.selectableOptions.filter((opt) => opt.value !== 'direct');
+    }
+
+    if (this.props.noLimited) {
+      this.selectableOptions = this.selectableOptions.filter((opt) => !['mutual', 'circle'].includes(opt.value));
     }
   }
 
@@ -250,7 +272,7 @@ class PrivacyDropdown extends PureComponent {
     const { value, container, disabled, intl } = this.props;
     const { open, placement } = this.state;
 
-    const valueOption = this.options.find(item => item.value === value);
+    const valueOption = this.options.find(item => item.value === value) || this.options[0];
 
     return (
       <div className={classNames('privacy-dropdown', placement, { active: open })} onKeyDown={this.handleKeyDown}>
@@ -276,7 +298,7 @@ class PrivacyDropdown extends PureComponent {
             <div {...props}>
               <div className={`dropdown-animation privacy-dropdown__dropdown ${placement}`}>
                 <PrivacyDropdownMenu
-                  items={this.options}
+                  items={this.selectableOptions}
                   value={value}
                   onClose={this.handleClose}
                   onChange={this.handleChange}

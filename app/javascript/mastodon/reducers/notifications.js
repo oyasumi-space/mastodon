@@ -53,8 +53,10 @@ const notificationToMap = notification => ImmutableMap({
   type: notification.type,
   account: notification.account.id,
   created_at: notification.created_at,
+  emoji_reaction: ImmutableMap(notification.emoji_reaction),
   status: notification.status ? notification.status.id : null,
   report: notification.report ? fromJS(notification.report) : null,
+  account_warning: notification.account_warning ? ImmutableMap(notification.account_warning) : null,
 });
 
 const normalizeNotification = (state, notification, usePendingItems) => {

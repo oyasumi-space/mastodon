@@ -144,6 +144,11 @@ class ListTimeline extends PureComponent {
     }));
   };
 
+  handleEditAntennaClick = (e) => {
+    const id = e.currentTarget.getAttribute('data-id');
+    this.context.router.history.push(`/antennasw/${id}/edit`);
+  };
+
   handleRepliesPolicyChange = ({ target }) => {
     const { dispatch } = this.props;
     const { id } = this.props.params;
@@ -163,6 +168,7 @@ class ListTimeline extends PureComponent {
     const title  = list ? list.get('title') : id;
     const replies_policy = list ? list.get('replies_policy') : undefined;
     const isExclusive = list ? list.get('exclusive') : undefined;
+    const antennas = list ? (list.get('antennas')?.toArray() || []) : [];
 
     if (typeof list === 'undefined') {
       return (
@@ -203,7 +209,7 @@ class ListTimeline extends PureComponent {
           <div className='setting-toggle'>
             <Toggle id={`list-${id}-exclusive`} checked={isExclusive} onChange={this.onExclusiveToggle} />
             <label htmlFor={`list-${id}-exclusive`} className='setting-toggle__label'>
-              <FormattedMessage id='lists.exclusive' defaultMessage='Hide these posts from home' />
+              <FormattedMessage id='lists.exclusive' defaultMessage='Hide these posts from home or STL' />
             </label>
           </div>
 
@@ -217,6 +223,23 @@ class ListTimeline extends PureComponent {
                   <RadioButton name='order' key={policy} value={policy} label={intl.formatMessage(messages[policy])} checked={replies_policy === policy} onChange={this.handleRepliesPolicyChange} />
                 ))}
               </div>
+            </div>
+          )}
+
+          { antennas.length > 0 && (
+            <div>
+              <span className='column-settings__section column-settings__section--with-margin'>
+                <FormattedMessage id='lists.antennas' defaultMessage='Related antennas:' />
+              </span>
+              <ul className='column-settings__row'>
+                { antennas.map(antenna => (
+                  <li key={antenna.get('id')} className='column-settings__row__antenna'>
+                    <button type='button' className='text-btn column-header__setting-btn' data-id={antenna.get('id')} onClick={this.handleEditAntennaClick}>
+                      <Icon id='pencil' /> {antenna.get('title')}{antenna.get('stl') && ' [STL]'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </ColumnHeader>

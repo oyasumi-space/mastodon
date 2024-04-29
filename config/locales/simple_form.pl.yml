@@ -1,4 +1,3 @@
----
 pl:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ pl:
         events: Włączone zdarzenia
         template: Szablon zawartości
         url: Endpoint URL
-    'no': Nie
+    'no': 'Nie'
     not_recommended: Niezalecane
     overridden: Nadpisane
     recommended: Polecane
@@ -331,4 +330,4 @@ pl:
     title:
       sessions:
         webauthn: Użyj jednego ze swoich kluczy bezpieczeństwa, aby się zalogować
-    'yes': Tak
+    'yes': 'Tak'

@@ -244,7 +244,7 @@
   "empty_column.public": "Šeit vēl nekā nav! Ieraksti ko publiski vai pieseko lietotājiem no citiem serveriem",
   "error.unexpected_crash.explanation": "Koda kļūdas vai pārlūkprogrammas saderības problēmas dēļ šo lapu nevarēja parādīt pareizi.",
   "error.unexpected_crash.explanation_addons": "Šo lapu nevarēja parādīt pareizi. Šo kļūdu, iespējams, izraisīja pārlūkprogrammas papildinājums vai automātiskās tulkošanas rīki.",
-  "error.unexpected_crash.next_steps": "Mēģini atsvaidzināt lapu. Ja tas nepalīdz, iespējams, varēsi lietot Mastodon, izmantojot citu pārlūkprogrammu vai lietotni.",
+  "error.unexpected_crash.next_steps": "Mēģini atsvaidzināt lapu. Ja tas nepalīdz, vari lietot Mastodon, izmantojot citu pārlūkprogrammu vai lietotni.",
   "error.unexpected_crash.next_steps_addons": "Mēģini tos atspējot un atsvaidzināt lapu. Ja tas nepalīdz, iespējams, varēsi lietot Mastodon, izmantojot citu pārlūkprogrammu vai lietotni.",
   "errors.unexpected_crash.copy_stacktrace": "Kopēt stacktrace uz starpliktuvi",
   "errors.unexpected_crash.report_issue": "Ziņot par problēmu",

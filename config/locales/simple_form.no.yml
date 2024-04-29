@@ -1,5 +1,4 @@
----
-'no':
+"no":
   simple_form:
     hints:
       account:
@@ -330,4 +329,4 @@
     title:
       sessions:
         webauthn: Bruk en av sikkerhetsnøklene dine til å logge på
-    'yes': Ja
+    'yes': 'Ja'

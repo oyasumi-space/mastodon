@@ -8,8 +8,17 @@ import accounts_counters from './accounts_counters';
 import accounts_map from './accounts_map';
 import alerts from './alerts';
 import announcements from './announcements';
+import antennaAdder from './antenna_adder';
+import antennaEditor from './antenna_editor';
+import antennas from './antennas';
 import blocks from './blocks';
+import bookmark_categories from './bookmark_categories';
+import bookmarkCategoryAdder from './bookmark_category_adder';
+import bookmarkCategoryEditor from './bookmark_category_editor';
 import boosts from './boosts';
+import circleAdder from './circle_adder';
+import circleEditor from './circle_editor';
+import circles from './circles';
 import compose from './compose';
 import contexts from './contexts';
 import conversations from './conversations';
@@ -32,6 +41,7 @@ import notifications from './notifications';
 import picture_in_picture from './picture_in_picture';
 import polls from './polls';
 import push_notifications from './push_notifications';
+import reaction_deck from './reaction_deck';
 import relationships from './relationships';
 import search from './search';
 import server from './server';
@@ -76,6 +86,15 @@ const reducers = {
   lists,
   listEditor,
   listAdder,
+  antennas,
+  antennaEditor,
+  antennaAdder,
+  circles,
+  circleEditor,
+  circleAdder,
+  bookmark_categories,
+  bookmarkCategoryEditor,
+  bookmarkCategoryAdder,
   filters,
   conversations,
   suggestions,
@@ -86,6 +105,7 @@ const reducers = {
   history,
   tags,
   followed_tags,
+  reaction_deck,
 };
 
 // We want the root state to be an ImmutableRecord, which is an object with a defined list of keys,

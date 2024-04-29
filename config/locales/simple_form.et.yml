@@ -1,4 +1,3 @@
----
 et:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ et:
         events: Lubatud sündmused
         template: Manuse mall
         url: Lõpp-punkti URL
-    'no': Ei
+    'no': 'Ei'
     not_recommended: Pole soovitatav
     overridden: Ülekirjutatud
     recommended: Soovituslik
@@ -331,4 +330,4 @@ et:
     title:
       sessions:
         webauthn: Kasuta sisenemiseks ühte turvavõtmeist
-    'yes': Jah
+    'yes': 'Jah'

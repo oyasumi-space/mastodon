@@ -22,7 +22,7 @@ AllCops:
   CacheRootDirectory: tmp
   NewCops: enable # Opt-in to newly added rules
   Exclude:
-    - db/schema.rb
+    - 'db/schema.rb'
     - 'bin/*'
     - 'node_modules/**/*'
     - 'Vagrantfile'
@@ -72,6 +72,7 @@ Metrics/ModuleLength:
 # https://docs.rubocop.org/rubocop/cops_metrics.html#metricsabcsize
 Metrics/AbcSize:
   Exclude:
+    - 'app/serializers/initial_state_serializer.rb'
     - 'lib/mastodon/cli/*.rb'
     - db/*migrate/**/*
 
@@ -85,6 +86,11 @@ Metrics/BlockNesting:
 # https://docs.rubocop.org/rubocop/cops_metrics.html#metricscyclomaticcomplexity
 Metrics/CyclomaticComplexity:
   Exclude:
+    - 'app/lib/feed_manager.rb'
+    - 'app/policies/status_policy.rb'
+    - 'app/services/activitypub/process_account_service.rb'
+    - 'app/services/delivery_antenna_service.rb'
+    - 'app/services/post_status_service.rb'
     - lib/mastodon/cli/*.rb
     - db/*migrate/**/*
 
@@ -92,6 +98,12 @@ Metrics/CyclomaticComplexity:
 # https://docs.rubocop.org/rubocop/cops_metrics.html#metricsparameterlists
 Metrics/ParameterLists:
   CountKeywordArgs: false
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'app/policies/status_policy.rb'
+    - 'app/services/delivery_antenna_service.rb'
+    - 'app/services/post_status_service.rb'
 
 # Reason: Prevailing style is argument file paths
 # https://docs.rubocop.org/rubocop-rails/cops_rails.html#railsfilepath

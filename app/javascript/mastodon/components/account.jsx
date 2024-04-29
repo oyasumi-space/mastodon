@@ -44,11 +44,13 @@ class Account extends ImmutablePureComponent {
     onMuteNotifications: PropTypes.func.isRequired,
     intl: PropTypes.object.isRequired,
     hidden: PropTypes.bool,
+    hideButtons: PropTypes.bool,
     minimal: PropTypes.bool,
     actionIcon: PropTypes.string,
     actionTitle: PropTypes.string,
     defaultAction: PropTypes.string,
     onActionClick: PropTypes.func,
+    children: PropTypes.object,
     withBio: PropTypes.bool,
   };
 
@@ -81,7 +83,7 @@ class Account extends ImmutablePureComponent {
   };
 
   render () {
-    const { account, intl, hidden, withBio, onActionClick, actionIcon, actionTitle, defaultAction, size, minimal } = this.props;
+    const { account, intl, hidden, hideButtons, withBio, onActionClick, actionIcon, actionTitle, defaultAction, size, minimal, children } = this.props;
 
     if (!account) {
       return <EmptyAccount size={size} minimal={minimal} />;
@@ -100,7 +102,7 @@ class Account extends ImmutablePureComponent {
 
     if (actionIcon && onActionClick) {
       buttons = <IconButton icon={actionIcon} title={actionTitle} onClick={this.handleAction} />;
-    } else if (!actionIcon && account.get('id') !== me && account.get('relationship', null) !== null) {
+    } else if (!hideButtons && !actionIcon && account.get('id') !== me && account.get('relationship', null) !== null) {
       const following = account.getIn(['relationship', 'following']);
       const requested = account.getIn(['relationship', 'requested']);
       const blocking  = account.getIn(['relationship', 'blocking']);
@@ -160,15 +162,20 @@ class Account extends ImmutablePureComponent {
               <DisplayName account={account} />
               {!minimal && (
                 <div className='account__details'>
-                  <ShortNumber value={account.get('followers_count')} renderer={FollowersCounter} /> {verification} {muteTimeRemaining}
+                  <ShortNumber value={account.get('followers_count')} isHide={account.getIn(['other_settings', 'hide_followers_count']) || false} renderer={FollowersCounter} /> {verification} {muteTimeRemaining}
                 </div>
               )}
             </div>
           </Link>
 
           {!minimal && (
-            <div className='account__relationship'>
-              {buttons}
+            <div>
+              <div>
+                {children}
+              </div>
+              <div className='account__relationship'>
+                {buttons}
+              </div>
             </div>
           )}
         </div>

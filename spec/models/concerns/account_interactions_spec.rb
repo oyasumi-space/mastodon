@@ -9,6 +9,8 @@ describe AccountInteractions do
   let(:target_account)     { Fabricate(:account, username: 'target') }
   let(:target_account_id)  { target_account.id }
   let(:target_account_ids) { [target_account_id] }
+  let(:follower_account)   { Fabricate(:account, username: 'follower') }
+  let(:followee_account)   { Fabricate(:account, username: 'followee') }
 
   describe '.following_map' do
     subject { Account.following_map(target_account_ids, account_id) }
@@ -709,6 +711,22 @@ describe AccountInteractions do
 
     it 'includes only the list from the active follower and from oneself' do
       expect(account.lists_for_local_distribution.to_a).to contain_exactly(follower_list, self_list)
+    end
+  end
+
+  describe '#mutuals' do
+    subject { account.mutuals }
+
+    context 'when following target_account' do
+      it 'mutual one' do
+        account.follow!(target_account)
+        target_account.follow!(account)
+        follower_account.follow!(account)
+        account.follow!(followee_account)
+
+        expect(subject.count).to eq 1
+        expect(subject.first.id).to eq target_account.id
+      end
     end
   end
 end

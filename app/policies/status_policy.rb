@@ -1,21 +1,26 @@
 # frozen_string_literal: true
 
 class StatusPolicy < ApplicationPolicy
-  def initialize(current_account, record, preloaded_relations = {})
+  def initialize(current_account, record, preloaded_relations = {}, preloaded_status_relations = {})
     super(current_account, record)
 
     @preloaded_relations = preloaded_relations
+    @preloaded_status_relations = preloaded_status_relations
   end
+
+  delegate :reply?, :expired?, to: :record
 
   def show?
     return false if author.suspended?
 
     if requires_mention?
       owned? || mention_exists?
+    elsif login?
+      owned? || !current_account.nil?
     elsif private?
       owned? || following_author? || mention_exists?
     else
-      current_account.nil? || (!author_blocking? && !author_blocking_domain?)
+      current_account.nil? || (!author_blocking? && !author_blocking_domain? && !server_blocking_domain?)
     end
   end
 
@@ -24,6 +29,10 @@ class StatusPolicy < ApplicationPolicy
   end
 
   def favourite?
+    show? && !blocking_author?
+  end
+
+  def emoji_reaction?
     show? && !blocking_author?
   end
 
@@ -49,6 +58,14 @@ class StatusPolicy < ApplicationPolicy
 
   def private?
     record.private_visibility?
+  end
+
+  def login?
+    record.login_visibility?
+  end
+
+  def public?
+    record.public_visibility? || record.public_unlisted_visibility?
   end
 
   def mention_exists?
@@ -87,5 +104,29 @@ class StatusPolicy < ApplicationPolicy
 
   def author
     record.account
+  end
+
+  def server_blocking_domain?
+    if record.reblog? && record.reblog.local?
+      server_blocking_domain_of_status?(record) || server_blocking_domain_of_status?(record.reblog)
+    else
+      server_blocking_domain_of_status?(record)
+    end
+  end
+
+  def server_blocking_domain_of_status?(status)
+    @domain_block ||= DomainBlock.find_by(domain: current_account&.domain)
+    if @domain_block
+      if status.account.user&.setting_send_without_domain_blocks
+        (@domain_block.detect_invalid_subscription && status.public_unlisted_visibility? && status.account.user&.setting_reject_public_unlisted_subscription) ||
+          (@domain_block.detect_invalid_subscription && status.public_visibility? && status.account.user&.setting_reject_unlisted_subscription)
+      else
+        (@domain_block.detect_invalid_subscription && status.public_unlisted_visibility? && status.account.user&.setting_reject_public_unlisted_subscription) ||
+          (@domain_block.detect_invalid_subscription && status.public_visibility? && status.account.user&.setting_reject_unlisted_subscription) ||
+          (@domain_block.reject_send_sensitive && ((status.with_media? && status.sensitive) || status.spoiler_text?))
+      end
+    else
+      false
+    end
   end
 end

@@ -426,7 +426,7 @@ namespace :mastodon do
 
       prompt.say "\n"
 
-      env['UPDATE_CHECK_URL'] = '' unless prompt.yes?('Do you want Mastodon to periodically check for important updates and notify you? (Recommended)', default: true)
+      env['UPDATE_CHECK_URL'] = '' unless prompt.yes?('Do you want kmyblue to periodically check for important updates and notify you? (Recommended)', default: true)
 
       prompt.say "\n"
       prompt.say 'This configuration will be written to .env.production'

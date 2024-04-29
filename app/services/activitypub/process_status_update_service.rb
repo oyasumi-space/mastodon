@@ -22,6 +22,9 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
     return @status if !expected_type? || already_updated_more_recently?
 
     if @status_parser.edited_at.present? && (@status.edited_at.nil? || @status_parser.edited_at > @status.edited_at)
+      read_metadata
+      return @status unless valid_status?
+
       handle_explicit_update!
     else
       handle_implicit_update!
@@ -46,6 +49,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
         create_edits!
       end
 
+      update_references!
       download_media_files!
       queue_poll_notifications!
 
@@ -73,7 +77,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
     as_array(@json['attachment']).each do |attachment|
       media_attachment_parser = ActivityPub::Parser::MediaAttachmentParser.new(attachment)
 
-      next if media_attachment_parser.remote_url.blank? || @next_media_attachments.size > 4
+      next if media_attachment_parser.remote_url.blank? || @next_media_attachments.size > MediaAttachment::ACTIVITYPUB_STATUS_ATTACHMENT_MAX
 
       begin
         media_attachment   = previous_media_attachments.find { |previous_media_attachment| previous_media_attachment.remote_url == media_attachment_parser.remote_url }
@@ -152,6 +156,10 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
     end
   end
 
+  def valid_status?
+    !Admin::NgWord.reject?("#{@status_parser.spoiler_text}\n#{@status_parser.text}") && !Admin::NgWord.hashtag_reject?(@raw_tags.size)
+  end
+
   def update_immediate_attributes!
     @status.text         = @status_parser.text || ''
     @status.spoiler_text = @status_parser.spoiler_text || ''
@@ -165,7 +173,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
     @status.save!
   end
 
-  def update_metadata!
+  def read_metadata
     @raw_tags     = []
     @raw_mentions = []
     @raw_emojis   = []
@@ -179,7 +187,9 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
         @raw_emojis << tag
       end
     end
+  end
 
+  def update_metadata!
     update_tags!
     update_mentions!
     update_emojis!
@@ -229,16 +239,29 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
 
       emoji = CustomEmoji.find_by(shortcode: custom_emoji_parser.shortcode, domain: @account.domain)
 
-      next unless emoji.nil? || custom_emoji_parser.image_remote_url != emoji.image_remote_url || (custom_emoji_parser.updated_at && custom_emoji_parser.updated_at >= emoji.updated_at)
+      next unless emoji.nil? ||
+                  custom_emoji_parser.image_remote_url != emoji.image_remote_url ||
+                  (custom_emoji_parser.updated_at && custom_emoji_parser.updated_at >= emoji.updated_at) ||
+                  custom_emoji_parser.license != emoji.license
 
       begin
         emoji ||= CustomEmoji.new(domain: @account.domain, shortcode: custom_emoji_parser.shortcode, uri: custom_emoji_parser.uri)
         emoji.image_remote_url = custom_emoji_parser.image_remote_url
+        emoji.license = custom_emoji_parser.license
+        emoji.is_sensitive = custom_emoji_parser.is_sensitive
         emoji.save
       rescue Seahorse::Client::NetworkingError => e
         Rails.logger.warn "Error storing emoji: #{e}"
       end
     end
+  end
+
+  def update_references!
+    references = @json['references'].nil? ? [] : ActivityPub::FetchReferencesService.new.call(@status, @json['references'])
+    quote = @json['quote'] || @json['quoteUrl'] || @json['quoteURL'] || @json['_misskey_quote']
+    references << quote if quote
+
+    ProcessReferencesService.perform_worker_async(@status, [], references)
   end
 
   def expected_type?

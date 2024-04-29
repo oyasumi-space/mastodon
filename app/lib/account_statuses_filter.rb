@@ -26,20 +26,30 @@ class AccountStatusesFilter
     scope.merge!(no_reblogs_scope) if exclude_reblogs?
     scope.merge!(hashtag_scope)    if tagged?
 
+    available_searchabilities = [:public, :unlisted, :private, :direct, :limited, nil]
+    available_visibilities = [:public, :public_unlisted, :login, :unlisted, :private, :direct, :limited]
+
+    available_visibilities -= [:public_unlisted] if (domain_block&.detect_invalid_subscription || misskey_software?) && @account.user&.setting_reject_public_unlisted_subscription
+    available_visibilities -= [:unlisted] if (domain_block&.detect_invalid_subscription || misskey_software?) && @account.user&.setting_reject_unlisted_subscription
+    available_visibilities -= [:login] if current_account.nil?
+
+    scope.merge!(scope.where(sensitive: false)) if domain_block&.reject_send_sensitive
+
+    scope.merge!(scope.where(searchability: available_searchabilities))
+    scope.merge!(scope.where(visibility: available_visibilities))
+
     scope
   end
 
   private
 
   def initial_scope
-    return Status.none if suspended?
-
-    if anonymous?
-      account.statuses.where(visibility: %i(public unlisted))
+    if suspended? || blocked?
+      Status.none
+    elsif anonymous?
+      account.statuses.where(visibility: %i(public unlisted public_unlisted))
     elsif author?
       account.statuses.all # NOTE: #merge! does not work without the #all
-    elsif blocked?
-      Status.none
     else
       filtered_scope
     end
@@ -48,7 +58,7 @@ class AccountStatusesFilter
   def filtered_scope
     scope = account.statuses.left_outer_joins(:mentions)
 
-    scope.merge!(scope.where(visibility: follower? ? %i(public unlisted private) : %i(public unlisted)).or(scope.where(mentions: { account_id: current_account.id })).group(Status.arel_table[:id]))
+    scope.merge!(scope.where(visibility: follower? ? %i(public unlisted public_unlisted login private) : %i(public unlisted public_unlisted login)).or(scope.where(mentions: { account_id: current_account.id })).group(Status.arel_table[:id]))
     scope.merge!(filtered_reblogs_scope) if reblogs_may_occur?
 
     scope
@@ -108,6 +118,8 @@ class AccountStatusesFilter
   end
 
   def blocked?
+    return false if current_account.nil?
+
     account.blocking?(current_account) || (current_account.domain.present? && account.domain_blocking?(current_account.domain))
   end
 
@@ -141,5 +153,24 @@ class AccountStatusesFilter
 
   def truthy_param?(key)
     ActiveModel::Type::Boolean.new.cast(params[key])
+  end
+
+  def domain_block
+    return nil if @current_account.nil? || @current_account.local?
+
+    @domain_block = DomainBlock.find_by(domain: @current_account.domain)
+  end
+
+  def misskey_software?
+    return false if @account.nil? || @account.local?
+    return false if instance_info.nil?
+
+    %w(misskey cherrypick).include?(instance_info.software)
+  end
+
+  def instance_info
+    return @instance_info if defined?(@instance_info)
+
+    @instance_info = InstanceInfo.find_by(domain: @account.domain)
   end
 end

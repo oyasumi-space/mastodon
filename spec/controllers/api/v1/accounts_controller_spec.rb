@@ -49,10 +49,16 @@ RSpec.describe Api::V1::AccountsController do
 
   describe 'POST #follow' do
     let(:scopes) { 'write:follows' }
+    let(:my_actor_type) { 'Person' }
+    let(:lock_follow_from_bot) { false }
     let(:other_account) { Fabricate(:account, username: 'bob', locked: locked) }
 
     context 'when posting to an other account' do
       before do
+        other_account.user.settings['lock_follow_from_bot'] = lock_follow_from_bot
+        other_account.user.save!
+        user.account.update!(actor_type: my_actor_type)
+
         post :follow, params: { id: other_account.id }
       end
 
@@ -79,6 +85,29 @@ RSpec.describe Api::V1::AccountsController do
 
       context 'with locked account' do
         let(:locked) { true }
+
+        it 'returns http success' do
+          expect(response).to have_http_status(200)
+        end
+
+        it 'returns JSON with following=false and requested=true' do
+          json = body_as_json
+
+          expect(json[:following]).to be false
+          expect(json[:requested]).to be true
+        end
+
+        it 'creates a follow request relation between user and target user' do
+          expect(user.account.requested?(other_account)).to be true
+        end
+
+        it_behaves_like 'forbidden for wrong scope', 'read:accounts'
+      end
+
+      context 'with unlocked account from bot' do
+        let(:locked) { false }
+        let(:lock_follow_from_bot) { true }
+        let(:my_actor_type) { 'Service' }
 
         it 'returns http success' do
           expect(response).to have_http_status(200)

@@ -48,10 +48,35 @@ module Mastodon::CLI
       say('OK', :green)
     end
 
+    desc 'remove_legacy', 'Remove old list and antenna feeds from Redis'
+    def remove_legacy
+      current_id = 1
+      List.reorder(:id).select(:id).find_in_batches do |lists|
+        current_id = remove_legacy_feeds(:list, lists, current_id)
+      end
+
+      current_id = 1
+      Antenna.reorder(:id).select(:id).find_in_batches do |antennas|
+        current_id = remove_legacy_feeds(:antenna, antennas, current_id)
+      end
+
+      say('OK', :green)
+    end
+
     private
 
     def active_user_accounts
       Account.joins(:user).merge(User.active)
+    end
+
+    def remove_legacy_feeds(type, items, current_id)
+      exist_ids = items.pluck(:id)
+      last_id = exist_ids.max
+
+      ids = Range.new(current_id, last_id).to_a - exist_ids
+      FeedManager.instance.clean_feeds!(type, ids)
+
+      last_id + 1
     end
   end
 end

@@ -50,6 +50,10 @@
 #  trendable                     :boolean
 #  reviewed_at                   :datetime
 #  requested_review_at           :datetime
+#  group_allow_private_message   :boolean
+#  searchability                 :integer          default("direct"), not null
+#  dissubscribable               :boolean          default(FALSE), not null
+#  settings                      :jsonb
 #  indexable                     :boolean          default(FALSE), not null
 #
 
@@ -86,6 +90,7 @@ class Account < ApplicationRecord
 
   enum protocol: { ostatus: 0, activitypub: 1 }
   enum suspension_origin: { local: 0, remote: 1 }, _prefix: true
+  enum searchability: { public: 0, private: 1, direct: 2, limited: 3, unsupported: 4, public_unlisted: 10 }, _suffix: :searchability
 
   validates :username, presence: true
   validates_with UniqueUsernameValidator, if: -> { will_save_change_to_username? }
@@ -101,7 +106,7 @@ class Account < ApplicationRecord
   validates_with UnreservedUsernameValidator, if: -> { local? && will_save_change_to_username? && actor_type != 'Application' }
   validates :display_name, length: { maximum: 30 }, if: -> { local? && will_save_change_to_display_name? }
   validates :note, note_length: { maximum: 500 }, if: -> { local? && will_save_change_to_note? }
-  validates :fields, length: { maximum: 4 }, if: -> { local? && will_save_change_to_fields? }
+  validates :fields, length: { maximum: 6 }, if: -> { local? && will_save_change_to_fields? }
   validates :uri, absence: true, if: :local?, on: :create
   validates :inbox_url, absence: true, if: :local?, on: :create
   validates :shared_inbox_url, absence: true, if: :local?, on: :create
@@ -120,8 +125,8 @@ class Account < ApplicationRecord
   scope :bots, -> { where(actor_type: %w(Application Service)) }
   scope :groups, -> { where(actor_type: 'Group') }
   scope :alphabetic, -> { order(domain: :asc, username: :asc) }
-  scope :matches_username, ->(value) { where('lower((username)::text) LIKE lower(?)', "#{value}%") }
-  scope :matches_display_name, ->(value) { where(arel_table[:display_name].matches("#{value}%")) }
+  scope :matches_username, ->(value) { where('lower((username)::text) ~ lower(?)', value.to_s) }
+  scope :matches_display_name, ->(value) { where(arel_table[:display_name].matches_regexp(value.to_s)) }
   scope :matches_domain, ->(value) { where(arel_table[:domain].matches("%#{value}%")) }
   scope :without_unapproved, -> { left_outer_joins(:user).merge(User.approved.confirmed).or(remote) }
   scope :searchable, -> { without_unapproved.without_suspended.where(moved_to_account_id: nil) }
@@ -186,7 +191,27 @@ class Account < ApplicationRecord
     actor_type == 'Group'
   end
 
+  def group=(val)
+    self.actor_type = ActiveModel::Type::Boolean.new.cast(val) ? 'Group' : 'Person'
+  end
+
   alias group group?
+
+  def my_actor_type
+    if actor_type == 'Service'
+      'bot'
+    else
+      actor_type == 'Group' ? 'group' : 'person'
+    end
+  end
+
+  def my_actor_type=(val)
+    self.actor_type = if val == 'bot'
+                        'Service'
+                      else
+                        val == 'group' ? 'Group' : 'Person'
+                      end
+  end
 
   def acct
     local? ? username : "#{username}@#{domain}"
@@ -286,6 +311,116 @@ class Account < ApplicationRecord
     true
   end
 
+  def noindex?
+    user_prefers_noindex? || (settings.present? && settings['noindex']) || false
+  end
+
+  def noai?
+    user&.setting_noai || (settings.present? && settings['noai']) || false
+  end
+
+  def translatable_private?
+    user&.setting_translatable_private || (settings.present? && settings['translatable_private']) || false
+  end
+
+  def public_statuses_count
+    hide_statuses_count? ? 0 : statuses_count
+  end
+
+  def public_following_count
+    hide_following_count? ? 0 : following_count
+  end
+
+  def public_followers_count
+    hide_followers_count? ? 0 : followers_count
+  end
+
+  def hide_statuses_count?
+    return user&.setting_hide_statuses_count unless user&.setting_hide_statuses_count.nil?
+    return settings['hide_statuses_count'] if settings.present?
+
+    false
+  end
+
+  def hide_following_count?
+    return user&.setting_hide_following_count unless user&.setting_hide_following_count.nil?
+    return settings['hide_following_count'] if settings.present?
+
+    false
+  end
+
+  def hide_followers_count?
+    return user&.setting_hide_followers_count unless user&.setting_hide_followers_count.nil?
+    return settings['hide_followers_count'] if settings.present?
+
+    false
+  end
+
+  def emoji_reaction_policy
+    return settings['emoji_reaction_policy']&.to_sym || :allow if settings.present? && user.nil?
+    return :allow if user.nil?
+    return :block if local? && !Setting.enable_emoji_reaction
+
+    user.setting_emoji_reaction_policy&.to_sym
+  end
+
+  def show_emoji_reaction?(account)
+    return false unless Setting.enable_emoji_reaction
+
+    case emoji_reaction_policy
+    when :block
+      false
+    when :following_only
+      account.present? && (id == account.id || following?(account))
+    when :followers_only
+      account.present? && (id == account.id || followed_by?(account))
+    when :mutuals_only
+      account.present? && (id == account.id || mutual?(account))
+    when :outside_only
+      account.present? && (id == account.id || following?(account) || followed_by?(account))
+    else
+      true
+    end
+  end
+
+  def allow_emoji_reaction?(account)
+    return false if account.nil?
+    return true unless local? || account.local?
+
+    show_emoji_reaction?(account)
+  end
+
+  def public_settings
+    config = {
+      'noindex' => noindex?,
+      'noai' => noai?,
+      'hide_network' => hide_collections,
+      'hide_statuses_count' => hide_statuses_count?,
+      'hide_following_count' => hide_following_count?,
+      'hide_followers_count' => hide_followers_count?,
+      'translatable_private' => translatable_private?,
+    }
+    if Setting.enable_emoji_reaction
+      config = config.merge({
+        'emoji_reaction_policy' => emoji_reaction_policy,
+      })
+    end
+    config = config.merge(settings) if settings.present?
+    config
+  end
+
+  def public_settings_for_local
+    config = public_settings
+
+    unless Setting.enable_emoji_reaction
+      config = config.merge({
+        'emoji_reaction_policy' => :block,
+      })
+    end
+
+    config
+  end
+
   def previous_strikes_count
     strikes.where(overruled_at: nil).count
   end
@@ -344,7 +479,7 @@ class Account < ApplicationRecord
     self[:fields] = fields
   end
 
-  DEFAULT_FIELDS_SIZE = 4
+  DEFAULT_FIELDS_SIZE = 6
 
   def build_fields
     return if fields.size >= DEFAULT_FIELDS_SIZE
@@ -480,6 +615,10 @@ class Account < ApplicationRecord
 
     generate_keys
     save!
+  end
+
+  def compute_searchability_activitypub
+    local? ? 'public' : searchability
   end
 
   private

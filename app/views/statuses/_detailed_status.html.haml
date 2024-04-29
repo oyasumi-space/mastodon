@@ -1,3 +1,6 @@
+:ruby
+  grouped_emoji_reactions ||= Oj.load(status.status_stat&.emoji_reactions || '', mode: :strict) || []
+
 .detailed-status.detailed-status--flex{ class: "detailed-status-#{status.visibility}" }
   .p-author.h-card
     = link_to ActivityPub::TagManager.instance.url_for(status.account), class: 'detailed-status__display-name u-url', target: stream_link_target, rel: 'noopener' do
@@ -35,6 +38,13 @@
       = render_media_gallery_component(status, height: 380, standalone: true)
   - elsif status.preview_card
     = render_card_component(status)
+
+  - if grouped_emoji_reactions.size > 0
+    .status__emoji-reactions-bar
+      - grouped_emoji_reactions.each do |reaction|
+        %button.emoji-reactions-bar__button
+          %span.emojify= prerender_custom_emojis_from_hash(emoji_name_format(reaction, status), reaction)
+          %span.count= reaction['count']
 
   .detailed-status__meta
     %data.dt-published{ value: status.created_at.to_time.iso8601 }

@@ -4,14 +4,16 @@
 #
 # Table name: custom_filters
 #
-#  id         :bigint(8)        not null, primary key
-#  account_id :bigint(8)
-#  expires_at :datetime
-#  phrase     :text             default(""), not null
-#  context    :string           default([]), not null, is an Array
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  action     :integer          default("warn"), not null
+#  id                 :bigint(8)        not null, primary key
+#  account_id         :bigint(8)
+#  expires_at         :datetime
+#  phrase             :text             default(""), not null
+#  context            :string           default([]), not null, is an Array
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  action             :integer          default("warn"), not null
+#  exclude_follows    :boolean          default(FALSE), not null
+#  exclude_localusers :boolean          default(FALSE), not null
 #
 
 class CustomFilter < ApplicationRecord
@@ -94,9 +96,15 @@ class CustomFilter < ApplicationRecord
     active_filters.select { |custom_filter, _| !custom_filter.expired? }
   end
 
-  def self.apply_cached_filters(cached_filters, status)
+  def self.apply_cached_filters(cached_filters, status, following = false) # rubocop:disable Style/OptionalBooleanParameter
     cached_filters.filter_map do |filter, rules|
-      match = rules[:keywords].match(status.proper.searchable_text) if rules[:keywords].present?
+      next if filter.exclude_follows && following
+      next if filter.exclude_localusers && status.account.local?
+
+      if rules[:keywords].present?
+        match = rules[:keywords].match(status.proper.searchable_text)
+        match = rules[:keywords].match(status.proper.references.pluck(:text).join("\n\n")) if match.nil? && status.proper.references.exists?
+      end
       keyword_matches = [match.to_s] unless match.nil?
 
       status_matches = [status.id, status.reblog_of_id].compact & rules[:status_ids] if rules[:status_ids].present?

@@ -1,4 +1,3 @@
----
 ga:
   activerecord:
     attributes:
@@ -47,5 +46,5 @@ ga:
         search: Cuardaigh
         statuses: Postálacha
     scopes:
-      write:filters: cruthaigh scagairí
-      write:lists: cruthaigh liostaí
+      "write:filters": cruthaigh scagairí
+      "write:lists": cruthaigh liostaí

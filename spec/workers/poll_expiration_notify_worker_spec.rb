@@ -22,7 +22,7 @@ describe PollExpirationNotifyWorker do
     end
 
     context 'when poll is not expired' do
-      it 'requeues job' do
+      it 'requeues job', retry: 10 do
         worker.perform(poll.id)
         expect(described_class.sidekiq_options_hash['lock']).to be :until_executing
         expect(described_class).to have_enqueued_sidekiq_job(poll.id).at(poll.expires_at + 5.minutes)

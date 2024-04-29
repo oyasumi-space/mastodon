@@ -8,7 +8,9 @@ class NotifyService < BaseService
     admin.sign_up
     update
     poll
-    status
+    emoji_reaction
+    status_reference
+    warning
   ).freeze
 
   def call(recipient, type, activity)

@@ -1,4 +1,3 @@
----
 fy:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ fy:
         events: Ynskeakele eveneminten
         template: Payload-sjabloan
         url: Einpunt-URL
-    'no': Nee
+    'no': 'Nee'
     not_recommended: Net oanrekommandearre
     overridden: Oerskreaun
     recommended: Oanrekommandearre
@@ -331,4 +330,4 @@ fy:
     title:
       sessions:
         webauthn: Brûk ien fan jo befeiligingskaaien om oan te melden
-    'yes': Ja
+    'yes': 'Ja'

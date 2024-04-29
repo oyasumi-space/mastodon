@@ -24,6 +24,7 @@ const Account = connect(state => ({
 
 const messages = defineMessages({
   search: { id: 'navigation_bar.search', defaultMessage: 'Search' },
+  reload: { id: 'navigation_bar.reload', defaultMessage: 'Reload' },
 });
 
 const mapStateToProps = (state) => ({
@@ -58,6 +59,11 @@ class Header extends PureComponent {
     dispatchServer();
   }
 
+  handleReload (e) {
+    e.preventDefault();
+    window.location.reload();
+  }
+
   render () {
     const { signedIn } = this.context.identity;
     const { location, openClosedRegistrationsModal, signupUrl, intl } = this.props;
@@ -67,6 +73,7 @@ class Header extends PureComponent {
     if (signedIn) {
       content = (
         <>
+          {<button onClick={this.handleReload} className='button button-secondary' aria-label={intl.formatMessage(messages.reload)}><Icon id='refresh' /></button>}
           {location.pathname !== '/search' && <Link to='/search' className='button button-secondary' aria-label={intl.formatMessage(messages.search)}><Icon id='search' /></Link>}
           {location.pathname !== '/publish' && <Link to='/publish' className='button button-secondary'><FormattedMessage id='compose_form.publish_form' defaultMessage='New post' /></Link>}
           <Account />

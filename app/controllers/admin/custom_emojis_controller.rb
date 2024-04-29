@@ -74,7 +74,7 @@ module Admin
     end
 
     def form_custom_emoji_batch_params
-      params.require(:form_custom_emoji_batch).permit(:action, :category_id, :category_name, custom_emoji_ids: [])
+      params.require(:form_custom_emoji_batch).permit(:action, :category_id, :category_name, :aliases_raw, custom_emoji_ids: [])
     end
   end
 end

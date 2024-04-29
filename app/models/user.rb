@@ -66,6 +66,8 @@ class User < ApplicationRecord
   # to check their feed
   ACTIVE_DURATION = ENV.fetch('USER_ACTIVE_DAYS', 7).to_i.days.freeze
 
+  REACTION_DECK_MAX = 256
+
   devise :two_factor_authenticatable,
          otp_secret_encryption_key: Rails.configuration.x.otp_secret
 

@@ -44,6 +44,7 @@
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gamestdio/websocket": "^0.3.2",
     "@github/webauthn-json": "^2.1.1",
+    "@hello-pangea/dnd": "^16.3.0",
     "@material-design-icons/svg": "^0.14.10",
     "@rails/ujs": "^7.0.6",
     "@reduxjs/toolkit": "^1.9.5",
@@ -224,6 +225,7 @@
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
     "Capfile|Gemfile|*.{rb,ruby,ru,rake}": "bundle exec rubocop --force-exclusion -a",
+    "*.{haml}": "bundle exec haml-lint",
     "*.{js,jsx,ts,tsx}": "eslint --fix",
     "*.{css,scss}": "stylelint --fix"
   }

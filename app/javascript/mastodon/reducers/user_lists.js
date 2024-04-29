@@ -57,6 +57,13 @@ import {
   FAVOURITES_EXPAND_REQUEST,
   FAVOURITES_EXPAND_SUCCESS,
   FAVOURITES_EXPAND_FAIL,
+  EMOJI_REACTIONS_FETCH_REQUEST,
+  EMOJI_REACTIONS_FETCH_SUCCESS,
+  EMOJI_REACTIONS_FETCH_FAIL,
+  EMOJI_REACTIONS_EXPAND_REQUEST,
+  EMOJI_REACTIONS_EXPAND_SUCCESS,
+  EMOJI_REACTIONS_EXPAND_FAIL,
+  STATUS_REFERENCES_FETCH_SUCCESS,
 } from '../actions/interactions';
 import {
   MUTES_FETCH_REQUEST,
@@ -83,6 +90,8 @@ const initialState = ImmutableMap({
   following: initialListState,
   reblogged_by: initialListState,
   favourited_by: initialListState,
+  emoji_reactioned_by: initialListState,
+  referred_by: initialListState,
   follow_requests: initialListState,
   blocks: initialListState,
   mutes: initialListState,
@@ -97,10 +106,31 @@ const normalizeList = (state, path, accounts, next) => {
   }));
 };
 
+const normalizeEmojiReactionList = (state, path, rows, next) => {
+  return state.setIn(path, ImmutableMap({
+    next,
+    items: ImmutableList(rows.map(normalizeEmojiReactionRow)),
+    isLoading: false,
+  }));
+};
+
 const appendToList = (state, path, accounts, next) => {
   return state.updateIn(path, map => {
     return map.set('next', next).set('isLoading', false).update('items', list => list.concat(accounts.map(item => item.id)));
   });
+};
+
+const appendToEmojiReactionList = (state, path, rows, next) => {
+  return state.updateIn(path, map => {
+    return map.set('next', next).set('isLoading', false).update('items', list => list.concat(rows.map(normalizeEmojiReactionRow)));
+  });
+};
+
+const normalizeEmojiReactionRow = (row) => {
+  const accountId = row.account ? row.account.id : 0;
+  delete row.account;
+  row.account_id = accountId;
+  return row;
 };
 
 const normalizeFollowRequest = (state, notification) => {
@@ -163,6 +193,18 @@ export default function userLists(state = initialState, action) {
   case FAVOURITES_FETCH_FAIL:
   case FAVOURITES_EXPAND_FAIL:
     return state.setIn(['favourited_by', action.id, 'isLoading'], false);
+  case EMOJI_REACTIONS_FETCH_REQUEST:
+  case EMOJI_REACTIONS_EXPAND_REQUEST:
+    return state.setIn(['emoji_reactioned_by', action.id, 'isLoading'], true);
+  case EMOJI_REACTIONS_FETCH_FAIL:
+  case EMOJI_REACTIONS_EXPAND_FAIL:
+    return state.setIn(['emoji_reactioned_by', action.id, 'isLoading'], false);
+  case EMOJI_REACTIONS_FETCH_SUCCESS:
+    return normalizeEmojiReactionList(state, ['emoji_reactioned_by', action.id], action.accounts, action.next);
+  case EMOJI_REACTIONS_EXPAND_SUCCESS:
+    return appendToEmojiReactionList(state, ['emoji_reactioned_by', action.id], action.accounts, action.next);
+  case STATUS_REFERENCES_FETCH_SUCCESS:
+    return state.setIn(['referred_by', action.id], ImmutableList(action.statuses.map(item => item.id)));
   case NOTIFICATIONS_UPDATE:
     return action.notification.type === 'follow_request' ? normalizeFollowRequest(state, action.notification) : state;
   case FOLLOW_REQUESTS_FETCH_SUCCESS:

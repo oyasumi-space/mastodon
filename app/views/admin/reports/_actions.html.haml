@@ -13,6 +13,11 @@
           = t('admin.reports.actions.mark_as_sensitive_description_html')
     .report-actions__item
       .report-actions__item__button
+        = button_tag t('admin.reports.force_cw'), name: :force_cw, class: 'button'
+      .report-actions__item__description
+        = t('admin.reports.actions.force_cw_description_html')
+    .report-actions__item
+      .report-actions__item__button
         = button_tag t('admin.reports.delete_and_resolve'), name: :delete, class: 'button button--destructive'
       .report-actions__item__description
         = t('admin.reports.actions.delete_description_html')

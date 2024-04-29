@@ -1,4 +1,3 @@
----
 da:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ da:
         events: Aktive begivenheder
         template: Payload skabelon
         url: Endepunkts-URL
-    'no': Nej
+    'no': 'Nej'
     not_recommended: Ikke anbefalet
     overridden: Tilsidesat
     recommended: Anbefalet
@@ -331,4 +330,4 @@ da:
     title:
       sessions:
         webauthn: Brug en af dine sikkerhedskoder til indlogning
-    'yes': Ja
+    'yes': 'Ja'

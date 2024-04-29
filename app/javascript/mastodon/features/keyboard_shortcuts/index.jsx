@@ -141,6 +141,10 @@ class KeyboardShortcuts extends ImmutablePureComponent {
                 <td><FormattedMessage id='keyboard_shortcuts.favourites' defaultMessage='to open favorites list' /></td>
               </tr>
               <tr>
+                <td><kbd>g</kbd>+<kbd>e</kbd></td>
+                <td><FormattedMessage id='keyboard_shortcuts.emoji_reactions' defaultMessage='to open stamps list' /></td>
+              </tr>
+              <tr>
                 <td><kbd>g</kbd>+<kbd>p</kbd></td>
                 <td><FormattedMessage id='keyboard_shortcuts.pinned' defaultMessage='to open pinned posts list' /></td>
               </tr>

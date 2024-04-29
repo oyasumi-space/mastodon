@@ -129,12 +129,15 @@ class Onboarding extends ImmutablePureComponent {
           <p className='onboarding__lead'><FormattedMessage id='onboarding.start.skip' defaultMessage="Don't need help getting started?" /></p>
 
           <div className='onboarding__links'>
-            <Link to='/explore' className='onboarding__link'>
+            <Link to='/explore' onClick={this.handleClose} className='onboarding__link'>
               <FormattedMessage id='onboarding.actions.go_to_explore' defaultMessage='Take me to trending' />
               <ArrowSmallRight />
             </Link>
-
-            <Link to='/home' className='onboarding__link'>
+            <Link to='/public/local' onClick={this.handleClose} className='onboarding__link'>
+              <FormattedMessage id='onboarding.actions.go_to_local_timeline' defaultMessage='See posts from local' />
+              <ArrowSmallRight />
+            </Link>
+            <Link to='/home' onClick={this.handleClose} className='onboarding__link'>
               <FormattedMessage id='onboarding.actions.go_to_home' defaultMessage='Take me to my home feed' />
               <ArrowSmallRight />
             </Link>

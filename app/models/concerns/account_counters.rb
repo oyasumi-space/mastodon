@@ -16,6 +16,8 @@ module AccountCounters
            :following_count=,
            :followers_count,
            :followers_count=,
+           :group_activitypub_count,
+           :group_activitypub_count=,
            :last_status_at,
            to: :account_stat
 

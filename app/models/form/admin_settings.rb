@@ -14,6 +14,7 @@ class Form::AdminSettings
     site_terms
     registrations_mode
     closed_registrations_message
+    registration_button_message
     timeline_preview
     bootstrap_timeline_accounts
     theme
@@ -36,13 +37,23 @@ class Form::AdminSettings
     backups_retention_period
     status_page_url
     captcha_enabled
+    ng_words
+    hide_local_users_for_anonymous
+    post_hash_tags_max
+    sensitive_words
+    sensitive_words_for_full
     authorized_fetch
+    receive_other_servers_emoji_reaction
+    streaming_other_servers_emoji_reaction
+    enable_emoji_reaction
+    check_lts_version_only
   ).freeze
 
   INTEGER_KEYS = %i(
     media_cache_retention_period
     content_cache_retention_period
     backups_retention_period
+    post_hash_tags_max
   ).freeze
 
   BOOLEAN_KEYS = %i(
@@ -57,7 +68,12 @@ class Form::AdminSettings
     noindex
     require_invite_text
     captcha_enabled
+    hide_local_users_for_anonymous
     authorized_fetch
+    receive_other_servers_emoji_reaction
+    streaming_other_servers_emoji_reaction
+    enable_emoji_reaction
+    check_lts_version_only
   ).freeze
 
   UPLOAD_KEYS = %i(
@@ -68,6 +84,12 @@ class Form::AdminSettings
   OVERRIDEN_SETTINGS = {
     authorized_fetch: :authorized_fetch_mode?,
   }.freeze
+
+  STRING_ARRAY_KEYS = %i(
+    ng_words
+    sensitive_words
+    sensitive_words_for_full
+  ).freeze
 
   attr_accessor(*KEYS)
 
@@ -88,6 +110,8 @@ class Form::AdminSettings
 
       stored_value = if UPLOAD_KEYS.include?(key)
                        SiteUpload.where(var: key).first_or_initialize(var: key)
+                     elsif STRING_ARRAY_KEYS.include?(key)
+                       Setting.public_send(key)&.join("\n") || ''
                      elsif OVERRIDEN_SETTINGS.include?(key)
                        public_send(OVERRIDEN_SETTINGS[key])
                      else
@@ -132,6 +156,8 @@ class Form::AdminSettings
       value == '1'
     elsif INTEGER_KEYS.include?(key)
       value.blank? ? value : Integer(value)
+    elsif STRING_ARRAY_KEYS.include?(key)
+      value&.split(/\r\n|\r|\n/)&.filter(&:present?)&.uniq || []
     else
       value
     end

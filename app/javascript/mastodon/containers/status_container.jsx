@@ -13,6 +13,7 @@ import {
   replyCompose,
   mentionCompose,
   directCompose,
+  insertReferenceCompose,
 } from '../actions/compose';
 import {
   blockDomain,
@@ -24,9 +25,11 @@ import {
 import {
   reblog,
   favourite,
+  emojiReact,
   bookmark,
   unreblog,
   unfavourite,
+  unEmojiReact,
   unbookmark,
   pin,
   unpin,
@@ -111,6 +114,10 @@ const mapDispatchToProps = (dispatch, { intl, contextType }) => ({
     }
   },
 
+  onReblogForceModal (status) {
+    dispatch(initBoostModal({ status, onReblog: this.onModalReblog }));
+  },
+
   onFavourite (status) {
     if (status.get('favourited')) {
       dispatch(unfavourite(status));
@@ -119,12 +126,29 @@ const mapDispatchToProps = (dispatch, { intl, contextType }) => ({
     }
   },
 
+  onEmojiReact (status, emoji) {
+    dispatch(emojiReact(status, emoji));
+  },
+
+  onUnEmojiReact (status, emoji) {
+    dispatch(unEmojiReact(status, emoji));
+  },
+
   onBookmark (status) {
     if (status.get('bookmarked')) {
       dispatch(unbookmark(status));
     } else {
       dispatch(bookmark(status));
     }
+  },
+
+  onBookmarkCategoryAdder (status) {
+    dispatch(openModal({
+      modalType: 'BOOKMARK_CATEGORY_ADDER',
+      modalProps: {
+        statusId: status.get('id'),
+      },
+    }));
   },
 
   onPin (status) {
@@ -176,6 +200,14 @@ const mapDispatchToProps = (dispatch, { intl, contextType }) => ({
         dispatch(editStatus(status.get('id'), history));
       }
     });
+  },
+
+  onReference (status) {
+    dispatch(insertReferenceCompose(0, status.get('url'), 'BT'));
+  },
+
+  onQuote (status) {
+    dispatch(insertReferenceCompose(0, status.get('url'), 'QT'));
   },
 
   onTranslate (status) {

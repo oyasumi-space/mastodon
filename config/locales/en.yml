@@ -264,11 +264,16 @@ en:
         enable_custom_emoji_html: "%{name} enabled emoji %{target}"
         enable_sign_in_token_auth_user_html: "%{name} enabled e-mail token authentication for %{target}"
         enable_user_html: "%{name} enabled login for user %{target}"
+        force_cw_status_html: "%{name} turned post by %{target} cw"
+        force_sensitive_status_html: "%{name} turned post by %{target} sensitive"
         memorialize_account_html: "%{name} turned %{target}'s account into a memoriam page"
         promote_user_html: "%{name} promoted user %{target}"
         reject_appeal_html: "%{name} rejected moderation decision appeal from %{target}"
         reject_user_html: "%{name} rejected sign-up from %{target}"
         remove_avatar_user_html: "%{name} removed %{target}'s avatar"
+        remove_history_status_html: "%{name} removed post edit histories by %{target}"
+        remove_media_status_html: "%{name} removed post medias by %{target}"
+        remove_status_status_html: "%{name} removed post by %{target}"
         reopen_report_html: "%{name} reopened report %{target}"
         resend_user_html: "%{name} resent confirmation e-mail for %{target}"
         reset_password_user_html: "%{name} reset password of user %{target}"
@@ -394,6 +399,8 @@ en:
         undo_relationships: This will undo any follow relationship between accounts of these servers and yours.
       created_msg: Domain block is now being processed
       destroyed_msg: Domain block has been undone
+      detect_invalid_subscription: 不正な購読を行うサーバーとしてマークする
+      detect_invalid_subscription_hint: Misskey、Calckeyなどは購読機能で未フォローユーザーの未収載投稿を拾います。これをマークしたサーバーは、ユーザーが任意で配送を拒否できます。停止とは無関係です
       domain: Domain
       edit: Edit domain block
       existing_domain_block: You have already imposed stricter limits on %{name}.
@@ -417,10 +424,26 @@ en:
       private_comment_hint: Comment about this domain limitation for internal use by the moderators.
       public_comment: Public comment
       public_comment_hint: Comment about this domain limitation for the general public, if advertising the list of domain limitations is enabled.
+      reject_favourite: Reject favorites
+      reject_favourite_hint: Reject favorites or emoji-reaction in the future
+      reject_hashtag: Reject hashtags
+      reject_hashtag_hint: Reject hashtags in the future
       reject_media: Reject media files
       reject_media_hint: Removes locally stored media files and refuses to download any in the future. Irrelevant for suspensions
+      reject_new_follow: Reject follows
+      reject_new_follow_hint: Reject follows in the future
+      reject_reply: Reject replies
+      reject_reply_exclude_followers: Reject replies exclude followers
+      reject_reply_hint: Reject replies in the future
+      reject_reply_exclude_followers_hint: Reject replies exclude followers in the future
       reject_reports: Reject reports
       reject_reports_hint: Ignore all reports coming from this domain. Irrelevant for suspensions
+      reject_send_sensitive: センシティブな投稿を配送しない
+      reject_send_sensitive_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
+      reject_send_unlisted_dissubscribable: 購読拒否アカウントの未収載投稿を配送しない
+      reject_send_unlisted_dissubscribable_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
+      reject_straight_follow: Reject straight follow
+      reject_straight_follow_hint: The server accounts must be authenticated when follow our accounts
       undo: Undo domain block
       view: View domain block
     email_domain_blocks:
@@ -488,7 +511,13 @@ en:
         description_html: You can define content policies that will be applied to all accounts from this domain and any of its subdomains.
         limited_federation_mode_description_html: You can chose whether to allow federation with this domain.
         policies:
+          reject_favourite: Reject favorite
+          reject_hashtag: Reject hashtags
           reject_media: Reject media
+          reject_new_follow: Reject follows
+          reject_straight_follow: Reject straight follow
+          reject_reply: Reject reply
+          reject_reply_exclude_followers: Reject reply exclude followers
           reject_reports: Reject reports
           silence: Limit
           suspend: Suspend
@@ -557,6 +586,15 @@ en:
         title: Create new IP rule
       no_ip_block_selected: No IP rules were changed as none were selected
       title: IP rules
+    media_attachments:
+      title: Media attachments
+    ng_words:
+      hide_local_users_for_anonymous: Hide timeline local user posts from anonymous
+      keywords: Reject keywords
+      keywords_hint: The first character of the line is "?". to use regular expressions
+      post_hash_tags_max: Hash tags max for posts
+      test_error: Testing is returned any errors
+      title: NG words and against spams
     relationships:
       title: "%{acct}'s relationships"
     relays:
@@ -699,12 +737,16 @@ en:
         manage_federation_description: Allows users to block or allow federation with other domains, and control deliverability
         manage_invites: Manage Invites
         manage_invites_description: Allows users to browse and deactivate invite links
+        manage_ng_words: Manage NG words
+        manage_ng_words_description: Allows users to manage NG words. We will be very careful in handling this as it is a deligate part of the submission
         manage_reports: Manage Reports
         manage_reports_description: Allows users to review reports and perform moderation actions against them
         manage_roles: Manage Roles
         manage_roles_description: Allows users to manage and assign roles below theirs
         manage_rules: Manage Rules
         manage_rules_description: Allows users to change server rules
+        manage_sensitive_words: Manage Sentive Words
+        manage_sensitive_words_description: Allows users to manage sensitive words. Note that regular expressions are available
         manage_settings: Manage Settings
         manage_settings_description: Allows users to change site settings
         manage_taxonomies: Manage Taxonomies
@@ -729,6 +771,13 @@ en:
       edit: Edit rule
       empty: No server rules have been defined yet.
       title: Server rules
+    sensitive_words:
+      alert: This post contains sensitive words, so alert added
+      hint: This keywords is applied to public posts only..
+      keywords: Sensitive keywords
+      keywords_for_all: Sensitive keywords (Contains CW alert)
+      keywords_for_all_hint: The first character of the line is "?". to use regular expressions
+      title: Sensitive words and moderation options
     settings:
       about:
         manage_rules: Manage server rules
@@ -751,6 +800,7 @@ en:
         desc_html: Affects all users who have not changed this setting themselves
         title: Opt users out of search engine indexing by default
       discovery:
+        emoji_reactions: Stamp
         follow_recommendations: Follow recommendations
         preamble: Surfacing interesting content is instrumental in onboarding new users who may not know anyone Mastodon. Control how various discovery features work on your server.
         profile_directory: Profile directory
@@ -797,6 +847,7 @@ en:
     statuses:
       account: Author
       application: Application
+      are_you_sure: Are you sure?
       back_to_account: Back to account page
       back_to_report: Back to report page
       batch:
@@ -804,6 +855,8 @@ en:
         report: Report
       deleted: Deleted
       favourites: Favorites
+      force_cw: Force CW
+      force_nsfw: Force NSFW
       history: Version history
       in_reply_to: Replying to
       language: Language
@@ -814,6 +867,10 @@ en:
       open: Open post
       original_status: Original post
       reblogs: Reblogs
+      remove: Remove post
+      remove_media: Remove medias
+      remove_history: Remove edit history
+      searchability: Searchability
       status_changed: Post changed
       title: Account posts
       trending: Trending
@@ -938,6 +995,9 @@ en:
           other: Used by %{count} people over the last week
       title: Trends
       trending: Trending
+    update-pendings:
+      major: Major update pending
+      patch: Patch update pending
     warning_presets:
       add_new: Add new
       delete: Delete
@@ -1011,6 +1071,62 @@ en:
     empty: You have no aliases.
     hint_html: If you want to move from another account to this one, here you can create an alias, which is required before you can proceed with moving followers from the old account to this one. This action by itself is <strong>harmless and reversible</strong>. <strong>The account migration is initiated from the old account</strong>.
     remove: Unlink alias
+  antennas:
+    contexts:
+      account: Accounts
+      domain: Domains
+      keyword: Keywords
+      tag: Tags
+    errors:
+      duplicate_account: Duplicate account
+      duplicate_domain: Duplicate domain
+      duplicate_keyword: Duplicate keyword
+      duplicate_tag: Duplicate tag
+      limit:
+        accounts: 登録できるアカウント数の上限に達しています
+        domains: 登録できるドメイン数の上限に達しています
+        keywords: 登録できるキーワード数の上限に達しています
+        tags: 登録できるタグ数の上限に達しています
+      too_short_keyword: Too short keyword! must 2 and more letters
+    edit:
+      accounts_hint: \@askyq or @askyq@example.com
+      accounts_raw: Account list
+      available: Available
+      description: アンテナは、サーバーが認識した全ての公開・ローカル公開投稿のうち、検索許可が「公開」または明示的に設定されていないもの(検索許可システムに対応していないサーバーからの投稿)、かつ購読を拒否していないすべてのアカウントからの投稿が対象です。検出された投稿は、指定したリストに追加されます。
+      domains_hint: ドメインとは、アカウントIDやサイトのURLのうち「kmy.blue」「example.com」に該当する部分です。自身のサーバーを指定することはできません
+      domains_raw: Domain list
+      exclude_accounts_raw: Excluding account list
+      exclude_domains_raw: Excluding domain list
+      exclude_keywords_raw: Excluding keyword list
+      exclude_tags_raw: Excluding hashtag list
+      hint: 下のリストに、絞り込み条件・除外条件を入力します。条件は複数指定することができます。1行につき1つずつ入力してください。空行、コメント、重複を含めることはできません。
+      ignore_reblog: Ignore BTs
+      insert_feeds: Insert home/list timeline (Destination list setting is NOT available if this checkbox is NOT set)
+      keywords_hint: キーワードは1つあたり最低2文字です。キーワードによる絞り込みを指定した場合、検索許可に対応しているサーバーからの投稿は、検索許可が「公開」以外のものは掲載されなくなります
+      keywords_raw: Keyword list
+      list: Destination list
+      stl: Enable stl (Social timeline) mode
+      stl_hint: All of under settings will be ignored, but rejecting subscription settings are ignored
+      tags_raw: Hashtag list
+      title: Edit antenna
+      with_media_only: With media only
+    errors:
+      deprecated_api_multiple_keywords: These parameters cannot be changed from this application because they apply to more than one filter keyword. Use a more recent application or the web interface.
+      empty_contexts: No contexts! You must set any context filters
+      invalid_context: None or invalid context supplied
+      invalid_list_owner: This list is not yours
+      over_limit: You have exceeded the limit of %{limit} antennas
+      over_ltl_limit: You have exceeded the limit of %{limit} ltl antennas
+      over_stl_limit: You have exceeded the limit of %{limit} stl antennas
+    index:
+      contexts: Antennas in %{contexts}
+      delete: Delete
+      disabled: Disabled
+      empty: You have no antennas.
+      expires_in: Expires in %{distance}
+      expires_on: Expires on %{date}
+      stl: This antenna is in STL mode, ignoring reject-subscription settings.
+      title: Antennas
   appearance:
     advanced_web_interface: Advanced web interface
     advanced_web_interface_hint: 'If you want to make use of your entire screen width, the advanced web interface allows you to configure many different columns to see as much information at the same time as you want: Home, notifications, federated timeline, any number of lists and hashtags.'
@@ -1044,6 +1160,7 @@ en:
       help_html: If you have issues solving the CAPTCHA, you can get in touch with us through %{email} and we can assist you.
       hint_html: Just one more thing! We need to confirm you're a human (this is so we can keep the spam out!). Solve the CAPTCHA below and click "Continue".
       title: Security check
+    cloudflare_with_registering: With cloudflare on auth
     confirmations:
       wrong_email_hint: If that e-mail address is not correct, you can change it in account settings.
     delete_account: Delete account
@@ -1456,6 +1573,10 @@ en:
       body: 'Your post was favorited by %{name}:'
       subject: "%{name} favorited your post"
       title: New favorite
+    emoji_reaction:
+      body: 'Your post was stamped by %{name}:'
+      subject: "%{name} stamped your post"
+      title: New stamp
     follow:
       body: "%{name} is now following you!"
       subject: "%{name} is now following you"
@@ -1523,9 +1644,15 @@ en:
       too_few_options: must have more than one item
       too_many_options: can't contain more than %{max} items
   preferences:
+    dtl: Deep timeline
+    dtl_hint: "You can join deep timeline with #%{tag} tag. Following settings make convenient to use deep timeline."
     other: Other
     posting_defaults: Posting defaults
     public_timelines: Public timelines
+    reaching: Visibility and search
+    search: Search
+    searchability: Searchability of your post
+    visibility: Visibility
   privacy:
     hint_html: "<strong>Customize how you want your profile and your posts to be found.</strong> A variety of features in Mastodon can help you reach a wider audience when enabled. Take a moment to review these settings to make sure they fit your use case."
     privacy: Privacy
@@ -1534,11 +1661,22 @@ en:
     reach_hint_html: Control whether you want to be discovered and followed by new people. Do you want your posts to appear on the Explore screen? Do you want other people to see you in their follow recommendations? Do you want to accept all new followers automatically, or have granular control over each one?
     search: Search
     search_hint_html: Control how you want to be found. Do you want people to find you by what you've publicly posted about? Do you want people outside Mastodon to find your profile when searching the web? Please mind that total exclusion from all search engines cannot be guaranteed for public information.
+    stop_deliver: Stop delivering
     title: Privacy and reach
+  privacy_extra:
+    hint_html: These settings are kmyblue original. You will receive additional privacy benefits by doing this setting.
+    post_processing_hint_html: 投稿された情報に対して、システムが追加で行うことができる操作を制御します。これらには、第三者のサイトへあなたの投稿に関する情報の送信を伴う設定も含まれます。
+    post_processing: 投稿の処理
+    stop_deliver: 配送停止
+    stop_deliver_hint_html: Mastodonの投稿を、他のソフトウェアでは自由に検索することができます。Mastodon内で行ったプライバシーの設定は無視され、あなたの投稿が意図しない人に見つかるおそれがあります。ここでは、他のサーバーやソフトウェアであなたの投稿が見つからないようにする設定が可能です。ただしリスクは伴います。
+    title: Privacy extra settings
   privacy_policy:
     title: Privacy Policy
   reactions:
     errors:
+      banned: Banned reaction from the user
+      disabled: Stamp is disabled on this server
+      duplication: Cannot react same things
       limit_reached: Limit of different reactions reached
       unrecognized_emoji: is not a recognized emoji
   relationships:
@@ -1657,6 +1795,7 @@ en:
         one: "%{count} video"
         other: "%{count} videos"
     boosted_from_html: Boosted from %{acct_link}
+    contains_ng_words: The post contains NG words
     content_warning: 'Content warning: %{warning}'
     default_language: Same as interface language
     disallowed_hashtags:
@@ -1680,13 +1819,29 @@ en:
         one: "%{count} vote"
         other: "%{count} votes"
       vote: Vote
+    searchabilities:
+      direct: Reactionners
+      direct_long: Reacter of this post can find
+      direct_search_long: You can search you reacted posts only
+      limited: Self only
+      limited_long: Nobody can find, but you can
+      limited_search_long: You can search your posts only
+      private: Followers and reactionners
+      private_long: Your followers and reactionners can find
+      private_search_long: You can search you are following or reacted posts only
+      public: Public
+      public_long: Anyone can find
+      public_search_long: You can search all posts permitted to search
     show_more: Show more
     show_newer: Show newer
     show_older: Show older
     show_thread: Show thread
     title: '%{name}: "%{quote}"'
+    too_many_hashtags: Too many hashtags
     visibilities:
       direct: Direct
+      login: Login only
+      login_long: Only show to logined users
       private: Followers-only
       private_long: Only show to followers
       public: Public
@@ -1698,6 +1853,7 @@ en:
     enabled_hint: Automatically deletes your posts once they reach a specified age threshold, unless they match one of the exceptions below
     exceptions: Exceptions
     explanation: Because deleting posts is an expensive operation, this is done slowly over time when the server is not otherwise busy. For this reason, your posts may be deleted a while after they reach the age threshold.
+    ignore_emojis: Ignore stamps
     ignore_favs: Ignore favorites
     ignore_reblogs: Ignore boosts
     interaction_exceptions: Exceptions based on interactions
@@ -1724,6 +1880,8 @@ en:
       '63113904': 2 years
       '7889238': 3 months
     min_age_label: Age threshold
+    min_emojis: Keep posts stamped at least
+    min_emojis_hint: Doesn't delete any of your posts that has received at least this number of stamps. Leave blank to delete posts regardless of their number of emojis
     min_favs: Keep posts favorited at least
     min_favs_hint: Doesn't delete any of your posts that has received at least this number of favorites. Leave blank to delete posts regardless of their number of favorites
     min_reblogs: Keep posts boosted at least
@@ -1798,6 +1956,7 @@ en:
       explanation:
         delete_statuses: Some of your posts have been found to violate one or more community guidelines and have been subsequently removed by the moderators of %{instance}.
         disable: You can no longer use your account, but your profile and other data remains intact. You can request a backup of your data, change account settings or delete your account.
+        force_cw: Some of your posts have been added warning (CW) by the moderators of %{instance}. This means that people will need to tap the text in the posts before a preview is displayed. You can add posts warning yourself when posting in the future.
         mark_statuses_as_sensitive: Some of your posts have been marked as sensitive by the moderators of %{instance}. This means that people will need to tap the media in the posts before a preview is displayed. You can mark media as sensitive yourself when posting in the future.
         sensitive: From now on, all your uploaded media files will be marked as sensitive and hidden behind a click-through warning.
         silence: You can still use your account but only people who are already following you will see your posts on this server, and you may be excluded from various discovery features. However, others may still manually follow you.
@@ -1807,6 +1966,7 @@ en:
       subject:
         delete_statuses: Your posts on %{acct} have been removed
         disable: Your account %{acct} has been frozen
+        force_cw: Your posts on %{acct} have been added warning
         mark_statuses_as_sensitive: Your posts on %{acct} have been marked as sensitive
         none: Warning for %{acct}
         sensitive: Your posts on %{acct} will be marked as sensitive from now on
@@ -1815,6 +1975,7 @@ en:
       title:
         delete_statuses: Posts removed
         disable: Account frozen
+        force_cw: Posts added warning
         mark_statuses_as_sensitive: Posts marked as sensitive
         none: Warning
         sensitive: Account marked as sensitive

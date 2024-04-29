@@ -12,6 +12,10 @@
 .fields-group
   = f.input :filter_action, as: :radio_buttons, collection: %i(warn hide), include_blank: false, wrapper: :with_block_label, label_method: ->(action) { safe_join([t("simple_form.labels.filters.actions.#{action}"), content_tag(:span, t("simple_form.hints.filters.actions.#{action}"), class: 'hint')]) }, hint: t('simple_form.hints.filters.action'), required: true
 
+.fields-group
+  = f.input :exclude_follows, wrapper: :with_label, kmyblue: true, label: t('simple_form.labels.filters.options.exclude_follows')
+  = f.input :exclude_localusers, wrapper: :with_label, kmyblue: true, label: t('simple_form.labels.filters.options.exclude_localusers')
+
 %hr.spacer/
 
 - unless f.object.statuses.empty?

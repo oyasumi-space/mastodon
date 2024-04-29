@@ -14,6 +14,7 @@ import { IconButton }  from '../../../components/icon_button';
 const messages = defineMessages({
   remove: { id: 'lists.account.remove', defaultMessage: 'Remove from list' },
   add: { id: 'lists.account.add', defaultMessage: 'Add to list' },
+  exclusive: { id: 'lists.exclusive', defaultMessage: 'Exclusive from home' },
 });
 
 const MapStateToProps = (state, { listId, added }) => ({
@@ -51,11 +52,14 @@ class List extends ImmutablePureComponent {
       button = <IconButton icon='plus' title={intl.formatMessage(messages.add)} onClick={onAdd} />;
     }
 
+    const exclusiveIcon = list.get('exclusive') && <Icon id='eye-slash' title={intl.formatMessage(messages.exclusive)} className='column-link__icon' fixedWidth />;
+
     return (
       <div className='list'>
         <div className='list__wrapper'>
           <div className='list__display-name'>
             <Icon id='list-ul' className='column-link__icon' fixedWidth />
+            {exclusiveIcon}
             {list.get('title')}
           </div>
 

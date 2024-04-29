@@ -17,9 +17,13 @@ import {
   HashtagTimeline,
   DirectTimeline,
   FavouritedStatuses,
+  EmojiReactedStatuses,
   BookmarkedStatuses,
   ListTimeline,
   Directory,
+  BookmarkCategoryStatuses,
+  AntennaSetting,
+  AntennaTimeline,
 } from '../util/async-components';
 
 import BundleColumnError from './bundle_column_error';
@@ -38,7 +42,11 @@ const componentMap = {
   'HASHTAG': HashtagTimeline,
   'DIRECT': DirectTimeline,
   'FAVOURITES': FavouritedStatuses,
+  'EMOJI_REACTIONS': EmojiReactedStatuses,
   'BOOKMARKS': BookmarkedStatuses,
+  'BOOKMARKS_EX': BookmarkCategoryStatuses,
+  'ANTENNA': AntennaSetting,
+  'ANTENNA_TIMELINE': AntennaTimeline,
   'LIST': ListTimeline,
   'DIRECTORY': Directory,
 };

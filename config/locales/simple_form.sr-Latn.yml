@@ -1,4 +1,3 @@
----
 sr-Latn:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ sr-Latn:
         events: Omogućeni događaji
         template: Šablon korisnih podataka
         url: URL krajnje tačke
-    'no': Ne
+    'no': 'Ne'
     not_recommended: Nije preporučeno
     overridden: Zamenjeno
     recommended: Preporučeno
@@ -331,4 +330,4 @@ sr-Latn:
     title:
       sessions:
         webauthn: Koristi jedan od svojih bezbednosnih ključeva za prijavljivanje
-    'yes': Da
+    'yes': 'Da'

@@ -131,3 +131,7 @@ export const getAccountHidden = createSelector([
 export const getStatusList = createSelector([
   (state, type) => state.getIn(['status_lists', type, 'items']),
 ], (items) => items.toList());
+
+export const getBookmarkCategoryStatusList = createSelector([
+  (state, bookmarkCategoryId) => state.getIn(['bookmark_categories', bookmarkCategoryId, 'items']),
+], (items) => items ? items.toList() : ImmutableList());

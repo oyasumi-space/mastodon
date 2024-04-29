@@ -7,7 +7,7 @@ class FeedManager
   include Redisable
 
   # Maximum number of items stored in a single feed
-  MAX_ITEMS = 800
+  MAX_ITEMS = 1000
 
   # Number of items in the feed since last reblog of status
   # before the new reblog will be inserted. Must be <= MAX_ITEMS
@@ -37,12 +37,12 @@ class FeedManager
   # @param [Status] status
   # @param [Account|List] receiver
   # @return [Boolean]
-  def filter?(timeline_type, status, receiver)
+  def filter?(timeline_type, status, receiver, stl_home = false) # rubocop:disable Style/OptionalBooleanParameter
     case timeline_type
     when :home
       filter_from_home?(status, receiver.id, build_crutches(receiver.id, [status]), :home)
     when :list
-      filter_from_list?(status, receiver) || filter_from_home?(status, receiver.account_id, build_crutches(receiver.account_id, [status]), :list)
+      filter_from_list?(status, receiver) || filter_from_home?(status, receiver.account_id, build_crutches(receiver.account_id, [status]), :list, stl_home)
     when :mentions
       filter_from_mentions?(status, receiver.id)
     when :tags
@@ -90,6 +90,14 @@ class FeedManager
     true
   end
 
+  def push_to_antenna(antenna, status, update: false)
+    return false unless add_to_feed(:antenna, antenna.id, status, aggregate_reblogs: antenna.account.user&.aggregates_reblogs?)
+
+    trim(:antenna, antenna.id)
+    PushUpdateWorker.perform_async(antenna.account_id, status.id, "timeline:antenna:#{antenna.id}", { 'update' => update }) if push_update_required?("timeline:antenna:#{antenna.id}")
+    true
+  end
+
   # Remove a status from a list feed and send a streaming API update
   # @param [List] list
   # @param [Status] status
@@ -102,6 +110,13 @@ class FeedManager
     true
   end
 
+  def unpush_from_antenna(antenna, status, update: false)
+    return false unless remove_from_feed(:antenna, antenna.id, status, aggregate_reblogs: antenna.account.user&.aggregates_reblogs?)
+
+    redis.publish("timeline:antenna:#{antenna.id}", Oj.dump(event: :delete, payload: status.id.to_s)) unless update
+    true
+  end
+
   # Fill a home feed with an account's statuses
   # @param [Account] from_account
   # @param [Account] into_account
@@ -109,7 +124,7 @@ class FeedManager
   def merge_into_home(from_account, into_account)
     timeline_key = key(:home, into_account.id)
     aggregate    = into_account.user&.aggregates_reblogs?
-    query        = from_account.statuses.where(visibility: [:public, :unlisted, :private]).includes(:preloadable_poll, :media_attachments, reblog: :account).limit(FeedManager::MAX_ITEMS / 4)
+    query        = from_account.statuses.where(visibility: [:public, :unlisted, :public_unlisted, :login, :private]).includes(:preloadable_poll, :media_attachments, reblog: :account).limit(FeedManager::MAX_ITEMS / 4)
 
     if redis.zcard(timeline_key) >= FeedManager::MAX_ITEMS / 4
       oldest_home_score = redis.zrange(timeline_key, 0, 0, with_scores: true).first.last.to_i
@@ -135,7 +150,7 @@ class FeedManager
   def merge_into_list(from_account, list)
     timeline_key = key(:list, list.id)
     aggregate    = list.account.user&.aggregates_reblogs?
-    query        = from_account.statuses.where(visibility: [:public, :unlisted, :private]).includes(:preloadable_poll, :media_attachments, reblog: :account).limit(FeedManager::MAX_ITEMS / 4)
+    query        = from_account.statuses.where(visibility: [:public, :unlisted, :public_unlisted, :login, :private]).includes(:preloadable_poll, :media_attachments, reblog: :account).limit(FeedManager::MAX_ITEMS / 4)
 
     if redis.zcard(timeline_key) >= FeedManager::MAX_ITEMS / 4
       oldest_home_score = redis.zrange(timeline_key, 0, 0, with_scores: true).first.last.to_i
@@ -251,6 +266,28 @@ class FeedManager
     end
   end
 
+  def clear_from_antenna(antenna, target_account)
+    timeline_key        = key(:antenna, antenna.id)
+    timeline_status_ids = redis.zrange(timeline_key, 0, -1)
+    statuses            = Status.where(id: timeline_status_ids).select(:id, :reblog_of_id, :account_id).to_a
+    reblogged_ids       = Status.where(id: statuses.filter_map(&:reblog_of_id), account: target_account).pluck(:id)
+    with_mentions_ids   = Mention.active.where(status_id: statuses.flat_map { |s| [s.id, s.reblog_of_id] }.compact, account: target_account).pluck(:status_id)
+
+    target_statuses = statuses.select do |status|
+      status.account_id == target_account.id || reblogged_ids.include?(status.reblog_of_id) || with_mentions_ids.include?(status.id) || with_mentions_ids.include?(status.reblog_of_id)
+    end
+
+    target_statuses.each do |status|
+      unpush_from_antenna(antenna, status)
+    end
+  end
+
+  def clear_from_antennas(account, target_account)
+    Antenna.where(account: account).each do |antenna|
+      clear_from_antenna(antenna, target_account)
+    end
+  end
+
   # Populate home feed of account from scratch
   # @param [Account] account
   # @return [void]
@@ -274,7 +311,7 @@ class FeedManager
         next if last_status_score < oldest_home_score
       end
 
-      statuses = target_account.statuses.where(visibility: [:public, :unlisted, :private]).includes(:preloadable_poll, :media_attachments, :account, reblog: :account).limit(limit)
+      statuses = target_account.statuses.where(visibility: [:public, :unlisted, :public_unlisted, :login, :private]).includes(:preloadable_poll, :media_attachments, :account, reblog: :account).limit(limit)
       crutches = build_crutches(account.id, statuses)
 
       statuses.each do |status|
@@ -372,10 +409,10 @@ class FeedManager
   # @param [Integer] receiver_id
   # @param [Hash] crutches
   # @return [Boolean]
-  def filter_from_home?(status, receiver_id, crutches, timeline_type = :home)
+  def filter_from_home?(status, receiver_id, crutches, timeline_type = :home, stl_home = false) # rubocop:disable Style/OptionalBooleanParameter
     return false if receiver_id == status.account_id
     return true  if status.reply? && (status.in_reply_to_id.nil? || status.in_reply_to_account_id.nil?)
-    return true if timeline_type != :list && crutches[:exclusive_list_users][status.account_id].present?
+    return true if (timeline_type != :list || stl_home) && (crutches[:exclusive_list_users][status.account_id].present? || crutches[:exclusive_antenna_users][status.account_id].present?)
     return true if crutches[:languages][status.account_id].present? && status.language.present? && !crutches[:languages][status.account_id].include?(status.language)
 
     check_for_blocks = crutches[:active_mentions][status.id] || []
@@ -566,6 +603,7 @@ class FeedManager
     end
 
     lists = List.where(account_id: receiver_id, exclusive: true)
+    antennas = Antenna.where(list: lists, insert_feeds: true)
 
     crutches[:following]            = Follow.where(account_id: receiver_id, target_account_id: statuses.filter_map(&:in_reply_to_account_id)).pluck(:target_account_id).index_with(true)
     crutches[:languages]            = Follow.where(account_id: receiver_id, target_account_id: statuses.map(&:account_id)).pluck(:target_account_id, :languages).to_h
@@ -575,6 +613,7 @@ class FeedManager
     crutches[:domain_blocking]      = AccountDomainBlock.where(account_id: receiver_id, domain: statuses.flat_map { |s| [s.account.domain, s.reblog&.account&.domain] }.compact).pluck(:domain).index_with(true)
     crutches[:blocked_by]           = Block.where(target_account_id: receiver_id, account_id: statuses.map { |s| [s.account_id, s.reblog&.account_id] }.flatten.compact).pluck(:account_id).index_with(true)
     crutches[:exclusive_list_users] = ListAccount.where(list: lists, account_id: statuses.map(&:account_id)).pluck(:account_id).index_with(true)
+    crutches[:exclusive_antenna_users] = AntennaAccount.where(antenna: antennas, account_id: statuses.map(&:account_id)).pluck(:account_id).index_with(true)
 
     crutches
   end

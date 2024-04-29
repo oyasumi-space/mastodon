@@ -1,4 +1,3 @@
----
 sl:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ sl:
         events: Omogočeni dogodki
         template: Predloga obremenitev
         url: URL končne točke
-    'no': Ne
+    'no': 'Ne'
     not_recommended: Ni priporočeno
     overridden: Preglašeno
     recommended: Priporočeno
@@ -331,4 +330,4 @@ sl:
     title:
       sessions:
         webauthn: Za prijavo uporabite eno od svojih varnostnih kod
-    'yes': Da
+    'yes': 'Da'

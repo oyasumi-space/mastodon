@@ -59,12 +59,15 @@ class Search extends PureComponent {
   defaultOptions = [
     { label: <><mark>has:</mark> <FormattedList type='disjunction' value={['media', 'poll', 'embed']} /></>, action: e => { e.preventDefault(); this._insertText('has:') } },
     { label: <><mark>is:</mark> <FormattedList type='disjunction' value={['reply', 'sensitive']} /></>, action: e => { e.preventDefault(); this._insertText('is:') } },
+    { label: <><mark>my:</mark> <FormattedList type='disjunction' value={['favourited', 'bookmarked', 'boosted']} /></>, action: e => { e.preventDefault(); this._insertText('my:') } },
     { label: <><mark>language:</mark> <FormattedMessage id='search_popout.language_code' defaultMessage='ISO language code' /></>, action: e => { e.preventDefault(); this._insertText('language:') } },
     { label: <><mark>from:</mark> <FormattedMessage id='search_popout.user' defaultMessage='user' /></>, action: e => { e.preventDefault(); this._insertText('from:') } },
+    { label: <><mark>domain:</mark> <FormattedMessage id='search_popout.domain' defaultMessage='domain' /></>, action: e => { e.preventDefault(); this._insertText('domain:') } },
     { label: <><mark>before:</mark> <FormattedMessage id='search_popout.specific_date' defaultMessage='specific date' /></>, action: e => { e.preventDefault(); this._insertText('before:') } },
     { label: <><mark>during:</mark> <FormattedMessage id='search_popout.specific_date' defaultMessage='specific date' /></>, action: e => { e.preventDefault(); this._insertText('during:') } },
     { label: <><mark>after:</mark> <FormattedMessage id='search_popout.specific_date' defaultMessage='specific date' /></>, action: e => { e.preventDefault(); this._insertText('after:') } },
-    { label: <><mark>in:</mark> <FormattedList type='disjunction' value={['all', 'library']} /></>, action: e => { e.preventDefault(); this._insertText('in:') } }
+    { label: <><mark>in:</mark> <FormattedList type='disjunction' value={['all', 'library']} /></>, action: e => { e.preventDefault(); this._insertText('in:') } },
+    { label: <><mark>order:</mark> <FormattedList type='disjunction' value={['desc', 'asc']} /></>, action: e => { e.preventDefault(); this._insertText('order:') } },
   ];
 
   setRef = c => {

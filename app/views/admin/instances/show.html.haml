@@ -1,6 +1,10 @@
 - content_for :page_title do
   = @instance.domain
 
+- if @instance.instance_info.present?
+  %p
+    = "#{@instance.instance_info.software} #{@instance.instance_info.version}"
+
 - if current_user.can?(:view_dashboard)
   - content_for :heading_actions do
     = l(@time_period.first)

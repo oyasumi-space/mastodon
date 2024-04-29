@@ -44,12 +44,18 @@ import {
   Following,
   Reblogs,
   Favourites,
+  EmojiReactions,
+  StatusReferences,
   DirectTimeline,
   HashtagTimeline,
+  AntennaTimeline,
   Notifications,
   FollowRequests,
   FavouritedStatuses,
+  EmojiReactedStatuses,
   BookmarkedStatuses,
+  BookmarkCategories,
+  BookmarkCategoryStatuses,
   FollowedTags,
   ListTimeline,
   Blocks,
@@ -57,11 +63,16 @@ import {
   Mutes,
   PinnedStatuses,
   Lists,
+  Antennas,
+  Circles,
+  AntennaSetting,
   Directory,
   Explore,
+  ReactionDeck,
   Onboarding,
   About,
   PrivacyPolicy,
+  CommunityTimeline,
 } from './util/async-components';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
 
@@ -107,6 +118,7 @@ const keyMap = {
   goToDirect: 'g d',
   goToStart: 'g s',
   goToFavourites: 'g f',
+  goToEmojiReactions: 'g e',
   goToPinned: 'g p',
   goToProfile: 'g u',
   goToBlocked: 'g b',
@@ -197,14 +209,22 @@ class SwitchingColumnsArea extends PureComponent {
           <WrappedRoute path='/public' exact component={Firehose} componentParams={{ feedType: 'public' }} content={children} />
           <WrappedRoute path='/public/local' exact component={Firehose} componentParams={{ feedType: 'community' }} content={children} />
           <WrappedRoute path='/public/remote' exact component={Firehose} componentParams={{ feedType: 'public:remote' }} content={children} />
+          <WrappedRoute path='/public/local/fixed' exact component={CommunityTimeline} content={children} />
           <WrappedRoute path={['/conversations', '/timelines/direct']} component={DirectTimeline} content={children} />
           <WrappedRoute path='/tags/:id' component={HashtagTimeline} content={children} />
           <WrappedRoute path='/lists/:id' component={ListTimeline} content={children} />
+          <WrappedRoute path='/antennasw/:id' component={AntennaSetting} content={children} />
+          <WrappedRoute path='/antennast/:id' component={AntennaTimeline} content={children} />
           <WrappedRoute path='/notifications' component={Notifications} content={children} />
           <WrappedRoute path='/favourites' component={FavouritedStatuses} content={children} />
+          <WrappedRoute path='/emoji_reactions' component={EmojiReactedStatuses} content={children} />
 
           <WrappedRoute path='/bookmarks' component={BookmarkedStatuses} content={children} />
+          <WrappedRoute path='/bookmark_categories/:id' component={BookmarkCategoryStatuses} content={children} />
+          <WrappedRoute path='/bookmark_categories' component={BookmarkCategories} content={children} />
           <WrappedRoute path='/pinned' component={PinnedStatuses} content={children} />
+
+          <WrappedRoute path='/reaction_deck' component={ReactionDeck} content={children} />
 
           <WrappedRoute path='/start' exact component={Onboarding} content={children} />
           <WrappedRoute path='/directory' component={Directory} content={children} />
@@ -220,6 +240,8 @@ class SwitchingColumnsArea extends PureComponent {
           <WrappedRoute path='/@:acct/:statusId' exact component={Status} content={children} />
           <WrappedRoute path='/@:acct/:statusId/reblogs' component={Reblogs} content={children} />
           <WrappedRoute path='/@:acct/:statusId/favourites' component={Favourites} content={children} />
+          <WrappedRoute path='/@:acct/:statusId/emoji_reactions' component={EmojiReactions} content={children} />
+          <WrappedRoute path='/@:acct/:statusId/references' component={StatusReferences} content={children} />
 
           {/* Legacy routes, cannot be easily factored with other routes because they share a param name */}
           <WrappedRoute path='/timelines/tag/:id' component={HashtagTimeline} content={children} />
@@ -227,6 +249,8 @@ class SwitchingColumnsArea extends PureComponent {
           <WrappedRoute path='/statuses/:statusId' exact component={Status} content={children} />
           <WrappedRoute path='/statuses/:statusId/reblogs' component={Reblogs} content={children} />
           <WrappedRoute path='/statuses/:statusId/favourites' component={Favourites} content={children} />
+          <WrappedRoute path='/statuses/:statusId/emoji_reactions' component={EmojiReactions} content={children} />
+          <WrappedRoute path='/statuses/:statusId/references' component={StatusReferences} content={children} />
 
           <WrappedRoute path='/follow_requests' component={FollowRequests} content={children} />
           <WrappedRoute path='/blocks' component={Blocks} content={children} />
@@ -234,6 +258,8 @@ class SwitchingColumnsArea extends PureComponent {
           <WrappedRoute path='/followed_tags' component={FollowedTags} content={children} />
           <WrappedRoute path='/mutes' component={Mutes} content={children} />
           <WrappedRoute path='/lists' component={Lists} content={children} />
+          <WrappedRoute path='/antennasw' component={Antennas} content={children} />
+          <WrappedRoute path='/circles' component={Circles} content={children} />
 
           <Route component={BundleColumnError} />
         </WrappedSwitch>
@@ -529,6 +555,10 @@ class UI extends PureComponent {
     this.context.router.history.push('/favourites');
   };
 
+  handleHotkeyGoToEmojiReactions = () => {
+    this.context.router.history.push('/emoji_reactions');
+  };
+
   handleHotkeyGoToPinned = () => {
     this.context.router.history.push('/pinned');
   };
@@ -568,6 +598,7 @@ class UI extends PureComponent {
       goToDirect: this.handleHotkeyGoToDirect,
       goToStart: this.handleHotkeyGoToStart,
       goToFavourites: this.handleHotkeyGoToFavourites,
+      goToEmojiReactions: this.handleHotkeyGoToEmojiReactions,
       goToPinned: this.handleHotkeyGoToPinned,
       goToProfile: this.handleHotkeyGoToProfile,
       goToBlocked: this.handleHotkeyGoToBlocked,

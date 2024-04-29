@@ -1,4 +1,3 @@
----
 pt-PT:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ pt-PT:
         events: Eventos ativados
         template: Modelo de conteúdo
         url: URL do Endpoint
-    'no': Não
+    'no': 'Não'
     not_recommended: Não recomendado
     overridden: Substituído
     recommended: Recomendado
@@ -331,4 +330,4 @@ pt-PT:
     title:
       sessions:
         webauthn: Utilize uma das suas chaves de segurança para entrar
-    'yes': Sim
+    'yes': 'Sim'

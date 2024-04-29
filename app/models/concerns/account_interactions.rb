@@ -205,6 +205,10 @@ module AccountInteractions
     other_account.following?(self)
   end
 
+  def mutual?(other_account)
+    following?(other_account) && followed_by?(other_account)
+  end
+
   def blocking?(other_account)
     block_relationships.where(target_account: other_account).exists?
   end
@@ -237,6 +241,18 @@ module AccountInteractions
     status.proper.favourites.where(account: self).exists?
   end
 
+  def emoji_reacted?(status, shortcode = nil, domain = nil, domain_force = false) # rubocop:disable Style/OptionalBooleanParameter
+    if shortcode.present?
+      if domain.present? || domain_force
+        status.proper.emoji_reactions.joins(:custom_emoji).where(account: self, name: shortcode, custom_emoji: { domain: domain }).exists?
+      else
+        status.proper.emoji_reactions.where(account: self, name: shortcode).exists?
+      end
+    else
+      status.proper.emoji_reactions.where(account: self).exists?
+    end
+  end
+
   def bookmarked?(status)
     status.proper.bookmarks.where(account: self).exists?
   end
@@ -255,7 +271,7 @@ module AccountInteractions
 
   def status_matches_filters(status)
     active_filters = CustomFilter.cached_filters_for(id)
-    CustomFilter.apply_cached_filters(active_filters, status)
+    CustomFilter.apply_cached_filters(active_filters, status, following?(status.account))
   end
 
   def followers_for_local_distribution
@@ -291,6 +307,10 @@ module AccountInteractions
       end
       digest.unpack1('H*')
     end
+  end
+
+  def mutuals
+    followers.merge(Account.where(id: following))
   end
 
   def relations_map(account_ids, domains = nil, **options)

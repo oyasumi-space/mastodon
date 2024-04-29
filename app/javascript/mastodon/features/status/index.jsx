@@ -28,6 +28,7 @@ import {
   replyCompose,
   mentionCompose,
   directCompose,
+  insertReferenceCompose,
 } from '../../actions/compose';
 import {
   blockDomain,
@@ -36,6 +37,8 @@ import {
 import {
   favourite,
   unfavourite,
+  emojiReact,
+  unEmojiReact,
   bookmark,
   unbookmark,
   reblog,
@@ -60,7 +63,7 @@ import {
 import ColumnHeader from '../../components/column_header';
 import { textForScreenReader, defaultMediaVisibility } from '../../components/status';
 import StatusContainer from '../../containers/status_container';
-import { boostModal, deleteModal } from '../../initial_state';
+import { bookmarkCategoryNeeded, boostModal, deleteModal } from '../../initial_state';
 import { makeGetStatus, makeGetPictureInPicture } from '../../selectors';
 import Column from '../ui/components/column';
 import { attachFullscreenListener, detachFullscreenListener, isFullscreen } from '../ui/util/fullscreen';
@@ -85,6 +88,12 @@ const messages = defineMessages({
 const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
   const getPictureInPicture = makeGetPictureInPicture();
+
+  const getReferenceIds = createSelector([
+    (state, { id }) => state.getIn(['contexts', 'references', id]),
+  ], (references) => {
+    return references;
+  });
 
   const getAncestorsIds = createSelector([
     (_, { id }) => id,
@@ -145,10 +154,12 @@ const makeMapStateToProps = () => {
 
     let ancestorsIds   = Immutable.List();
     let descendantsIds = Immutable.List();
+    let referenceIds   = Immutable.List();
 
     if (status) {
       ancestorsIds   = getAncestorsIds(state, { id: status.get('in_reply_to_id') });
       descendantsIds = getDescendantsIds(state, { id: status.get('id') });
+      referenceIds   = getReferenceIds(state, { id: status.get('id') });
     }
 
     return {
@@ -156,6 +167,7 @@ const makeMapStateToProps = () => {
       status,
       ancestorsIds,
       descendantsIds,
+      referenceIds,
       askReplyConfirmation: state.getIn(['compose', 'text']).trim().length !== 0,
       domain: state.getIn(['meta', 'domain']),
       pictureInPicture: getPictureInPicture(state, { id: props.params.statusId }),
@@ -198,6 +210,7 @@ class Status extends ImmutablePureComponent {
     isLoading: PropTypes.bool,
     ancestorsIds: ImmutablePropTypes.list.isRequired,
     descendantsIds: ImmutablePropTypes.list.isRequired,
+    referenceIds: ImmutablePropTypes.list.isRequired,
     intl: PropTypes.object.isRequired,
     askReplyConfirmation: PropTypes.bool,
     multiColumn: PropTypes.bool,
@@ -260,6 +273,29 @@ class Status extends ImmutablePureComponent {
     }
   };
 
+  handleEmojiReact = (status, emoji) => {
+    const { dispatch } = this.props;
+    const { signedIn } = this.context.identity;
+
+    if (signedIn) {
+      dispatch(emojiReact(status, emoji));
+    } else {
+      dispatch(openModal({
+        modalType: 'INTERACTION',
+        modalProps: {
+          type: 'favourite',
+          accountId: status.getIn(['account', 'id']),
+          url: status.get('uri'),
+        },
+      }));
+    }
+  };
+
+  handleUnEmojiReact = (status, emoji) => {
+    const { dispatch } = this.props;
+    dispatch(unEmojiReact(status, emoji));
+  };
+
   handlePin = (status) => {
     if (status.get('pinned')) {
       this.props.dispatch(unpin(status));
@@ -301,7 +337,7 @@ class Status extends ImmutablePureComponent {
     this.props.dispatch(reblog(status, privacy));
   };
 
-  handleReblogClick = (status, e) => {
+  handleReblogClick = (status, e, force = false) => {
     const { dispatch } = this.props;
     const { signedIn } = this.context.identity;
 
@@ -309,7 +345,7 @@ class Status extends ImmutablePureComponent {
       if (status.get('reblogged')) {
         dispatch(unreblog(status));
       } else {
-        if ((e && e.shiftKey) || !boostModal) {
+        if (!force && ((e && e.shiftKey) || !boostModal)) {
           this.handleModalReblog(status);
         } else {
           dispatch(initBoostModal({ status, onReblog: this.handleModalReblog }));
@@ -327,12 +363,38 @@ class Status extends ImmutablePureComponent {
     }
   };
 
+  handleReblogForceModalClick = (status, e) => {
+    this.handleReblogClick(status, e, true);
+  };
+
+  handleReference = (status) => {
+    this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'BT'));
+  };
+
+  handleQuote = (status) => {
+    this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'QT'));
+  };
+
   handleBookmarkClick = (status) => {
+    if (bookmarkCategoryNeeded) {
+      this.handleBookmarkCategoryAdderClick(status);
+      return;
+    }
+    
     if (status.get('bookmarked')) {
       this.props.dispatch(unbookmark(status));
     } else {
       this.props.dispatch(bookmark(status));
     }
+  };
+
+  handleBookmarkCategoryAdderClick = (status) => {
+    this.props.dispatch(openModal({
+      modalType: 'BOOKMARK_CATEGORY_ADDER',
+      modalProps: {
+        statusId: status.get('id'),
+      },
+    }));
   };
 
   handleDeleteClick = (status, history, withRedraft = false) => {
@@ -413,8 +475,8 @@ class Status extends ImmutablePureComponent {
   };
 
   handleToggleAll = () => {
-    const { status, ancestorsIds, descendantsIds } = this.props;
-    const statusIds = [status.get('id')].concat(ancestorsIds.toJS(), descendantsIds.toJS());
+    const { status, ancestorsIds, descendantsIds, referenceIds } = this.props;
+    const statusIds = [status.get('id')].concat(ancestorsIds.toJS(), descendantsIds.toJS(), referenceIds.toJS());
 
     if (status.get('hidden')) {
       this.props.dispatch(revealStatus(statusIds));
@@ -634,8 +696,8 @@ class Status extends ImmutablePureComponent {
   };
 
   render () {
-    let ancestors, descendants;
-    const { isLoading, status, ancestorsIds, descendantsIds, intl, domain, multiColumn, pictureInPicture } = this.props;
+    let ancestors, descendants, references;
+    const { isLoading, status, ancestorsIds, descendantsIds, referenceIds, intl, domain, multiColumn, pictureInPicture } = this.props;
     const { fullscreen } = this.state;
 
     if (isLoading) {
@@ -650,6 +712,10 @@ class Status extends ImmutablePureComponent {
       return (
         <BundleColumnError multiColumn={multiColumn} errorType='routing' />
       );
+    }
+
+    if (referenceIds && referenceIds.size > 0) {
+      references = <>{this.renderChildren(referenceIds, true)}</>;
     }
 
     if (ancestorsIds && ancestorsIds.size > 0) {
@@ -688,6 +754,7 @@ class Status extends ImmutablePureComponent {
 
         <ScrollContainer scrollKey='thread' shouldUpdateScroll={this.shouldUpdateScroll}>
           <div className={classNames('scrollable', { fullscreen })} ref={this.setRef}>
+            {references}
             {ancestors}
 
             <HotKeys handlers={handlers}>
@@ -703,6 +770,8 @@ class Status extends ImmutablePureComponent {
                   showMedia={this.state.showMedia}
                   onToggleMediaVisibility={this.handleToggleMediaVisibility}
                   pictureInPicture={pictureInPicture}
+                  onEmojiReact={this.handleEmojiReact}
+                  onUnEmojiReact={this.handleUnEmojiReact}
                 />
 
                 <ActionBar
@@ -710,8 +779,13 @@ class Status extends ImmutablePureComponent {
                   status={status}
                   onReply={this.handleReplyClick}
                   onFavourite={this.handleFavouriteClick}
+                  onEmojiReact={this.handleEmojiReact}
                   onReblog={this.handleReblogClick}
+                  onReblogForceModal={this.handleReblogForceModalClick}
+                  onReference={this.handleReference}
+                  onQuote={this.handleQuote}
                   onBookmark={this.handleBookmarkClick}
+                  onBookmarkCategoryAdder={this.handleBookmarkCategoryAdderClick}
                   onDelete={this.handleDeleteClick}
                   onEdit={this.handleEditClick}
                   onDirect={this.handleDirectClick}

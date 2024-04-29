@@ -1,4 +1,3 @@
----
 gl:
   simple_form:
     hints:
@@ -321,7 +320,7 @@ gl:
         events: Eventos activados
         template: Modelo de carga
         url: URL do extremo
-    'no': Non
+    'no': 'Non'
     not_recommended: Non é recomendable
     overridden: Sobreescrita
     recommended: Recomendado
@@ -331,4 +330,4 @@ gl:
     title:
       sessions:
         webauthn: Usa unha das túas chaves de seguridade para conectar
-    'yes': Si
+    'yes': 'Si'

@@ -42,13 +42,18 @@ RSpec.describe AccountStatusesFilter do
 
     before do
       status!(:public)
+      status!(:public_unlisted)
       status!(:unlisted)
+      status!(:login)
       status!(:private)
+      status!(:direct)
+      status!(:limited)
       status_with_parent!(:public)
       status_with_reblog!(:public)
       status_with_tag!(:public, tag)
       status_with_mention!(:direct)
       status_with_media_attachment!(:public)
+      status_with_mention!(:limited)
     end
 
     shared_examples 'filter params' do
@@ -90,7 +95,7 @@ RSpec.describe AccountStatusesFilter do
       let(:direct_status) { nil }
 
       it 'returns only public statuses' do
-        expect(subject.results.pluck(:visibility).uniq).to match_array %w(unlisted public)
+        expect(subject.results.pluck(:visibility).uniq).to match_array %w(unlisted public_unlisted public)
       end
 
       it 'returns public replies' do
@@ -120,7 +125,7 @@ RSpec.describe AccountStatusesFilter do
       let(:current_account) { account }
 
       it 'returns everything' do
-        expect(subject.results.pluck(:visibility).uniq).to match_array %w(direct private unlisted public)
+        expect(subject.results.pluck(:visibility).uniq).to match_array %w(direct private login unlisted public_unlisted public limited)
       end
 
       it 'returns replies' do
@@ -142,7 +147,7 @@ RSpec.describe AccountStatusesFilter do
       end
 
       it 'returns private statuses' do
-        expect(subject.results.pluck(:visibility).uniq).to match_array %w(private unlisted public)
+        expect(subject.results.pluck(:visibility).uniq).to match_array %w(private login unlisted public_unlisted public)
       end
 
       it 'returns replies' do
@@ -161,6 +166,30 @@ RSpec.describe AccountStatusesFilter do
         end
       end
 
+      context 'when there is a direct status mentioning other user' do
+        let!(:direct_status) { status_with_mention!(:direct) }
+
+        it 'not returns the direct status' do
+          expect(subject.results.pluck(:id)).to_not include(direct_status.id)
+        end
+      end
+
+      context 'when there is a limited status mentioning the non-follower' do
+        let!(:limited_status) { status_with_mention!(:limited, current_account) }
+
+        it 'returns the limited status' do
+          expect(subject.results.pluck(:id)).to include(limited_status.id)
+        end
+      end
+
+      context 'when there is a limited status mentioning other user' do
+        let!(:limited_status) { status_with_mention!(:limited) }
+
+        it 'not returns the limited status' do
+          expect(subject.results.pluck(:id)).to_not include(limited_status.id)
+        end
+      end
+
       it_behaves_like 'filter params'
     end
 
@@ -168,7 +197,7 @@ RSpec.describe AccountStatusesFilter do
       let(:current_account) { Fabricate(:account) }
 
       it 'returns only public statuses' do
-        expect(subject.results.pluck(:visibility).uniq).to match_array %w(unlisted public)
+        expect(subject.results.pluck(:visibility).uniq).to match_array %w(login unlisted public_unlisted public)
       end
 
       it 'returns public replies' do
@@ -249,6 +278,39 @@ RSpec.describe AccountStatusesFilter do
         it 'does not return reblog of blocked-by account' do
           expect(subject.results.pluck(:id)).to_not include(reblog.id)
         end
+      end
+
+      it_behaves_like 'filter params'
+    end
+
+    context 'when accessed by remote user' do
+      let(:current_account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
+      let(:sensitive_status_with_cw) { Fabricate(:status, sensitive: true, spoiler_text: 'CW', account: account) }
+      let(:sensitive_status_with_media) do
+        Fabricate(:status, sensitive: true, spoiler_text: 'CW', account: account).tap do |status|
+          Fabricate(:media_attachment, account: account, status: status)
+        end
+      end
+
+      before do
+        Fabricate(:domain_block, domain: 'example.com', severity: :noop, reject_send_sensitive: true)
+      end
+
+      it 'returns everything' do
+        expect(subject.results.pluck(:visibility).uniq).to match_array %w(login unlisted public_unlisted public)
+      end
+
+      it 'returns replies' do
+        expect(subject.results.pluck(:in_reply_to_id)).to_not be_empty
+      end
+
+      it 'returns reblogs' do
+        expect(subject.results.pluck(:reblog_of_id)).to_not be_empty
+      end
+
+      it 'does not send sensitive posts' do
+        expect(subject.results.pluck(:id)).to_not include sensitive_status_with_cw.id
+        expect(subject.results.pluck(:id)).to_not include sensitive_status_with_media.id
       end
 
       it_behaves_like 'filter params'

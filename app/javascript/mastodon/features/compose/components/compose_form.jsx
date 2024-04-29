@@ -14,12 +14,16 @@ import { Icon }  from 'mastodon/components/icon';
 import AutosuggestInput from '../../../components/autosuggest_input';
 import AutosuggestTextarea from '../../../components/autosuggest_textarea';
 import Button from '../../../components/button';
+import CircleSelectContainer from '../containers/circle_select_container';
 import EmojiPickerDropdown from '../containers/emoji_picker_dropdown_container';
+import ExpirationDropdownContainer from '../containers/expiration_dropdown_container';
 import LanguageDropdown from '../containers/language_dropdown_container';
+import MarkdownButtonContainer from '../containers/markdown_button_container';
 import PollButtonContainer from '../containers/poll_button_container';
 import PollFormContainer from '../containers/poll_form_container';
 import PrivacyDropdownContainer from '../containers/privacy_dropdown_container';
 import ReplyIndicatorContainer from '../containers/reply_indicator_container';
+import SearchabilityDropdownContainer from '../containers/searchability_dropdown_container';
 import SpoilerButtonContainer from '../containers/spoiler_button_container';
 import UploadButtonContainer from '../containers/upload_button_container';
 import UploadFormContainer from '../containers/upload_form_container';
@@ -50,6 +54,7 @@ class ComposeForm extends ImmutablePureComponent {
     suggestions: ImmutablePropTypes.list,
     spoiler: PropTypes.bool,
     privacy: PropTypes.string,
+    searchability: PropTypes.string,
     spoilerText: PropTypes.string,
     focusDate: PropTypes.instanceOf(Date),
     caretPosition: PropTypes.number,
@@ -66,11 +71,13 @@ class ComposeForm extends ImmutablePureComponent {
     onChangeSpoilerText: PropTypes.func.isRequired,
     onPaste: PropTypes.func.isRequired,
     onPickEmoji: PropTypes.func.isRequired,
+    onPickExpiration: PropTypes.func.isRequired,
     autoFocus: PropTypes.bool,
     anyMedia: PropTypes.bool,
     isInReply: PropTypes.bool,
     singleColumn: PropTypes.bool,
     lang: PropTypes.string,
+    circleId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -96,11 +103,11 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   canSubmit = () => {
-    const { isSubmitting, isChangingUpload, isUploading, anyMedia } = this.props;
+    const { isSubmitting, isChangingUpload, isUploading, anyMedia, privacy, circleId } = this.props;
     const fulltext = this.getFulltextForCharacterCounting();
     const isOnlyWhitespace = fulltext.length !== 0 && fulltext.trim().length === 0;
 
-    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > 143 || (isOnlyWhitespace && !anyMedia));
+    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > 143 || (isOnlyWhitespace && !anyMedia) || (privacy === 'circle' && !circleId));
   };
 
   handleSubmit = (e) => {
@@ -222,6 +229,12 @@ class ComposeForm extends ImmutablePureComponent {
     this.props.onPickEmoji(position, data, needsSpace);
   };
 
+  handleExpirationPick = (data) => {
+    const position     = this.autosuggestTextarea.textarea.selectionStart;
+
+    this.props.onPickExpiration(position, data);
+  };
+
   render () {
     const { intl, onPaste, autoFocus } = this.props;
     const { highlighted } = this.state;
@@ -234,7 +247,7 @@ class ComposeForm extends ImmutablePureComponent {
     } else if (this.props.privacy === 'private' || this.props.privacy === 'direct') {
       publishText = <span className='compose-form__publish-private'><Icon id='lock' /> {intl.formatMessage(messages.publish)}</span>;
     } else {
-      publishText = this.props.privacy !== 'unlisted' ? intl.formatMessage(messages.publishLoud, { publish: intl.formatMessage(messages.publish) }) : intl.formatMessage(messages.publish);
+      publishText = (this.props.privacy !== 'unlisted' && this.props.privacy !== 'public_unlisted' && this.props.privacy !== 'login') ? intl.formatMessage(messages.publishLoud, { publish: intl.formatMessage(messages.publish) }) : intl.formatMessage(messages.publish);
     }
 
     return (
@@ -280,20 +293,24 @@ class ComposeForm extends ImmutablePureComponent {
             autoFocus={autoFocus}
             lang={this.props.lang}
           >
+
             <div className='compose-form__modifiers'>
               <UploadFormContainer />
               <PollFormContainer />
             </div>
           </AutosuggestTextarea>
           <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} />
+          <ExpirationDropdownContainer onPickExpiration={this.handleExpirationPick} />
 
           <div className='compose-form__buttons-wrapper'>
             <div className='compose-form__buttons'>
               <UploadButtonContainer />
               <PollButtonContainer />
               <PrivacyDropdownContainer disabled={this.props.isEditing} />
+              <SearchabilityDropdownContainer disabled={this.props.isEditing} />
               <SpoilerButtonContainer />
               <LanguageDropdown />
+              <MarkdownButtonContainer />
             </div>
 
             <div className='character-counter__wrapper'>
@@ -301,6 +318,8 @@ class ComposeForm extends ImmutablePureComponent {
             </div>
           </div>
         </div>
+
+        <CircleSelectContainer />
 
         <div className='compose-form__publish'>
           <div className='compose-form__publish-button-wrapper'>

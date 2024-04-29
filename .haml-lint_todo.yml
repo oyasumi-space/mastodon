@@ -23,6 +23,7 @@ linters:
   ViewLength:
     exclude:
       - 'app/views/admin/accounts/show.html.haml'
+      - 'app/views/admin/instances/show.html.haml'
       - 'app/views/admin/reports/show.html.haml'
       - 'app/views/disputes/strikes/show.html.haml'
 
@@ -38,6 +39,7 @@ linters:
       - 'app/views/invites/_form.html.haml'
       - 'app/views/relationships/_account.html.haml'
       - 'app/views/shared/_og.html.haml'
+      - 'app/views/application/_sidebar.html.haml'
 
   # Offense count: 3
   IdNames:

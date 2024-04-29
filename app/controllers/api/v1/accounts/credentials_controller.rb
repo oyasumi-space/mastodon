@@ -29,6 +29,8 @@ class Api::V1::Accounts::CredentialsController < Api::BaseController
       :locked,
       :bot,
       :discoverable,
+      :searchability,
+      :dissubscribable,
       :hide_collections,
       :indexable,
       fields_attributes: [:name, :value]
@@ -43,6 +45,7 @@ class Api::V1::Accounts::CredentialsController < Api::BaseController
     {
       settings_attributes: {
         default_privacy: source_params.fetch(:privacy, @account.user.setting_default_privacy),
+        default_searchability: source_params.fetch(:searchability, @account.user.setting_default_searchability),
         default_sensitive: source_params.fetch(:sensitive, @account.user.setting_default_sensitive),
         default_language: source_params.fetch(:language, @account.user.setting_default_language),
       },

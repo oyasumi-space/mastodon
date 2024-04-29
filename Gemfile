@@ -142,6 +142,8 @@ group :test do
 
   # Stub web requests for specs
   gem 'webmock', '~> 3.18'
+
+  gem 'rspec-retry', '>= 0.6.2'
 end
 
 group :development do

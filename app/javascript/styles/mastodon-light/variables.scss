@@ -2,7 +2,6 @@
 $black: #000000;
 $white: #ffffff;
 
-
 $classic-base-color: #282c37;
 $classic-primary-color: #ffffff;
 $classic-secondary-color: #d9e1e8;
@@ -13,6 +12,9 @@ $blurple-500: #6364ff; // Brand purple
 $blurple-300: #858afa; // Faded Blue
 $grey-600: #4e4c5a; // Trout
 $grey-100: #dadaf3; // Topaz
+
+$emoji-reaction-color: #dfe5f5 !default;
+$emoji-reaction-selected-color: #9ac1f2 !default;
 
 // Differences
 $success-green: lighten(#3c754d, 8%);

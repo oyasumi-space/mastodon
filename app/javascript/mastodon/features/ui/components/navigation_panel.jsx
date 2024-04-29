@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 import { WordmarkLogo } from 'mastodon/components/logo';
 import NavigationPortal from 'mastodon/components/navigation_portal';
-import { timelinePreview, trendsEnabled } from 'mastodon/initial_state';
+import { enableDtlMenu, timelinePreview, trendsEnabled, dtlTag } from 'mastodon/initial_state';
 import { transientSingleColumn } from 'mastodon/is_mobile';
 
 import ColumnLink from './column_link';
@@ -21,11 +21,15 @@ const messages = defineMessages({
   home: { id: 'tabs_bar.home', defaultMessage: 'Home' },
   notifications: { id: 'tabs_bar.notifications', defaultMessage: 'Notifications' },
   explore: { id: 'explore.title', defaultMessage: 'Explore' },
+  local: { id: 'column.local', defaultMessage: 'Local' },
+  deepLocal: { id: 'column.deep_local', defaultMessage: 'Deep' },
   firehose: { id: 'column.firehose', defaultMessage: 'Live feeds' },
   direct: { id: 'navigation_bar.direct', defaultMessage: 'Private mentions' },
   favourites: { id: 'navigation_bar.favourites', defaultMessage: 'Favorites' },
   bookmarks: { id: 'navigation_bar.bookmarks', defaultMessage: 'Bookmarks' },
   lists: { id: 'navigation_bar.lists', defaultMessage: 'Lists' },
+  antennas: { id: 'navigation_bar.antennas', defaultMessage: 'Antennas' },
+  circles: { id: 'navigation_bar.circles', defaultMessage: 'Circles' },
   preferences: { id: 'navigation_bar.preferences', defaultMessage: 'Preferences' },
   followsAndFollowers: { id: 'navigation_bar.follows_and_followers', defaultMessage: 'Follows and followers' },
   about: { id: 'navigation_bar.about', defaultMessage: 'About' },
@@ -46,13 +50,22 @@ class NavigationPanel extends Component {
   };
 
   isFirehoseActive = (match, location) => {
-    return match || location.pathname.startsWith('/public');
+    return (match || location.pathname.startsWith('/public')) && !location.pathname.endsWith('/fixed');
+  };
+
+  isAntennasActive = (match, location) => {
+    return (match || location.pathname.startsWith('/antennast'));
   };
 
   render () {
     const { intl } = this.props;
     const { signedIn, disabledAccountId } = this.context.identity;
 
+    const explorer = (trendsEnabled ? (
+      <ColumnLink transparent to='/explore' icon='hashtag' text={intl.formatMessage(messages.explore)} />
+    ) : (
+      <ColumnLink transparent to='/search' icon='search' text={intl.formatMessage(messages.search)} />
+    ));
     let banner = undefined;
 
     if(transientSingleColumn)
@@ -81,18 +94,51 @@ class NavigationPanel extends Component {
           <>
             <ColumnLink transparent to='/home' icon='home' text={intl.formatMessage(messages.home)} />
             <ColumnLink transparent to='/notifications' icon={<NotificationsCounterIcon className='column-link__icon' />} text={intl.formatMessage(messages.notifications)} />
-            <FollowRequestsColumnLink />
+            <ColumnLink transparent to='/public/local/fixed' icon='users' text={intl.formatMessage(messages.local)} />
           </>
         )}
 
-        {trendsEnabled ? (
-          <ColumnLink transparent to='/explore' icon='hashtag' text={intl.formatMessage(messages.explore)} />
-        ) : (
-          <ColumnLink transparent to='/search' icon='search' text={intl.formatMessage(messages.search)} />
+        {signedIn && enableDtlMenu && dtlTag && (
+          <ColumnLink transparent to={`/tags/${dtlTag}`} icon='users' text={intl.formatMessage(messages.deepLocal)} />
         )}
 
-        {(signedIn || timelinePreview) && (
+        {!signedIn && explorer}
+
+        {signedIn && (
+          <ColumnLink transparent to='/public' isActive={this.isFirehoseActive} icon='globe' text={intl.formatMessage(messages.firehose)} />
+        )}
+
+        {(!signedIn && timelinePreview) && (
           <ColumnLink transparent to='/public/local' isActive={this.isFirehoseActive} icon='globe' text={intl.formatMessage(messages.firehose)} />
+        )}
+
+        {signedIn && (
+          <>
+            <ListPanel />
+            <hr />
+          </>
+        )}
+
+        {signedIn && (
+          <>
+            <ColumnLink transparent to='/lists' icon='list-ul' text={intl.formatMessage(messages.lists)} />
+            <ColumnLink transparent to='/antennasw' icon='wifi' text={intl.formatMessage(messages.antennas)} isActive={this.isAntennasActive} />
+            <ColumnLink transparent to='/circles' icon='user-circle' text={intl.formatMessage(messages.circles)} />
+            <FollowRequestsColumnLink />
+            <ColumnLink transparent to='/conversations' icon='at' text={intl.formatMessage(messages.direct)} />
+          </>
+        )}
+
+        {signedIn && explorer}
+
+        {signedIn && (
+          <>
+            <ColumnLink transparent to='/bookmark_categories' icon='bookmark' text={intl.formatMessage(messages.bookmarks)} />
+            <ColumnLink transparent to='/favourites' icon='star' text={intl.formatMessage(messages.favourites)} />
+            <hr />
+
+            <ColumnLink transparent href='/settings/preferences' icon='cog' text={intl.formatMessage(messages.preferences)} />
+          </>
         )}
 
         {!signedIn && (
@@ -100,21 +146,6 @@ class NavigationPanel extends Component {
             <hr />
             { disabledAccountId ? <DisabledAccountBanner /> : <SignInBanner /> }
           </div>
-        )}
-
-        {signedIn && (
-          <>
-            <ColumnLink transparent to='/conversations' icon='at' text={intl.formatMessage(messages.direct)} />
-            <ColumnLink transparent to='/bookmarks' icon='bookmark' text={intl.formatMessage(messages.bookmarks)} />
-            <ColumnLink transparent to='/favourites' icon='star' text={intl.formatMessage(messages.favourites)} />
-            <ColumnLink transparent to='/lists' icon='list-ul' text={intl.formatMessage(messages.lists)} />
-
-            <ListPanel />
-
-            <hr />
-
-            <ColumnLink transparent href='/settings/preferences' icon='cog' text={intl.formatMessage(messages.preferences)} />
-          </>
         )}
 
         <div className='navigation-panel__legal'>

@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe ActivityPub::Activity::Follow do
-  let(:sender)    { Fabricate(:account) }
+  let(:actor_type) { 'Person' }
+  let(:sender)    { Fabricate(:account, domain: 'example.com', inbox_url: 'https://example.com/inbox', actor_type: actor_type) }
   let(:recipient) { Fabricate(:account) }
 
   let(:json) do
@@ -80,6 +81,54 @@ RSpec.describe ActivityPub::Activity::Follow do
         it 'creates a follow request' do
           expect(sender.requested?(recipient)).to be true
           expect(sender.follow_requests.find_by(target_account: recipient).uri).to eq 'foo'
+        end
+      end
+
+      context 'when unlocked account but locked from bot' do
+        let(:actor_type) { 'Service' }
+
+        before do
+          recipient.user.settings['lock_follow_from_bot'] = true
+          recipient.user.save!
+          subject.perform
+        end
+
+        it 'does not create a follow from sender to recipient' do
+          expect(sender.following?(recipient)).to be false
+        end
+
+        it 'creates a follow request' do
+          expect(sender.requested?(recipient)).to be true
+          expect(sender.follow_requests.find_by(target_account: recipient).uri).to eq 'foo'
+        end
+      end
+
+      context 'when domain block reject_straight_follow' do
+        before do
+          Fabricate(:domain_block, domain: 'example.com', reject_straight_follow: true)
+          subject.perform
+        end
+
+        it 'does not create a follow from sender to recipient' do
+          expect(sender.following?(recipient)).to be false
+        end
+
+        it 'creates a follow request' do
+          expect(sender.requested?(recipient)).to be true
+          expect(sender.follow_requests.find_by(target_account: recipient).uri).to eq 'foo'
+        end
+      end
+
+      context 'when domain block reject_new_follow' do
+        before do
+          Fabricate(:domain_block, domain: 'example.com', reject_new_follow: true)
+          stub_request(:post, 'https://example.com/inbox').to_return(status: 200, body: '', headers: {})
+          subject.perform
+        end
+
+        it 'does not create a follow from sender to recipient' do
+          expect(sender.following?(recipient)).to be false
+          expect(sender.requested?(recipient)).to be false
         end
       end
     end

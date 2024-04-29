@@ -8,7 +8,7 @@ class ActivityPub::Parser::StatusParser
   # @option magic_values [String] :followers_collection
   def initialize(json, magic_values = {})
     @json         = json
-    @object       = json['object'] || json
+    @object       = magic_values[:object] || json['object'] || json
     @magic_values = magic_values
   end
 
@@ -78,10 +78,23 @@ class ActivityPub::Parser::StatusParser
       :public
     elsif audience_cc.any? { |cc| ActivityPub::TagManager.instance.public_collection?(cc) }
       :unlisted
+    elsif audience_to.include?('kmyblue:LoginOnly') || audience_to.include?('as:LoginOnly') || audience_to.include?('LoginUser')
+      :login
     elsif audience_to.include?(@magic_values[:followers_collection])
       :private
     else
       :direct
+    end
+  end
+
+  def limited_scope
+    case @object['limitedScope']
+    when 'Mutual'
+      :mutual
+    when 'Circle'
+      :circle
+    else
+      :none
     end
   end
 

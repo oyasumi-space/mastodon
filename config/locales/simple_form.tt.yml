@@ -1,4 +1,3 @@
----
 tt:
   simple_form:
     labels:
@@ -58,4 +57,4 @@ tt:
     recommended: Тәкъдим ителгән
     required:
       mark: "*"
-    'yes': Әйе
+    'yes': 'Әйе'

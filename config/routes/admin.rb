@@ -32,6 +32,8 @@ namespace :admin do
 
   resources :action_logs, only: [:index]
   resources :warning_presets, except: [:new, :show]
+  resource :ng_words, only: [:show, :create]
+  resource :sensitive_words, only: [:show, :create]
 
   resources :announcements, except: [:show] do
     member do
@@ -129,6 +131,14 @@ namespace :admin do
     resource :action, only: [:new, :create], controller: 'account_actions'
 
     resources :statuses, only: [:index, :show] do
+      member do
+        post :remove_history
+        post :remove_media
+        post :force_sensitive
+        post :force_cw
+        post :remove_status
+      end
+
       collection do
         post :batch
       end

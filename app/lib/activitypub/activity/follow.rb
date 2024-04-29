@@ -15,7 +15,7 @@ class ActivityPub::Activity::Follow < ActivityPub::Activity
       return
     end
 
-    if target_account.blocking?(@account) || target_account.domain_blocking?(@account.domain) || target_account.moved? || target_account.instance_actor?
+    if target_account.blocking?(@account) || target_account.domain_blocking?(@account.domain) || target_account.moved? || target_account.instance_actor? || block_new_follow?
       reject_follow_request!(target_account)
       return
     end
@@ -30,7 +30,7 @@ class ActivityPub::Activity::Follow < ActivityPub::Activity
 
     follow_request = FollowRequest.create!(account: @account, target_account: target_account, uri: @json['id'])
 
-    if target_account.locked? || @account.silenced?
+    if target_account.locked? || @account.silenced? || block_straight_follow? || (@account.bot? && target_account.user&.setting_lock_follow_from_bot)
       LocalNotificationWorker.perform_async(target_account.id, follow_request.id, 'FollowRequest', 'follow_request')
     else
       AuthorizeFollowService.new.call(@account, target_account)
@@ -41,5 +41,13 @@ class ActivityPub::Activity::Follow < ActivityPub::Activity
   def reject_follow_request!(target_account)
     json = Oj.dump(serialize_payload(FollowRequest.new(account: @account, target_account: target_account, uri: @json['id']), ActivityPub::RejectFollowSerializer))
     ActivityPub::DeliveryWorker.perform_async(json, target_account.id, @account.inbox_url)
+  end
+
+  def block_straight_follow?
+    @block_straight_follow ||= DomainBlock.reject_straight_follow?(@account.domain)
+  end
+
+  def block_new_follow?
+    @block_new_follow ||= DomainBlock.reject_new_follow?(@account.domain)
   end
 end

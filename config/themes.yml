@@ -5,3 +5,4 @@ head-space: styles/head-space.scss
 head-space-static: styles/head-space-static.scss
 head-space-en: styles/head-space-en.scss
 head-space-jp: styles/head-space-jp.scss
+full-dark: styles/full-dark.scss

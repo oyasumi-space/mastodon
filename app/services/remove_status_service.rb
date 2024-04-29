@@ -27,6 +27,7 @@ class RemoveStatusService < BaseService
       remove_from_self if @account.local?
       remove_from_followers
       remove_from_lists
+      remove_from_antennas
 
       # There is no reason to send out Undo activities when the
       # cause is that the original object has been removed, since
@@ -45,6 +46,7 @@ class RemoveStatusService < BaseService
         remove_from_public
         remove_from_media if @status.with_media?
         remove_media
+        decrement_references
       end
 
       @status.destroy! if permanently?
@@ -72,6 +74,18 @@ class RemoveStatusService < BaseService
     end
   end
 
+  def remove_from_antennas
+    Antenna.availables.where.not(list_id: 0).select(:id, :list_id, :account_id).includes(account: :user).reorder(nil).find_each do |antenna|
+      FeedManager.instance.unpush_from_list(antenna.list, @status) if antenna.list.present?
+    end
+    Antenna.availables.where(list_id: 0).select(:id, :account_id).includes(account: :user).reorder(nil).find_each do |antenna|
+      FeedManager.instance.unpush_from_home(antenna.account, @status)
+    end
+    Antenna.availables.select(:id, :account_id).includes(account: :user).reorder(nil).find_each do |antenna|
+      FeedManager.instance.unpush_from_antenna(antenna, @status)
+    end
+  end
+
   def remove_from_mentions
     # For limited visibility statuses, the mentions that determine
     # who receives them in their home feed are a subset of followers
@@ -94,7 +108,7 @@ class RemoveStatusService < BaseService
 
     status_reach_finder = StatusReachFinder.new(@status, unsafe: true)
 
-    ActivityPub::DeliveryWorker.push_bulk(status_reach_finder.inboxes, limit: 1_000) do |inbox_url|
+    ActivityPub::DeliveryWorker.push_bulk(status_reach_finder.inboxes + status_reach_finder.inboxes_for_misskey, limit: 1_000) do |inbox_url|
       [signed_activity_json, @account.id, inbox_url]
     end
   end
@@ -110,6 +124,12 @@ class RemoveStatusService < BaseService
 
     @status.reblogs.rewhere(deleted_at: [nil, @status.deleted_at]).includes(:account).reorder(nil).find_each do |reblog|
       RemoveStatusService.new.call(reblog, original_removed: true, skip_streaming: skip_streaming?)
+    end
+  end
+
+  def decrement_references
+    @status.references.each do |ref|
+      ref.decrement_count!(:status_referred_by_count)
     end
   end
 

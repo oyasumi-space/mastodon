@@ -130,6 +130,7 @@ Naming/VariableNumber:
     - 'db/migrate/20190820003045_update_statuses_index.rb'
     - 'db/migrate/20190823221802_add_local_index_to_statuses.rb'
     - 'db/migrate/20200119112504_add_public_index_to_statuses.rb'
+    - 'db/migrate/20231212225737_improve_index_for_public_timeline_speed.rb'
     - 'spec/models/account_spec.rb'
     - 'spec/models/domain_block_spec.rb'
     - 'spec/models/user_spec.rb'
@@ -441,6 +442,7 @@ Rails/SkipsModelValidations:
     - 'db/migrate/20190511134027_add_silenced_at_suspended_at_to_accounts.rb'
     - 'db/migrate/20191007013357_update_pt_locales.rb'
     - 'db/migrate/20220316233212_update_kurdish_locales.rb'
+    - 'db/migrate/20240109035435_remove_hidden_anonymous_from_domain_blocks.rb'
     - 'db/post_migrate/20190511152737_remove_suspended_silenced_account_fields.rb'
     - 'db/post_migrate/20200917193528_migrate_notifications_type.rb'
     - 'db/post_migrate/20201017234926_fill_account_suspension_origin.rb'
@@ -478,6 +480,12 @@ Rails/ThreeStateBooleanColumn:
     - 'db/migrate/20220202200743_add_trendable_to_accounts.rb'
     - 'db/migrate/20220202200926_add_trendable_to_statuses.rb'
     - 'db/migrate/20220303000827_add_ordered_media_attachment_ids_to_status_edits.rb'
+    - 'db/migrate/20230314021909_add_group_message_following_only_to_accounts.rb'
+    - 'db/migrate/20230314081013_add_group_allow_private_message_to_accounts.rb'
+    - 'db/migrate/20230412005311_add_markdown_to_statuses.rb'
+    - 'db/migrate/20230412073021_add_markdown_to_status_edits.rb'
+    - 'db/migrate/20230428111230_add_emoji_reaction_streaming_to_accounts.rb'
+    - 'db/migrate/20230510004621_remove_stop_emoji_reaction_streaming_from_accounts.rb'
 
 # Configuration parameters: Include.
 # Include: app/models/**/*.rb
@@ -801,6 +809,7 @@ Style/StringLiterals:
     - 'config/initializers/rack_attack.rb'
     - 'config/initializers/webauthn.rb'
     - 'config/routes.rb'
+    - 'db/schema.rb'
 
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: AllowMethodsWithArguments, AllowedMethods, AllowedPatterns, AllowComments.
