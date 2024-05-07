@@ -15,12 +15,6 @@ class REST::NotificationSerializer < ActiveModel::Serializer
     object.id.to_s
   end
 
-  def from_account
-    return object.account if moderation_warning_event? # Hide moderator account
-
-    object.from_account
-  end
-
   def status_type?
     [:favourite, :emoji_reaction, :reaction, :reblog, :status_reference, :status, :list_status, :mention, :poll, :update].include?(object.type)
   end
