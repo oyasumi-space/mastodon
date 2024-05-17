@@ -7,16 +7,16 @@ class REST::AccountSerializer < ActiveModel::Serializer
   # Please update `app/javascript/mastodon/api_types/accounts.ts` when making changes to the attributes
 
   attributes :id, :username, :acct, :display_name, :locked, :bot, :discoverable, :indexable, :group, :created_at,
-             :note, :url, :uri, :avatar, :avatar_static, :header, :header_static,
-             :followers_count, :following_count, :statuses_count, :last_status_at, :hide_collections
+             :note, :url, :uri, :avatar, :avatar_static, :header, :header_static, :subscribable, :emoji_reaction_available_server,
+             :followers_count, :following_count, :statuses_count, :last_status_at, :hide_collections, :other_settings, :noindex,
+             :server_features
 
   has_one :moved_to_account, key: :moved, serializer: REST::AccountSerializer, if: :moved_and_not_nested?
 
-  has_many :emojis, serializer: REST::CustomEmojiSerializer
+  has_many :emojis, serializer: REST::CustomEmojiSlimSerializer
 
   attribute :suspended, if: :suspended?
   attribute :silenced, key: :limited, if: :silenced?
-  attribute :noindex, if: :local?
 
   attribute :memorial, if: :memorial?
 
@@ -112,8 +112,20 @@ class REST::AccountSerializer < ActiveModel::Serializer
     object.unavailable? ? false : object.discoverable
   end
 
+  def subscribable
+    object.all_subscribable?
+  end
+
   def indexable
     object.unavailable? ? false : object.indexable
+  end
+
+  def emoji_reaction_available_server
+    server_features[:emoji_reaction]
+  end
+
+  def server_features
+    InstanceInfo.available_features(object.domain)
   end
 
   def moved_to_account
@@ -149,12 +161,28 @@ class REST::AccountSerializer < ActiveModel::Serializer
   end
 
   def noindex
-    object.user_prefers_noindex?
+    object.noindex?
   end
 
   delegate :suspended?, :silenced?, :local?, :memorial?, to: :object
 
   def moved_and_not_nested?
     object.moved?
+  end
+
+  def statuses_count
+    object.public_statuses_count
+  end
+
+  def followers_count
+    object.public_followers_count
+  end
+
+  def following_count
+    object.public_following_count
+  end
+
+  def other_settings
+    object.suspended? ? {} : object.public_settings_for_local
   end
 end

@@ -28,6 +28,8 @@ export const COMPOSE_DIRECT          = 'COMPOSE_DIRECT';
 export const COMPOSE_MENTION         = 'COMPOSE_MENTION';
 export const COMPOSE_RESET           = 'COMPOSE_RESET';
 
+export const COMPOSE_WITH_CIRCLE_SUCCESS = 'COMPOSE_WITH_CIRCLE_SUCCESS';
+
 export const COMPOSE_UPLOAD_REQUEST    = 'COMPOSE_UPLOAD_REQUEST';
 export const COMPOSE_UPLOAD_SUCCESS    = 'COMPOSE_UPLOAD_SUCCESS';
 export const COMPOSE_UPLOAD_FAIL       = 'COMPOSE_UPLOAD_FAIL';
@@ -54,11 +56,16 @@ export const COMPOSE_UNMOUNT = 'COMPOSE_UNMOUNT';
 export const COMPOSE_SENSITIVITY_CHANGE  = 'COMPOSE_SENSITIVITY_CHANGE';
 export const COMPOSE_SPOILERNESS_CHANGE  = 'COMPOSE_SPOILERNESS_CHANGE';
 export const COMPOSE_SPOILER_TEXT_CHANGE = 'COMPOSE_SPOILER_TEXT_CHANGE';
+export const COMPOSE_MARKDOWN_CHANGE     = 'COMPOSE_MARKDOWN_CHANGE';
 export const COMPOSE_VISIBILITY_CHANGE   = 'COMPOSE_VISIBILITY_CHANGE';
+export const COMPOSE_SEARCHABILITY_CHANGE= 'COMPOSE_SEARCHABILITY_CHANGE';
 export const COMPOSE_COMPOSING_CHANGE    = 'COMPOSE_COMPOSING_CHANGE';
 export const COMPOSE_LANGUAGE_CHANGE     = 'COMPOSE_LANGUAGE_CHANGE';
 
 export const COMPOSE_EMOJI_INSERT = 'COMPOSE_EMOJI_INSERT';
+export const COMPOSE_EXPIRATION_INSERT = 'COMPOSE_EXPIRATION_INSERT';
+export const COMPOSE_FEATURED_TAG_INSERT = 'COMPOSE_FEATURED_TAG_INSERT';
+export const COMPOSE_REFERENCE_INSERT = 'COMPOSE_REFERENCE_INSERT';
 
 export const COMPOSE_UPLOAD_CHANGE_REQUEST     = 'COMPOSE_UPLOAD_UPDATE_REQUEST';
 export const COMPOSE_UPLOAD_CHANGE_SUCCESS     = 'COMPOSE_UPLOAD_UPDATE_SUCCESS';
@@ -71,10 +78,13 @@ export const COMPOSE_POLL_OPTION_CHANGE   = 'COMPOSE_POLL_OPTION_CHANGE';
 export const COMPOSE_POLL_OPTION_REMOVE   = 'COMPOSE_POLL_OPTION_REMOVE';
 export const COMPOSE_POLL_SETTINGS_CHANGE = 'COMPOSE_POLL_SETTINGS_CHANGE';
 
+export const COMPOSE_CIRCLE_CHANGE = 'COMPOSE_CIRCLE_CHANGE';
+
 export const INIT_MEDIA_EDIT_MODAL = 'INIT_MEDIA_EDIT_MODAL';
 
 export const COMPOSE_CHANGE_MEDIA_DESCRIPTION = 'COMPOSE_CHANGE_MEDIA_DESCRIPTION';
 export const COMPOSE_CHANGE_MEDIA_FOCUS       = 'COMPOSE_CHANGE_MEDIA_FOCUS';
+export const COMPOSE_CHANGE_MEDIA_ORDER       = 'COMPOSE_CHANGE_MEDIA_ORDER';
 
 export const COMPOSE_SET_STATUS = 'COMPOSE_SET_STATUS';
 export const COMPOSE_FOCUS = 'COMPOSE_FOCUS';
@@ -168,6 +178,8 @@ export function submitCompose(routerHistory) {
     const status   = getState().getIn(['compose', 'text'], '');
     const media    = getState().getIn(['compose', 'media_attachments']);
     const statusId = getState().getIn(['compose', 'id'], null);
+    const circleId = getState().getIn(['compose', 'circle_id'], null);
+    const privacy  = getState().getIn(['compose', 'privacy']);
 
     if ((!status || !status.length) && media.size === 0) {
       return;
@@ -203,9 +215,12 @@ export function submitCompose(routerHistory) {
         in_reply_to_id: getState().getIn(['compose', 'in_reply_to'], null),
         media_ids: media.map(item => item.get('id')),
         media_attributes,
-        sensitive: getState().getIn(['compose', 'sensitive']),
+        sensitive: media.size > 0 ? getState().getIn(['compose', 'spoiler']) : false,
         spoiler_text: getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '',
+        markdown: getState().getIn(['compose', 'markdown']),
         visibility: getState().getIn(['compose', 'privacy']),
+        searchability: getState().getIn(['compose', 'searchability']),
+        circle_id: getState().getIn(['compose', 'circle_id']),
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
       },
@@ -234,14 +249,18 @@ export function submitCompose(routerHistory) {
         dispatch(importFetchedStatus({ ...response.data }));
       }
 
-      if (statusId === null && response.data.visibility !== 'direct') {
+      if (statusId === null && response.data.visibility_ex !== 'direct') {
         insertIfOnline('home');
       }
 
-      if (statusId === null && response.data.in_reply_to_id === null && response.data.visibility === 'public') {
+      if (statusId === null && response.data.in_reply_to_id === null && response.data.visibility_ex === 'public') {
         insertIfOnline('community');
         insertIfOnline('public');
         insertIfOnline(`account:${response.data.account.id}`);
+      }
+
+      if (statusId === null && privacy === 'circle' && circleId !== null && circleId !== 0) {
+        dispatch(submitComposeWithCircleSuccess({ ...response.data }, circleId));
       }
 
       dispatch(showAlert({
@@ -269,6 +288,14 @@ export function submitComposeSuccess(status) {
   };
 }
 
+export function submitComposeWithCircleSuccess(status, circleId) {
+  return {
+    type: COMPOSE_WITH_CIRCLE_SUCCESS,
+    status,
+    circleId,
+  };
+}
+
 export function submitComposeFail(error) {
   return {
     type: COMPOSE_SUBMIT_FAIL,
@@ -281,6 +308,8 @@ export function uploadCompose(files) {
     const uploadLimit = 4;
     const media = getState().getIn(['compose', 'media_attachments']);
     const pending = getState().getIn(['compose', 'pending_media_attachments']);
+    const defaultSensitive = getState().getIn(['compose', 'default_sensitive']);
+    const spoiler = getState().getIn(['compose', 'spoiler']);
     const progress = new Array(files.length).fill(0);
 
     let total = Array.from(files).reduce((a, v) => a + v.size, 0);
@@ -290,15 +319,10 @@ export function uploadCompose(files) {
       return;
     }
 
-    if (getState().getIn(['compose', 'poll'])) {
-      dispatch(showAlert({ message: messages.uploadErrorPoll }));
-      return;
-    }
-
     dispatch(uploadComposeRequest());
 
     for (const [i, file] of Array.from(files).entries()) {
-      if (media.size + i > 3) break;
+      if (media.size + i >= 4) break;
 
       const data = new FormData();
       data.append('file', file);
@@ -314,6 +338,10 @@ export function uploadCompose(files) {
 
         if (status === 200) {
           dispatch(uploadComposeSuccess(data, file));
+
+          if (defaultSensitive && !spoiler && (media.size + i) === 0) {
+            dispatch(changeComposeSpoilerness());
+          }
         } else if (status === 202) {
           dispatch(uploadComposeProcessing());
 
@@ -744,9 +772,22 @@ export function changeComposeSpoilerText(text) {
   };
 }
 
+export function changeComposeMarkdown() {
+  return {
+    type: COMPOSE_MARKDOWN_CHANGE,
+  };
+}
+
 export function changeComposeVisibility(value) {
   return {
     type: COMPOSE_VISIBILITY_CHANGE,
+    value,
+  };
+}
+
+export function changeComposeSearchability(value) {
+  return {
+    type: COMPOSE_SEARCHABILITY_CHANGE,
     value,
   };
 }
@@ -757,6 +798,31 @@ export function insertEmojiCompose(position, emoji, needsSpace) {
     position,
     emoji,
     needsSpace,
+  };
+}
+
+export function insertExpirationCompose(position, data) {
+  return {
+    type: COMPOSE_EXPIRATION_INSERT,
+    position,
+    data,
+  };
+}
+
+export function insertFeaturedTagCompose(position, data) {
+  return {
+    type: COMPOSE_FEATURED_TAG_INSERT,
+    position,
+    data,
+  };
+}
+
+export function insertReferenceCompose(position, url, attributeType) {
+  return {
+    type: COMPOSE_REFERENCE_INSERT,
+    position,
+    url,
+    attributeType,
   };
 }
 
@@ -786,11 +852,12 @@ export function addPollOption(title) {
   };
 }
 
-export function changePollOption(index, title) {
+export function changePollOption(index, title, maxOptions) {
   return {
     type: COMPOSE_POLL_OPTION_CHANGE,
     index,
     title,
+    maxOptions,
   };
 }
 
@@ -806,5 +873,18 @@ export function changePollSettings(expiresIn, isMultiple) {
     type: COMPOSE_POLL_SETTINGS_CHANGE,
     expiresIn,
     isMultiple,
+  };
+}
+
+export const changeMediaOrder = (a, b) => ({
+  type: COMPOSE_CHANGE_MEDIA_ORDER,
+  a,
+  b,
+});
+
+export function changeCircle(circleId) {
+  return {
+    type: COMPOSE_CIRCLE_CHANGE,
+    circleId,
   };
 }

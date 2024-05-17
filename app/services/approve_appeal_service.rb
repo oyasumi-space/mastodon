@@ -29,6 +29,8 @@ class ApproveAppealService < BaseService
       undo_delete_statuses!
     when 'mark_statuses_as_sensitive'
       undo_mark_statuses_as_sensitive!
+    when 'force_cw'
+      undo_force_cw!
     when 'sensitive'
       undo_sensitive!
     when 'silence'
@@ -54,7 +56,14 @@ class ApproveAppealService < BaseService
   def undo_mark_statuses_as_sensitive!
     representative_account = Account.representative
     @strike.statuses.includes(:media_attachments).find_each do |status|
-      UpdateStatusService.new.call(status, representative_account.id, sensitive: false) if status.with_media?
+      UpdateStatusService.new.call(status, representative_account.id, sensitive: false, bypass_validation: true) if status.with_media?
+    end
+  end
+
+  def undo_force_cw!
+    representative_account = Account.representative
+    @strike.statuses.includes(:media_attachments).find_each do |status|
+      UpdateStatusService.new.call(status, representative_account.id, spoiler_text: '', bypass_validation: true) if status.spoiler_text.present?
     end
   end
 

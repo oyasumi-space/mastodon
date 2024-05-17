@@ -18,6 +18,7 @@ class Header extends ImmutablePureComponent {
 
   static propTypes = {
     account: ImmutablePropTypes.record,
+    featuredTags: PropTypes.array,
     onFollow: PropTypes.func.isRequired,
     onBlock: PropTypes.func.isRequired,
     onMention: PropTypes.func.isRequired,
@@ -29,6 +30,9 @@ class Header extends ImmutablePureComponent {
     onUnblockDomain: PropTypes.func.isRequired,
     onEndorseToggle: PropTypes.func.isRequired,
     onAddToList: PropTypes.func.isRequired,
+    onAddToAntenna: PropTypes.func.isRequired,
+    onAddToExcludeAntenna: PropTypes.func.isRequired,
+    onAddToCircle: PropTypes.func.isRequired,
     onChangeLanguages: PropTypes.func.isRequired,
     onInteractionModal: PropTypes.func.isRequired,
     onOpenAvatar: PropTypes.func.isRequired,
@@ -72,11 +76,7 @@ class Header extends ImmutablePureComponent {
   };
 
   handleBlockDomain = () => {
-    const domain = this.props.account.get('acct').split('@')[1];
-
-    if (!domain) return;
-
-    this.props.onBlockDomain(domain);
+    this.props.onBlockDomain(this.props.account);
   };
 
   handleUnblockDomain = () => {
@@ -93,6 +93,18 @@ class Header extends ImmutablePureComponent {
 
   handleAddToList = () => {
     this.props.onAddToList(this.props.account);
+  };
+
+  handleAddToAntenna = () => {
+    this.props.onAddToAntenna(this.props.account);
+  };
+
+  handleAddToExcludeAntenna = () => {
+    this.props.onAddToExcludeAntenna(this.props.account);
+  };
+
+  handleAddToCircle = () => {
+    this.props.onAddToCircle(this.props.account);
   };
 
   handleEditAccountNote = () => {
@@ -112,7 +124,7 @@ class Header extends ImmutablePureComponent {
   };
 
   render () {
-    const { account, hidden, hideTabs } = this.props;
+    const { account, featuredTags, hidden, hideTabs } = this.props;
 
     if (account === null) {
       return null;
@@ -125,6 +137,7 @@ class Header extends ImmutablePureComponent {
 
         <InnerHeader
           account={account}
+          featuredTags={featuredTags}
           onFollow={this.handleFollow}
           onBlock={this.handleBlock}
           onMention={this.handleMention}
@@ -137,6 +150,9 @@ class Header extends ImmutablePureComponent {
           onUnblockDomain={this.handleUnblockDomain}
           onEndorseToggle={this.handleEndorseToggle}
           onAddToList={this.handleAddToList}
+          onAddToAntenna={this.handleAddToAntenna}
+          onAddToExcludeAntenna={this.handleAddToExcludeAntenna}
+          onAddToCircle={this.handleAddToCircle}
           onEditAccountNote={this.handleEditAccountNote}
           onChangeLanguages={this.handleChangeLanguages}
           onInteractionModal={this.handleInteractionModal}

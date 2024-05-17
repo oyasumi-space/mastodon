@@ -5,14 +5,26 @@ require 'rails_helper'
 describe ActivityPub::NoteSerializer do
   subject { serialized_record_json(parent, described_class, adapter: ActivityPub::Adapter) }
 
+  let(:visibility) { :public }
+  let(:searchability) { :public }
   let!(:account) { Fabricate(:account) }
   let!(:other) { Fabricate(:account) }
-  let!(:parent) { Fabricate(:status, account: account, visibility: :public, language: 'zh-TW') }
+  let!(:parent) { Fabricate(:status, account: account, visibility: visibility, searchability: searchability, language: 'zh-TW') }
   let!(:reply_by_account_first) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_account_next) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_other_first) { Fabricate(:status, account: other, thread: parent, visibility: :public) }
   let!(:reply_by_account_third) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_account_visibility_direct) { Fabricate(:status, account: account, thread: parent, visibility: :direct) }
+  let!(:referred) { nil }
+  let!(:quote) { nil }
+
+  before do
+    parent.references << referred if referred.present?
+    if quote.present?
+      parent.references << quote
+      parent.quote = quote
+    end
+  end
 
   it 'has the expected shape' do
     expect(subject).to include({
@@ -43,5 +55,61 @@ describe ActivityPub::NoteSerializer do
 
   it 'does not include replies with direct visibility in its replies collection' do
     expect(subject['replies']['first']['items']).to_not include(reply_by_account_visibility_direct.uri)
+  end
+
+  it 'send as public visibility' do
+    expect(subject['to']).to include 'https://www.w3.org/ns/activitystreams#Public'
+  end
+
+  context 'when public_unlisted visibility' do
+    let(:visibility) { :public_unlisted }
+
+    it 'send as unlisted visibility' do
+      expect(subject['to']).to_not include 'https://www.w3.org/ns/activitystreams#Public'
+    end
+  end
+
+  it 'send as public searchability' do
+    expect(subject['searchableBy']).to include 'https://www.w3.org/ns/activitystreams#Public'
+  end
+
+  context 'when public_unlisted searchability' do
+    let(:searchability) { :public_unlisted }
+
+    it 'send as private searchability' do
+      expect(subject['searchableBy']).to_not include 'https://www.w3.org/ns/activitystreams#Public'
+    end
+  end
+
+  context 'when has a reference' do
+    let(:referred) { Fabricate(:status) }
+
+    it 'has a references collection' do
+      expect(subject['references']['type']).to eql('Collection')
+    end
+
+    it 'has a references collection with a first Page' do
+      expect(subject['references']['first']['type']).to eql('CollectionPage')
+    end
+
+    it 'has as reference' do
+      expect(subject['quoteUri']).to be_nil
+      expect(subject['references']['first']['items']).to include referred.uri
+    end
+  end
+
+  context 'when has a quote' do
+    let(:quote) { Fabricate(:status) }
+
+    it 'has a quote as transitional type' do
+      expect(subject['quoteUri']).to eq ActivityPub::TagManager.instance.uri_for(quote)
+    end
+
+    it 'has a quote as feb-e232 object link' do
+      tag = subject['tag'].detect { |t| t['type'] == 'Link' }
+      expect(tag).to_not be_nil
+      expect(tag['mediaType']).to eq 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'
+      expect(tag['href']).to eq ActivityPub::TagManager.instance.uri_for(quote)
+    end
   end
 end

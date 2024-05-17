@@ -36,6 +36,15 @@ namespace :mastodon do
         env[key] = SecureRandom.hex(64)
       end
 
+      # Required by ActiveRecord encryption feature
+      %w(
+        ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY
+        ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT
+        ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY
+      ).each do |key|
+        env[key] = SecureRandom.alphanumeric(32)
+      end
+
       vapid_key = Webpush.generate_key
 
       env['VAPID_PRIVATE_KEY'] = vapid_key.private_key
@@ -449,7 +458,7 @@ namespace :mastodon do
 
       prompt.say "\n"
 
-      env['UPDATE_CHECK_URL'] = '' unless prompt.yes?('Do you want Mastodon to periodically check for important updates and notify you? (Recommended)', default: true)
+      env['UPDATE_CHECK_URL'] = '' unless prompt.yes?('Do you want kmyblue to periodically check for important updates and notify you? (Recommended)', default: true)
 
       prompt.say "\n"
       prompt.say 'This configuration will be written to .env.production'
@@ -544,6 +553,7 @@ namespace :mastodon do
           owner_role = UserRole.find_by(name: 'Owner')
           user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role)
           user.save(validate: false)
+          user.approve!
 
           Setting.site_contact_username = username
 

@@ -16,8 +16,8 @@ let data = require('emoji-mart/data/all.json');
 const { uncompress: emojiMartUncompress } = require('emoji-mart/dist/utils/data');
 
 const emojiMap = require('./emoji_map.json');
-const { unicodeToFilename } = require('./unicode_to_filename');
-const { unicodeToUnifiedName } = require('./unicode_to_unified_name');
+const { unicodeToFilename } = require('./unicode_to_filename_s');
+const { unicodeToUnifiedName } = require('./unicode_to_unified_name_s');
 
 if(data.compressed) {
   data = emojiMartUncompress(data);
@@ -36,7 +36,7 @@ Object.keys(emojiIndex.emojis).forEach(key => {
   let emoji = emojiIndex.emojis[key];
 
   // Emojis with skin tone modifiers are stored like this
-  if (Object.prototype.hasOwnProperty.call(emoji, '1')) {
+  if (Object.hasOwn(emoji, '1')) {
     emoji = emoji['1'];
   }
 
@@ -88,7 +88,7 @@ Object.keys(emojiIndex.emojis).forEach(key => {
   let emoji = emojiIndex.emojis[key];
 
   // Emojis with skin tone modifiers are stored like this
-  if (Object.prototype.hasOwnProperty.call(emoji, '1')) {
+  if (Object.hasOwn(emoji, '1')) {
     emoji = emoji['1'];
   }
 

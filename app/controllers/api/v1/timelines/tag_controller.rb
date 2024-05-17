@@ -9,7 +9,9 @@ class Api::V1::Timelines::TagController < Api::V1::Timelines::BaseController
   def show
     cache_if_unauthenticated!
     @statuses = load_statuses
-    render json: @statuses, each_serializer: REST::StatusSerializer, relationships: StatusRelationshipsPresenter.new(@statuses, current_user&.account_id)
+    render json: @statuses, each_serializer: REST::StatusSerializer,
+           relationships: StatusRelationshipsPresenter.new(@statuses, current_user&.account_id),
+           emoji_reaction_permitted_account_ids: EmojiReactionAccountsPresenter.new(@statuses, current_user&.account_id)
   end
 
   private
@@ -23,11 +25,11 @@ class Api::V1::Timelines::TagController < Api::V1::Timelines::BaseController
   end
 
   def load_statuses
-    cached_tagged_statuses
+    preloaded_tagged_statuses
   end
 
-  def cached_tagged_statuses
-    @tag.nil? ? [] : cache_collection(tag_timeline_statuses, Status)
+  def preloaded_tagged_statuses
+    @tag.nil? ? [] : preload_collection(tag_timeline_statuses, Status)
   end
 
   def tag_timeline_statuses

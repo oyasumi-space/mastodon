@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 
 import { showAlertForError } from '../../../actions/alerts';
 import { initBlockModal } from '../../../actions/blocks';
-import { initBoostModal } from '../../../actions/boosts';
 import {
   replyCompose,
   mentionCompose,
@@ -17,6 +16,8 @@ import {
   unfavourite,
   pin,
   unpin,
+  emojiReact,
+  unEmojiReact,
 } from '../../../actions/interactions';
 import { openModal } from '../../../actions/modal';
 import { initMuteModal } from '../../../actions/mutes';
@@ -85,8 +86,16 @@ const mapDispatchToProps = (dispatch, { intl }) => ({
       if (e.shiftKey || !boostModal) {
         this.onModalReblog(status);
       } else {
-        dispatch(initBoostModal({ status, onReblog: this.onModalReblog }));
+        dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: this.onModalReblog } }));
       }
+    }
+  },
+
+  onReblogForceModal (status) {
+    if (status.get('reblogged')) {
+      dispatch(unreblog(status));
+    } else {
+      dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: this.onModalReblog } }));
     }
   },
 
@@ -96,6 +105,14 @@ const mapDispatchToProps = (dispatch, { intl }) => ({
     } else {
       dispatch(favourite(status));
     }
+  },
+
+  onEmojiReact (status, emoji) {
+    dispatch(emojiReact(status, emoji));
+  },
+
+  onUnEmojiReact (status, emoji) {
+    dispatch(unEmojiReact(status, emoji));
   },
 
   onPin (status) {

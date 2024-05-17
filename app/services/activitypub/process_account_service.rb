@@ -8,10 +8,12 @@ class ActivityPub::ProcessAccountService < BaseService
 
   SUBDOMAINS_RATELIMIT = 10
   DISCOVERIES_PER_REQUEST = 400
+  SCAN_SEARCHABILITY_RE = /\[searchability:(public|followers|reactors|private)\]/
+  SCAN_SEARCHABILITY_FEDIBIRD_RE = /searchable_by_(all_users|followers_only|reacted_users_only|nobody)/
 
   # Should be called with confirmed valid JSON
   # and WebFinger-resolved username and domain
-  def call(username, domain, json, options = {})
+  def call(username, domain, json, options = {}) # rubocop:disable Metrics/PerceivedComplexity
     return if json['inbox'].blank? || unsupported_uri_scheme?(json['id']) || domain_not_allowed?(domain)
 
     @options     = options
@@ -21,6 +23,8 @@ class ActivityPub::ProcessAccountService < BaseService
     @domain      = TagManager.instance.normalize_domain(domain)
     @collections = {}
 
+    return unless valid_account?
+
     # The key does not need to be unguessable, it just needs to be somewhat unique
     @options[:request_id] ||= "#{Time.now.utc.to_i}-#{username}@#{domain}"
 
@@ -29,6 +33,7 @@ class ActivityPub::ProcessAccountService < BaseService
       @account          ||= Account.find_remote(@username, @domain)
       @old_public_key     = @account&.public_key
       @old_protocol       = @account&.protocol
+      @old_searchability  = @account&.searchability
       @suspension_changed = false
 
       if @account.nil?
@@ -54,11 +59,13 @@ class ActivityPub::ProcessAccountService < BaseService
     clear_tombstones! if key_changed?
     after_suspension_change! if suspension_changed?
 
-    unless @options[:only_key] || @account.suspended?
+    unless @options[:only_key] || (@account.suspended? && !@account.remote_pending)
       check_featured_collection! if @account.featured_collection_url.present?
       check_featured_tags_collection! if @json['featuredTags'].present?
       check_links! if @account.fields.any?(&:requires_verification?)
     end
+
+    fetch_instance_info
 
     @account
   rescue Oj::ParseError
@@ -76,6 +83,13 @@ class ActivityPub::ProcessAccountService < BaseService
     @account.suspended_at      = domain_block.created_at if auto_suspend?
     @account.suspension_origin = :local if auto_suspend?
     @account.silenced_at       = domain_block.created_at if auto_silence?
+    @account.searchability     = :direct # not null
+
+    if @account.suspended_at.nil? && blocking_new_account?
+      @account.suspended_at      = Time.now.utc
+      @account.suspension_origin = :local
+      @account.remote_pending    = true
+    end
 
     set_immediate_protocol_attributes!
 
@@ -88,9 +102,12 @@ class ActivityPub::ProcessAccountService < BaseService
 
     set_suspension!
     set_immediate_protocol_attributes!
-    set_fetchable_key! unless @account.suspended? && @account.suspension_origin_local?
-    set_immediate_attributes! unless @account.suspended?
-    set_fetchable_attributes! unless @options[:only_key] || @account.suspended?
+
+    freeze_data = @account.suspended? && (@account.suspension_origin_remote? || !@account.remote_pending)
+
+    set_fetchable_key! unless @account.suspended? && @account.suspension_origin_local? && !@account.remote_pending
+    set_immediate_attributes! unless freeze_data
+    set_fetchable_attributes! unless @options[:only_key] || freeze_data
 
     @account.save_with_optional_media!
   end
@@ -116,7 +133,23 @@ class ActivityPub::ProcessAccountService < BaseService
     @account.also_known_as           = as_array(@json['alsoKnownAs'] || []).map { |item| value_or_id(item) }
     @account.discoverable            = @json['discoverable'] || false
     @account.indexable               = @json['indexable'] || false
+    @account.searchability           = searchability_from_audience
+    @account.settings                = other_settings
+    @account.master_settings         = (@account.master_settings || {}).merge(master_settings(@account.note))
     @account.memorial                = @json['memorial'] || false
+  end
+
+  def blocking_new_account?
+    return false unless Setting.hold_remote_new_accounts
+
+    SpecifiedDomain.white_list_domain_caches.none? { |item| item.domain == @domain }
+  end
+
+  def valid_account?
+    display_name = @json['name'] || ''
+    note = @json['summary'] || ''
+    !Admin::NgWord.reject?(display_name, uri: @uri, target_type: :account_name) &&
+      !Admin::NgWord.reject?(note, uri: @uri, target_type: :account_note)
   end
 
   def set_fetchable_key!
@@ -155,6 +188,10 @@ class ActivityPub::ProcessAccountService < BaseService
     end
   end
 
+  def after_searchability_change!
+    SearchabilityUpdateWorker.perform_async(@account.id) if @account.statuses.unset_searchability.exists?
+  end
+
   def after_protocol_change!
     ActivityPub::PostUpgradeWorker.perform_async(@account.domain)
   end
@@ -189,6 +226,10 @@ class ActivityPub::ProcessAccountService < BaseService
     AccountMergingWorker.perform_async(@account.id)
   end
 
+  def fetch_instance_info
+    ActivityPub::FetchInstanceInfoWorker.perform_async(@account.domain) unless Rails.cache.exist?("fetch_instance_info:#{@account.domain}", expires_in: 1.day)
+  end
+
   def actor_type
     if @json['type'].is_a?(Array)
       @json['type'].find { |type| ActivityPub::FetchRemoteAccountService::SUPPORTED_TYPES.include?(type) }
@@ -201,10 +242,15 @@ class ActivityPub::ProcessAccountService < BaseService
     value = first_of_value(@json[key])
 
     return if value.nil?
-    return value['url'] if value.is_a?(Hash)
 
-    image = fetch_resource_without_id_validation(value)
-    image['url'] if image
+    if value.is_a?(String)
+      value = fetch_resource_without_id_validation(value)
+      return if value.nil?
+    end
+
+    value = first_of_value(value['url']) if value.is_a?(Hash) && value['type'] == 'Image'
+    value = value['href'] if value.is_a?(Hash)
+    value if value.is_a?(String)
   end
 
   def public_key
@@ -227,6 +273,96 @@ class ActivityPub::ProcessAccountService < BaseService
     else
       url_candidate
     end
+  end
+
+  def audience_searchable_by
+    return nil if @json['searchableBy'].nil?
+
+    @audience_searchable_by_processaccountservice = as_array(@json['searchableBy']).map { |x| value_or_id(x) }
+  end
+
+  def searchability_from_audience
+    if audience_searchable_by.nil?
+      bio = searchability_from_bio
+      return bio unless bio.nil?
+
+      return misskey_software? ? misskey_searchability_from_indexable : :direct
+    end
+
+    if audience_searchable_by.any? { |uri| ActivityPub::TagManager.instance.public_collection?(uri) }
+      :public
+    elsif audience_searchable_by.include?(@account.followers_url)
+      :private
+    elsif audience_searchable_by.include?('kmyblue:Limited') || audience_searchable_by.include?('as:Limited')
+      :limited
+    else
+      :direct
+    end
+  end
+
+  def searchability_from_bio
+    note = @json['summary'] || ''
+    return nil if note.blank?
+
+    searchability_bio = note.scan(SCAN_SEARCHABILITY_FEDIBIRD_RE).first || note.scan(SCAN_SEARCHABILITY_RE).first
+    return nil unless searchability_bio
+
+    searchability = searchability_bio[0]
+    return nil if searchability.nil?
+
+    searchability = :public  if %w(public all_users).include?(searchability)
+    searchability = :private if %w(followers followers_only).include?(searchability)
+    searchability = :direct  if %w(reactors reacted_users_only).include?(searchability)
+    searchability = :limited if %w(private nobody).include?(searchability)
+
+    searchability
+  end
+
+  def misskey_searchability_from_indexable
+    return :public if @json['indexable'].nil?
+
+    @json['indexable'] ? :public : :limited
+  end
+
+  def instance_info
+    @instance_info ||= InstanceInfo.find_by(domain: @domain)
+  end
+
+  def misskey_software?
+    info = instance_info
+    return false if info.nil?
+
+    %w(misskey calckey).include?(info.software)
+  end
+
+  def subscribable_by
+    return nil if @json['subscribableBy'].nil?
+
+    @subscribable_by = as_array(@json['subscribableBy']).map { |x| value_or_id(x) }
+  end
+
+  def subscription_policy(note)
+    if subscribable_by.nil?
+      note.include?('[subscribable:no]') ? :block : :allow
+    elsif subscribable_by.any? { |uri| ActivityPub::TagManager.instance.public_collection?(uri) }
+      :allow
+    elsif subscribable_by.include?(@account.followers_url)
+      :followers_only
+    else
+      :block
+    end
+  end
+
+  def master_settings(note)
+    {
+      'subscription_policy' => subscription_policy(note),
+    }
+  end
+
+  def other_settings
+    return {} unless @json['otherSetting'].is_a?(Array)
+
+    @json['otherSetting'].each_with_object({}) { |v, h| h.merge!({ v['name'] => v['value'] }) if v['type'] == 'PropertyValue' }
   end
 
   def property_values
@@ -277,12 +413,12 @@ class ActivityPub::ProcessAccountService < BaseService
 
   def moved_account
     account   = ActivityPub::TagManager.instance.uri_to_resource(@json['movedTo'], Account)
-    account ||= ActivityPub::FetchRemoteAccountService.new.call(@json['movedTo'], id: true, break_on_redirect: true, request_id: @options[:request_id])
+    account ||= ActivityPub::FetchRemoteAccountService.new.call(@json['movedTo'], break_on_redirect: true, request_id: @options[:request_id])
     account
   end
 
   def skip_download?
-    @account.suspended? || domain_block&.reject_media?
+    (@account.suspended? && !@account.remote_pending) || domain_block&.reject_media?
   end
 
   def auto_suspend?
@@ -315,6 +451,10 @@ class ActivityPub::ProcessAccountService < BaseService
     !@old_protocol.nil? && @old_protocol != @account.protocol
   end
 
+  def searchability_changed?
+    !@old_searchability.nil? && @old_searchability != @account.searchability
+  end
+
   def process_tags
     return if @json['tag'].blank?
 
@@ -330,12 +470,14 @@ class ActivityPub::ProcessAccountService < BaseService
     shortcode = tag['name'].delete(':')
     image_url = tag['icon']['url']
     uri       = tag['id']
+    sensitive = tag['isSensitive'].presence || false
+    license   = tag['license']
     updated   = tag['updated']
     emoji     = CustomEmoji.find_by(shortcode: shortcode, domain: @account.domain)
 
     return unless emoji.nil? || image_url != emoji.image_remote_url || (updated && updated >= emoji.updated_at)
 
-    emoji ||= CustomEmoji.new(domain: @account.domain, shortcode: shortcode, uri: uri)
+    emoji ||= CustomEmoji.new(domain: @account.domain, shortcode: shortcode, uri: uri, is_sensitive: sensitive, license: license)
     emoji.image_remote_url = image_url
     emoji.save
   end

@@ -1,3 +1,5 @@
+// Kmyblue tracking marker: copied emoji_reactions, mentioned_users
+
 import PropTypes from 'prop-types';
 
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
@@ -10,7 +12,7 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
-import RefreshIcon from 'mastodon/../material-icons/400-24px/refresh.svg?react';
+import RefreshIcon from '@/material-icons/400-24px/refresh.svg?react';
 import { fetchFavourites, expandFavourites } from 'mastodon/actions/interactions';
 import ColumnHeader from 'mastodon/components/column_header';
 import { Icon }  from 'mastodon/components/icon';

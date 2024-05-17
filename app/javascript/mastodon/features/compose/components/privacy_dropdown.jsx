@@ -5,143 +5,49 @@ import { injectIntl, defineMessages } from 'react-intl';
 
 import classNames from 'classnames';
 
-
-import { supportsPassiveEvents } from 'detect-passive-events';
 import Overlay from 'react-overlays/Overlay';
 
-import AlternateEmailIcon from 'mastodon/../material-icons/400-24px/alternate_email.svg?react';
-import LockIcon from 'mastodon/../material-icons/400-24px/lock.svg?react';
-import LockOpenIcon from 'mastodon/../material-icons/400-24px/lock_open.svg?react';
-import PublicIcon from 'mastodon/../material-icons/400-24px/public.svg?react';
+import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BlockIcon from '@/material-icons/400-24px/block.svg?react';
+import PublicUnlistedIcon from '@/material-icons/400-24px/cloud.svg?react';
+import MutualIcon from '@/material-icons/400-24px/compare_arrows.svg?react';
+import LoginIcon from '@/material-icons/400-24px/key.svg?react';
+import LockIcon from '@/material-icons/400-24px/lock.svg?react';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
+import QuietTimeIcon from '@/material-icons/400-24px/quiet_time.svg?react';
+import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
+import LimitedIcon from '@/material-icons/400-24px/shield.svg?react';
 import { Icon }  from 'mastodon/components/icon';
+import { enabledVisibilites } from 'mastodon/initial_state';
 
-import { IconButton } from '../../../components/icon_button';
+import { PrivacyDropdownMenu } from './privacy_dropdown_menu';
 
 const messages = defineMessages({
   public_short: { id: 'privacy.public.short', defaultMessage: 'Public' },
-  public_long: { id: 'privacy.public.long', defaultMessage: 'Visible for all' },
-  unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Unlisted' },
-  unlisted_long: { id: 'privacy.unlisted.long', defaultMessage: 'Visible for all, but opted-out of discovery features' },
-  private_short: { id: 'privacy.private.short', defaultMessage: 'Followers only' },
-  private_long: { id: 'privacy.private.long', defaultMessage: 'Visible for followers only' },
-  direct_short: { id: 'privacy.direct.short', defaultMessage: 'Mentioned people only' },
-  direct_long: { id: 'privacy.direct.long', defaultMessage: 'Visible for mentioned users only' },
-  change_privacy: { id: 'privacy.change', defaultMessage: 'Adjust status privacy' },
+  public_long: { id: 'privacy.public.long', defaultMessage: 'Anyone on and off Mastodon' },
+  unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Quiet public' },
+  unlisted_long: { id: 'privacy.unlisted.long', defaultMessage: 'Fewer algorithmic fanfares' },
+  public_unlisted_short: { id: 'privacy.public_unlisted.short', defaultMessage: 'Local public' },
+  public_unlisted_long: { id: 'privacy.public_unlisted.long', defaultMessage: 'Visible for all without GTL' },
+  login_short: { id: 'privacy.login.short', defaultMessage: 'Login only' },
+  login_long: { id: 'privacy.login.long', defaultMessage: 'Login user only' },
+  private_short: { id: 'privacy.private.short', defaultMessage: 'Followers' },
+  private_long: { id: 'privacy.private.long', defaultMessage: 'Only your followers' },
+  limited_short: { id: 'privacy.limited.short', defaultMessage: 'Limited' },
+  mutual_short: { id: 'privacy.mutual.short', defaultMessage: 'Mutual' },
+  mutual_long: { id: 'privacy.mutual.long', defaultMessage: 'Mutual follows only' },
+  circle_short: { id: 'privacy.circle.short', defaultMessage: 'Circle' },
+  circle_long: { id: 'privacy.circle.long', defaultMessage: 'Circle members only' },
+  reply_short: { id: 'privacy.reply.short', defaultMessage: 'Reply' },
+  reply_long: { id: 'privacy.reply.long', defaultMessage: 'Reply to limited post' },
+  direct_short: { id: 'privacy.direct.short', defaultMessage: 'Specific people' },
+  direct_long: { id: 'privacy.direct.long', defaultMessage: 'Everyone mentioned in the post' },
+  banned_short: { id: 'privacy.banned.short', defaultMessage: 'No posting' },
+  banned_long: { id: 'privacy.banned.long', defaultMessage: 'All public range submissions are disabled. User settings need to be modified.' },
+  change_privacy: { id: 'privacy.change', defaultMessage: 'Change post privacy' },
+  unlisted_extra: { id: 'privacy.unlisted.additional', defaultMessage: 'This behaves exactly like public, except the post will not appear in live feeds or hashtags, explore, or Mastodon search, even if you are opted-in account-wide.' },
 });
-
-const listenerOptions = supportsPassiveEvents ? { passive: true, capture: true } : true;
-
-class PrivacyDropdownMenu extends PureComponent {
-
-  static propTypes = {
-    style: PropTypes.object,
-    items: PropTypes.array.isRequired,
-    value: PropTypes.string.isRequired,
-    onClose: PropTypes.func.isRequired,
-    onChange: PropTypes.func.isRequired,
-  };
-
-  handleDocumentClick = e => {
-    if (this.node && !this.node.contains(e.target)) {
-      this.props.onClose();
-      e.stopPropagation();
-    }
-  };
-
-  handleKeyDown = e => {
-    const { items } = this.props;
-    const value = e.currentTarget.getAttribute('data-index');
-    const index = items.findIndex(item => {
-      return (item.value === value);
-    });
-    let element = null;
-
-    switch(e.key) {
-    case 'Escape':
-      this.props.onClose();
-      break;
-    case 'Enter':
-      this.handleClick(e);
-      break;
-    case 'ArrowDown':
-      element = this.node.childNodes[index + 1] || this.node.firstChild;
-      break;
-    case 'ArrowUp':
-      element = this.node.childNodes[index - 1] || this.node.lastChild;
-      break;
-    case 'Tab':
-      if (e.shiftKey) {
-        element = this.node.childNodes[index - 1] || this.node.lastChild;
-      } else {
-        element = this.node.childNodes[index + 1] || this.node.firstChild;
-      }
-      break;
-    case 'Home':
-      element = this.node.firstChild;
-      break;
-    case 'End':
-      element = this.node.lastChild;
-      break;
-    }
-
-    if (element) {
-      element.focus();
-      this.props.onChange(element.getAttribute('data-index'));
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
-  handleClick = e => {
-    const value = e.currentTarget.getAttribute('data-index');
-
-    e.preventDefault();
-
-    this.props.onClose();
-    this.props.onChange(value);
-  };
-
-  componentDidMount () {
-    document.addEventListener('click', this.handleDocumentClick, { capture: true });
-    document.addEventListener('touchend', this.handleDocumentClick, listenerOptions);
-    if (this.focusedItem) this.focusedItem.focus({ preventScroll: true });
-  }
-
-  componentWillUnmount () {
-    document.removeEventListener('click', this.handleDocumentClick, { capture: true });
-    document.removeEventListener('touchend', this.handleDocumentClick, listenerOptions);
-  }
-
-  setRef = c => {
-    this.node = c;
-  };
-
-  setFocusRef = c => {
-    this.focusedItem = c;
-  };
-
-  render () {
-    const { style, items, value } = this.props;
-
-    return (
-      <div style={{ ...style }} role='listbox' ref={this.setRef}>
-        {items.map(item => (
-          <div role='option' tabIndex={0} key={item.value} data-index={item.value} onKeyDown={this.handleKeyDown} onClick={this.handleClick} className={classNames('privacy-dropdown__option', { active: item.value === value })} aria-selected={item.value === value} ref={item.value === value ? this.setFocusRef : null}>
-            <div className='privacy-dropdown__option__icon'>
-              <Icon id={item.icon} icon={item.iconComponent} />
-            </div>
-
-            <div className='privacy-dropdown__option__content'>
-              <strong>{item.text}</strong>
-              {item.meta}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-}
 
 class PrivacyDropdown extends PureComponent {
 
@@ -152,6 +58,8 @@ class PrivacyDropdown extends PureComponent {
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     noDirect: PropTypes.bool,
+    noLimited: PropTypes.bool,
+    replyToLimited: PropTypes.bool,
     container: PropTypes.func,
     disabled: PropTypes.bool,
     intl: PropTypes.object.isRequired,
@@ -226,16 +134,40 @@ class PrivacyDropdown extends PureComponent {
   UNSAFE_componentWillMount () {
     const { intl: { formatMessage } } = this.props;
 
-    this.options = [
-      { icon: 'globe', iconComponent: PublicIcon, value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
-      { icon: 'unlock', iconComponent: LockOpenIcon,  value: 'unlisted', text: formatMessage(messages.unlisted_short), meta: formatMessage(messages.unlisted_long) },
-      { icon: 'lock', iconComponent: LockIcon, value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
+    this.dynamicOptions = [
+      { icon: 'reply', iconComponent: ReplyIcon, value: 'reply', text: formatMessage(messages.reply_short), meta: formatMessage(messages.reply_long), extra: formatMessage(messages.limited_short), extraIcomComponent: LimitedIcon },
+      { icon: 'ban', iconComponent: BlockIcon, value: 'banned', text: formatMessage(messages.banned_short), meta: formatMessage(messages.banned_long) },
     ];
 
-    if (!this.props.noDirect) {
-      this.options.push(
-        { icon: 'at', iconComponent: AlternateEmailIcon, value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
-      );
+    this.originalOptions = [
+      { icon: 'globe', iconComponent: PublicIcon, value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
+      { icon: 'cloud', iconComponent: PublicUnlistedIcon, value: 'public_unlisted', text: formatMessage(messages.public_unlisted_short), meta: formatMessage(messages.public_unlisted_long) },
+      { icon: 'key', iconComponent: LoginIcon, value: 'login', text: formatMessage(messages.login_short), meta: formatMessage(messages.login_long) },
+      { icon: 'unlock', iconComponent: QuietTimeIcon,  value: 'unlisted', text: formatMessage(messages.unlisted_short), meta: formatMessage(messages.unlisted_long), extra: formatMessage(messages.unlisted_extra) },
+      { icon: 'lock', iconComponent: LockIcon, value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
+      { icon: 'exchange', iconComponent: MutualIcon, value: 'mutual', text: formatMessage(messages.mutual_short), meta: formatMessage(messages.mutual_long), extra: formatMessage(messages.limited_short), extraIcomComponent: LimitedIcon },
+      { icon: 'user-circle', iconComponent: CircleIcon, value: 'circle', text: formatMessage(messages.circle_short), meta: formatMessage(messages.circle_long), extra: formatMessage(messages.limited_short), extraIcomComponent: LimitedIcon },
+      { icon: 'at', iconComponent: AlternateEmailIcon, value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
+      ...this.dynamicOptions,
+    ];
+
+    this.options = [...this.originalOptions];
+
+    if (this.props.noDirect) {
+      this.options = this.options.filter((opt) => opt.value !== 'direct');
+    }
+
+    if (this.props.noLimited) {
+      this.options = this.options.filter((opt) => !['mutual', 'circle'].includes(opt.value));
+    }
+
+    if (enabledVisibilites) {
+      this.options = this.options.filter((opt) => enabledVisibilites.includes(opt.value));
+    }
+
+    if (this.options.length === 0) {
+      this.options.push(this.dynamicOptions.find((opt) => opt.value === 'banned'));
+      this.props.onChange('banned');
     }
   }
 
@@ -252,30 +184,38 @@ class PrivacyDropdown extends PureComponent {
   };
 
   render () {
-    const { value, container, disabled, intl } = this.props;
+    const { value, container, disabled, intl, replyToLimited } = this.props;
     const { open, placement } = this.state;
 
-    const valueOption = this.options.find(item => item.value === value);
+    if (replyToLimited) {
+      if (!this.options.some((op) => op.value === 'reply')) {
+        this.options.unshift(this.dynamicOptions.find((opt) => opt.value === 'reply'));
+      }
+    } else {
+      if (this.options.some((op) => op.value === 'reply')) {
+        this.options = this.options.filter((op) => op.value !== 'reply');
+      }
+    }
+
+    const valueOption = (disabled ? this.originalOptions : this.options).find(item => item.value === value) || this.options[0];
 
     return (
       <div ref={this.setTargetRef} onKeyDown={this.handleKeyDown}>
-        <IconButton
-          className='privacy-dropdown__value-icon'
-          icon={valueOption.icon}
-          iconComponent={valueOption.iconComponent}
+        <button
+          type='button'
           title={intl.formatMessage(messages.change_privacy)}
-          size={18}
-          expanded={open}
-          active={open}
-          inverted
+          aria-expanded={open}
           onClick={this.handleToggle}
           onMouseDown={this.handleMouseDown}
           onKeyDown={this.handleButtonKeyDown}
-          style={{ height: null, lineHeight: '27px' }}
           disabled={disabled}
-        />
+          className={classNames('dropdown-button', { active: open })}
+        >
+          <Icon id={valueOption.icon} icon={valueOption.iconComponent} />
+          <span className='dropdown-button__label'>{valueOption.text}</span>
+        </button>
 
-        <Overlay show={open} placement={placement} flip target={this.findTarget} container={container} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
+        <Overlay show={open} offset={[5, 5]} placement={placement} flip target={this.findTarget} container={container} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
           {({ props, placement }) => (
             <div {...props}>
               <div className={`dropdown-animation privacy-dropdown__dropdown ${placement}`}>

@@ -21,9 +21,14 @@ Doorkeeper.configure do
     user unless user&.otp_required_for_login?
   end
 
-  # If you want to restrict access to the web interface for adding oauth authorized applications, you need to declare the block below.
+  # Doorkeeper provides some administrative interfaces for managing OAuth
+  # Applications, allowing creation, edit, and deletion of applications from the
+  # server. At present, these administrative routes are not integrated into
+  # Mastodon, and as such, we've disabled them by always return a 403 forbidden
+  # response for them. This does not affect the ability for users to manage
+  # their own OAuth Applications.
   admin_authenticator do
-    current_user&.admin? || redirect_to(new_user_session_url)
+    head 403
   end
 
   # Authorization Code expiration time (default 10 minutes).
@@ -84,6 +89,7 @@ Doorkeeper.configure do
                   :'write:reports',
                   :'write:statuses',
                   :read,
+                  :'read:me',
                   :'read:accounts',
                   :'read:blocks',
                   :'read:bookmarks',
@@ -99,6 +105,7 @@ Doorkeeper.configure do
                   :push,
                   :'admin:read',
                   :'admin:read:accounts',
+                  :'admin:read:media_attachments',
                   :'admin:read:reports',
                   :'admin:read:domain_allows',
                   :'admin:read:domain_blocks',
@@ -107,6 +114,7 @@ Doorkeeper.configure do
                   :'admin:read:canonical_email_blocks',
                   :'admin:write',
                   :'admin:write:accounts',
+                  :'admin:write:media_attachments',
                   :'admin:write:reports',
                   :'admin:write:domain_allows',
                   :'admin:write:domain_blocks',
@@ -145,7 +153,7 @@ Doorkeeper.configure do
   #
   # You can use this option in order to forbid URI's with 'javascript' scheme
   # for example.
-  forbid_redirect_uri { |uri| %w[data vbscript javascript].include?(uri.scheme.to_s.downcase) }
+  forbid_redirect_uri { |uri| %w(data vbscript javascript).include?(uri.scheme.to_s.downcase) }
 
   # Specify what grant flows are enabled in array of Strings. The valid
   # strings and the flows they enable are:

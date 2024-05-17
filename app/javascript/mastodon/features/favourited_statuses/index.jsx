@@ -1,3 +1,5 @@
+// Kmyblue tracking marker: copied emoji_reacted_statuses, status_references
+
 import PropTypes from 'prop-types';
 
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
@@ -10,12 +12,12 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
-import StarIcon from 'mastodon/../material-icons/400-24px/star-fill.svg?react';
+import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { fetchFavouritedStatuses, expandFavouritedStatuses } from 'mastodon/actions/favourites';
+import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import StatusList from 'mastodon/components/status_list';
-import Column from 'mastodon/features/ui/components/column';
 import { getStatusList } from 'mastodon/selectors';
 
 const messages = defineMessages({

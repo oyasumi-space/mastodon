@@ -16,13 +16,13 @@ import tesseractWorkerPath from 'tesseract.js/dist/worker.min.js';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import tesseractCorePath from 'tesseract.js-core/tesseract-core.wasm.js';
 
-import CloseIcon from 'mastodon/../material-icons/400-24px/close.svg?react';
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import { Button } from 'mastodon/components/button';
 import { GIFV } from 'mastodon/components/gifv';
 import { IconButton } from 'mastodon/components/icon_button';
 import Audio from 'mastodon/features/audio';
-import CharacterCounter from 'mastodon/features/compose/components/character_counter';
-import UploadProgress from 'mastodon/features/compose/components/upload_progress';
+import { CharacterCounter } from 'mastodon/features/compose/components/character_counter';
+import { UploadProgress } from 'mastodon/features/compose/components/upload_progress';
 import { Tesseract as fetchTesseract } from 'mastodon/features/ui/util/async-components';
 import { me } from 'mastodon/initial_state';
 import { assetHost } from 'mastodon/utils/config';

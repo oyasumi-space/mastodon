@@ -31,8 +31,7 @@ module Mastodon::CLI
           recount_status_stats(status)
         end
       else
-        say("Unknown type: #{type}", :red)
-        exit(1)
+        fail_with_message "Unknown type: #{type}"
       end
 
       say
@@ -64,6 +63,7 @@ module Mastodon::CLI
         status_stat.replies_count    = status.replies.where.not(visibility: :direct).count
         status_stat.reblogs_count    = status.reblogs.count
         status_stat.favourites_count = status.favourites.count
+        status_stat.emoji_reactions  = status.generate_emoji_reactions_grouped_by_name
 
         status_stat.save if status_stat.changed?
       end

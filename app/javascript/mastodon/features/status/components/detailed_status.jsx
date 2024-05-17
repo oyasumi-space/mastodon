@@ -8,21 +8,22 @@ import { Link, withRouter } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import AlternateEmailIcon from 'mastodon/../material-icons/400-24px/alternate_email.svg?react';
-import RepeatIcon from 'mastodon/../material-icons/400-24px/repeat.svg?react';
-import StarIcon from 'mastodon/../material-icons/400-24px/star-fill.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
 import { AnimatedNumber } from 'mastodon/components/animated_number';
 import EditedTimestamp from 'mastodon/components/edited_timestamp';
 import { getHashtagBarForStatus } from 'mastodon/components/hashtag_bar';
 import { Icon }  from 'mastodon/components/icon';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
+import { SearchabilityIcon } from 'mastodon/components/searchability_icon';
 import { VisibilityIcon } from 'mastodon/components/visibility_icon';
+import { enableEmojiReaction, isHideItem } from 'mastodon/initial_state';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import { Avatar } from '../../../components/avatar';
 import { DisplayName } from '../../../components/display_name';
 import MediaGallery from '../../../components/media_gallery';
 import StatusContent from '../../../components/status_content';
+import StatusEmojiReactionsBar from '../../../components/status_emoji_reactions_bar';
 import Audio from '../../audio';
 import scheduleIdleTask from '../../ui/util/schedule_idle_task';
 import Video from '../../video';
@@ -47,6 +48,8 @@ class DetailedStatus extends ImmutablePureComponent {
       available: PropTypes.bool,
     }),
     onToggleMediaVisibility: PropTypes.func,
+    onEmojiReact: PropTypes.func,
+    onUnEmojiReact: PropTypes.func,
     ...WithRouterPropTypes,
   };
 
@@ -141,12 +144,12 @@ class DetailedStatus extends ImmutablePureComponent {
     }
 
     let media           = '';
+    let isCardMediaWithSensitive = false;
     let applicationLink = '';
     let reblogLink = '';
-    const reblogIcon = 'retweet';
-    const reblogIconComponent = RepeatIcon;
     let favouriteLink = '';
-    let edited = '';
+    let emojiReactionsLink = '';
+    let statusReferencesLink = '';
 
     if (this.props.measureHeight) {
       outerStyle.height = `${this.state.height}px`;
@@ -213,70 +216,108 @@ class DetailedStatus extends ImmutablePureComponent {
           />
         );
       }
-    } else if (status.get('spoiler_text').length === 0) {
-      media = <Card sensitive={status.get('sensitive')} onOpenMedia={this.props.onOpenMedia} card={status.get('card', null)} />;
+    } else if (status.get('card')) {
+      media = <Card sensitive={status.get('sensitive') && !status.get('spoiler_text')} onOpenMedia={this.props.onOpenMedia} card={status.get('card', null)} />;
+      isCardMediaWithSensitive = status.get('spoiler_text').length > 0;
+    }
+
+    let emojiReactionsBar = null;
+    const emojiReactionAvailableServer = !isHideItem('emoji_reaction_unavailable_server') || status.getIn(['account', 'server_features', 'emoji_reaction']);
+    if (status.get('emoji_reactions')) {
+      const emojiReactions = status.get('emoji_reactions');
+      if (emojiReactions.size > 0 && enableEmojiReaction && emojiReactionAvailableServer) {
+        emojiReactionsBar = <StatusEmojiReactionsBar emojiReactions={emojiReactions} status={status} onEmojiReact={this.props.onEmojiReact} onUnEmojiReact={this.props.onUnEmojiReact} />;
+      }
     }
 
     if (status.get('application')) {
-      applicationLink = <> · <a className='detailed-status__application' href={status.getIn(['application', 'website'])} target='_blank' rel='noopener noreferrer'>{status.getIn(['application', 'name'])}</a></>;
+      applicationLink = <>·<a className='detailed-status__application' href={status.getIn(['application', 'website'])} target='_blank' rel='noopener noreferrer'>{status.getIn(['application', 'name'])}</a></>;
     }
 
-    const visibilityLink = <> · <VisibilityIcon visibility={status.get('visibility')} /></>;
+    const visibilityLink = <>·<VisibilityIcon visibility={status.get('limited_scope') || status.get('visibility_ex')} /></>;
+    const searchabilityLink = <>·<SearchabilityIcon searchability={status.get('searchability')} /></>;
 
-    if (['private', 'direct'].includes(status.get('visibility'))) {
+    if (['private', 'direct'].includes(status.get('visibility_ex'))) {
       reblogLink = '';
     } else if (this.props.history) {
       reblogLink = (
-        <>
-          {' · '}
-          <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`} className='detailed-status__link'>
-            <Icon id={reblogIcon} icon={reblogIconComponent} />
-            <span className='detailed-status__reblogs'>
-              <AnimatedNumber value={status.get('reblogs_count')} />
-            </span>
-          </Link>
-        </>
+        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`} className='detailed-status__link'>
+          <span className='detailed-status__reblogs'>
+            <AnimatedNumber value={status.get('reblogs_count')} />
+          </span>
+          <FormattedMessage id='status.reblogs' defaultMessage='{count, plural, one {boost} other {boosts}}' values={{ count: status.get('reblogs_count') }} />
+        </Link>
       );
     } else {
       reblogLink = (
-        <>
-          {' · '}
-          <a href={`/interact/${status.get('id')}?type=reblog`} className='detailed-status__link' onClick={this.handleModalLink}>
-            <Icon id={reblogIcon} icon={reblogIconComponent} />
-            <span className='detailed-status__reblogs'>
-              <AnimatedNumber value={status.get('reblogs_count')} />
-            </span>
-          </a>
-        </>
+        <a href={`/interact/${status.get('id')}?type=reblog`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <span className='detailed-status__reblogs'>
+            <AnimatedNumber value={status.get('reblogs_count')} />
+          </span>
+          <FormattedMessage id='status.reblogs' defaultMessage='{count, plural, one {boost} other {boosts}}' values={{ count: status.get('reblogs_count') }} />
+        </a>
       );
     }
 
     if (this.props.history) {
       favouriteLink = (
         <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/favourites`} className='detailed-status__link'>
-          <Icon id='star' icon={StarIcon} />
           <span className='detailed-status__favorites'>
             <AnimatedNumber value={status.get('favourites_count')} />
           </span>
+          <FormattedMessage id='status.favourites' defaultMessage='{count, plural, one {favorite} other {favorites}}' values={{ count: status.get('favourites_count') }} />
         </Link>
       );
     } else {
       favouriteLink = (
         <a href={`/interact/${status.get('id')}?type=favourite`} className='detailed-status__link' onClick={this.handleModalLink}>
-          <Icon id='star' icon={StarIcon} />
           <span className='detailed-status__favorites'>
             <AnimatedNumber value={status.get('favourites_count')} />
           </span>
+          <FormattedMessage id='status.favourites' defaultMessage='{count, plural, one {favorite} other {favorites}}' values={{ count: status.get('favourites_count') }} />
         </a>
       );
     }
 
-    if (status.get('edited_at')) {
-      edited = (
-        <>
-          {' · '}
-          <EditedTimestamp statusId={status.get('id')} timestamp={status.get('edited_at')} />
-        </>
+    if (!enableEmojiReaction || !emojiReactionAvailableServer) {
+      emojiReactionsLink = null;
+    } else if (this.props.history) {
+      emojiReactionsLink = (
+        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/emoji_reactions`} className='detailed-status__link'>
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('emoji_reactions_count')} />
+          </span>
+          <FormattedMessage id='status.emoji_reactions' defaultMessage='{count, plural, one {emoji} other {emojis}}' values={{ count: status.get('emoji_reactions_count') }} />
+        </Link>
+      );
+    } else {
+      emojiReactionsLink = (
+        <a href={`/interact/${status.get('id')}?type=emoji_reactions`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('emoji_reactions_count')} />
+          </span>
+          <FormattedMessage id='status.emoji_reactions' defaultMessage='{count, plural, one {emoji} other {emojis}}' values={{ count: status.get('emoji_reactions_count') }} />
+        </a>
+      );
+    }
+
+    if (this.props.history) {
+      statusReferencesLink = (
+        <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/references`} className='detailed-status__link'>
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('status_referred_by_count')} />
+          </span>
+          <FormattedMessage id='status.quotes' defaultMessage='{count, plural, one {quote} other {quotes}}' values={{ count: status.get('status_referred_by_count') }} />
+        </Link>
+      );
+    } else {
+      statusReferencesLink = (
+        <a href={`/interact/${status.get('id')}?type=references`} className='detailed-status__link' onClick={this.handleModalLink}>
+          <span className='detailed-status__favorites'>
+            <AnimatedNumber value={status.get('status_referred_by_count')} />
+          </span>
+          <FormattedMessage id='status.quotes' defaultMessage='{count, plural, one {quote} other {quotes}}' values={{ count: status.get('status_referred_by_count') }} />
+        </a>
       );
     }
 
@@ -286,7 +327,7 @@ class DetailedStatus extends ImmutablePureComponent {
     return (
       <div style={outerStyle}>
         <div ref={this.setRef} className={classNames('detailed-status', { compact })}>
-          {status.get('visibility') === 'direct' && (
+          {status.get('visibility_ex') === 'direct' && (
             <div className='status__prepend'>
               <div className='status__prepend-icon-wrapper'><Icon id='at' icon={AlternateEmailIcon} className='status__prepend-icon' /></div>
               <FormattedMessage id='status.direct_indicator' defaultMessage='Private mention' />
@@ -305,14 +346,35 @@ class DetailedStatus extends ImmutablePureComponent {
             {...statusContentProps}
           />
 
-          {media}
+          {(!isCardMediaWithSensitive || !status.get('hidden')) && media}
 
-          {expanded && hashtagBar}
+          {(!status.get('spoiler_text') || expanded) && hashtagBar}
+
+          {emojiReactionsBar}
 
           <div className='detailed-status__meta'>
-            <a className='detailed-status__datetime' href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} target='_blank' rel='noopener noreferrer'>
-              <FormattedDate value={new Date(status.get('created_at'))} hour12={false} year='numeric' month='short' day='2-digit' hour='2-digit' minute='2-digit' />
-            </a>{edited}{visibilityLink}{applicationLink}{reblogLink} · {favouriteLink}
+            <div className='detailed-status__meta__line'>
+              <a className='detailed-status__datetime' href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} target='_blank' rel='noopener noreferrer'>
+                <FormattedDate value={new Date(status.get('created_at'))} year='numeric' month='short' day='2-digit' hour='2-digit' minute='2-digit' />
+              </a>
+
+              {visibilityLink}
+              {searchabilityLink}
+
+              {applicationLink}
+            </div>
+
+            {status.get('edited_at') && <div className='detailed-status__meta__line'><EditedTimestamp statusId={status.get('id')} timestamp={status.get('edited_at')} /></div>}
+
+            <div className='detailed-status__meta__line'>
+              {reblogLink}
+              {reblogLink && <>·</>}
+              {favouriteLink}
+              ·
+              {emojiReactionsLink}
+              ·
+              {statusReferencesLink}
+            </div>
           </div>
         </div>
       </div>

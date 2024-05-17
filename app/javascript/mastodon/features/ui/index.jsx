@@ -14,7 +14,7 @@ import { HotKeys } from 'react-hotkeys';
 import { focusApp, unfocusApp, changeLayout } from 'mastodon/actions/app';
 import { synchronouslySubmitMarkers, submitMarkers, fetchMarkers } from 'mastodon/actions/markers';
 import { INTRODUCTION_VERSION } from 'mastodon/actions/onboarding';
-import PictureInPicture from 'mastodon/features/picture_in_picture';
+import { PictureInPicture } from 'mastodon/features/picture_in_picture';
 import { layoutFromWindow } from 'mastodon/is_mobile';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
@@ -45,12 +45,21 @@ import {
   Following,
   Reblogs,
   Favourites,
+  EmojiReactions,
+  StatusReferences,
+  MentionedUsers,
   DirectTimeline,
   HashtagTimeline,
+  AntennaTimeline,
   Notifications,
+  NotificationRequests,
+  NotificationRequest,
   FollowRequests,
   FavouritedStatuses,
+  EmojiReactedStatuses,
   BookmarkedStatuses,
+  BookmarkCategories,
+  BookmarkCategoryStatuses,
   FollowedTags,
   ListTimeline,
   Blocks,
@@ -58,11 +67,17 @@ import {
   Mutes,
   PinnedStatuses,
   Lists,
+  Antennas,
+  Circles,
+  CircleStatuses,
+  AntennaSetting,
   Directory,
   Explore,
+  ReactionDeck,
   Onboarding,
   About,
   PrivacyPolicy,
+  CommunityTimeline,
 } from './util/async-components';
 import { ColumnsContextProvider } from './util/columns_context';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
@@ -80,7 +95,6 @@ const mapStateToProps = state => ({
   hasComposingText: state.getIn(['compose', 'text']).trim().length !== 0,
   hasMediaAttachments: state.getIn(['compose', 'media_attachments']).size > 0,
   canUploadMore: !state.getIn(['compose', 'media_attachments']).some(x => ['audio', 'video'].includes(x.get('type'))) && state.getIn(['compose', 'media_attachments']).size < 4,
-  dropdownMenuIsOpen: state.dropdownMenu.openId !== null,
   firstLaunch: state.getIn(['settings', 'introductionVersion'], 0) < INTRODUCTION_VERSION,
   username: state.getIn(['accounts', me, 'username']),
 });
@@ -88,7 +102,7 @@ const mapStateToProps = state => ({
 const keyMap = {
   help: '?',
   new: 'n',
-  search: 's',
+  search: ['s', '/'],
   forceNew: 'option+n',
   toggleComposeSpoilers: 'option+x',
   focusColumn: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -108,6 +122,7 @@ const keyMap = {
   goToDirect: 'g d',
   goToStart: 'g s',
   goToFavourites: 'g f',
+  goToEmojiReactions: 'g e',
   goToPinned: 'g p',
   goToProfile: 'g u',
   goToBlocked: 'g b',
@@ -201,14 +216,24 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/public' exact component={Firehose} componentParams={{ feedType: 'public' }} content={children} />
             <WrappedRoute path='/public/local' exact component={Firehose} componentParams={{ feedType: 'community' }} content={children} />
             <WrappedRoute path='/public/remote' exact component={Firehose} componentParams={{ feedType: 'public:remote' }} content={children} />
+            <WrappedRoute path='/public/local/fixed' exact component={CommunityTimeline} content={children} />
             <WrappedRoute path={['/conversations', '/timelines/direct']} component={DirectTimeline} content={children} />
             <WrappedRoute path='/tags/:id' component={HashtagTimeline} content={children} />
             <WrappedRoute path='/lists/:id' component={ListTimeline} content={children} />
-            <WrappedRoute path='/notifications' component={Notifications} content={children} />
+            <WrappedRoute path='/antennasw/:id' component={AntennaSetting} content={children} />
+            <WrappedRoute path='/antennast/:id' component={AntennaTimeline} content={children} />
+            <WrappedRoute path='/notifications' component={Notifications} content={children} exact />
+            <WrappedRoute path='/notifications/requests' component={NotificationRequests} content={children} exact />
+            <WrappedRoute path='/notifications/requests/:id' component={NotificationRequest} content={children} exact />
             <WrappedRoute path='/favourites' component={FavouritedStatuses} content={children} />
+            <WrappedRoute path='/emoji_reactions' component={EmojiReactedStatuses} content={children} />
 
             <WrappedRoute path='/bookmarks' component={BookmarkedStatuses} content={children} />
+            <WrappedRoute path='/bookmark_categories/:id' component={BookmarkCategoryStatuses} content={children} />
+            <WrappedRoute path='/bookmark_categories' component={BookmarkCategories} content={children} />
             <WrappedRoute path='/pinned' component={PinnedStatuses} content={children} />
+            
+            <WrappedRoute path='/reaction_deck' component={ReactionDeck} content={children} />
 
             <WrappedRoute path='/start' component={Onboarding} content={children} />
             <WrappedRoute path='/directory' component={Directory} content={children} />
@@ -224,6 +249,9 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/@:acct/:statusId' exact component={Status} content={children} />
             <WrappedRoute path='/@:acct/:statusId/reblogs' component={Reblogs} content={children} />
             <WrappedRoute path='/@:acct/:statusId/favourites' component={Favourites} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/emoji_reactions' component={EmojiReactions} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/references' component={StatusReferences} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/mentioned_users' component={MentionedUsers} content={children} />
 
             {/* Legacy routes, cannot be easily factored with other routes because they share a param name */}
             <WrappedRoute path='/timelines/tag/:id' component={HashtagTimeline} content={children} />
@@ -231,6 +259,8 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/statuses/:statusId' exact component={Status} content={children} />
             <WrappedRoute path='/statuses/:statusId/reblogs' component={Reblogs} content={children} />
             <WrappedRoute path='/statuses/:statusId/favourites' component={Favourites} content={children} />
+            <WrappedRoute path='/statuses/:statusId/emoji_reactions' component={EmojiReactions} content={children} />
+            <WrappedRoute path='/statuses/:statusId/references' component={StatusReferences} content={children} />
 
             <WrappedRoute path='/follow_requests' component={FollowRequests} content={children} />
             <WrappedRoute path='/blocks' component={Blocks} content={children} />
@@ -238,6 +268,9 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/followed_tags' component={FollowedTags} content={children} />
             <WrappedRoute path='/mutes' component={Mutes} content={children} />
             <WrappedRoute path='/lists' component={Lists} content={children} />
+            <WrappedRoute path='/antennasw' component={Antennas} content={children} />
+            <WrappedRoute path='/circles/:id' component={CircleStatuses} content={children} />
+            <WrappedRoute path='/circles' component={Circles} content={children} />
 
             <Route component={BundleColumnError} />
           </WrappedSwitch>
@@ -262,7 +295,6 @@ class UI extends PureComponent {
     hasMediaAttachments: PropTypes.bool,
     canUploadMore: PropTypes.bool,
     intl: PropTypes.object.isRequired,
-    dropdownMenuIsOpen: PropTypes.bool,
     layout: PropTypes.string.isRequired,
     firstLaunch: PropTypes.bool,
     username: PropTypes.string,
@@ -438,7 +470,7 @@ class UI extends PureComponent {
   handleHotkeyNew = e => {
     e.preventDefault();
 
-    const element = this.node.querySelector('.compose-form__autosuggest-wrapper textarea');
+    const element = this.node.querySelector('.compose-form__scrollable .autosuggest-textarea__textarea');
 
     if (element) {
       element.focus();
@@ -533,6 +565,10 @@ class UI extends PureComponent {
     this.props.history.push('/favourites');
   };
 
+  handleHotkeyGoToEmojiReactions = () => {
+    this.props.history.push('/emoji_reactions');
+  };
+
   handleHotkeyGoToPinned = () => {
     this.props.history.push('/pinned');
   };
@@ -555,7 +591,7 @@ class UI extends PureComponent {
 
   render () {
     const { draggingOver } = this.state;
-    const { children, isComposing, location, dropdownMenuIsOpen, layout } = this.props;
+    const { children, isComposing, location, layout } = this.props;
 
     const handlers = {
       help: this.handleHotkeyToggleHelp,
@@ -572,6 +608,7 @@ class UI extends PureComponent {
       goToDirect: this.handleHotkeyGoToDirect,
       goToStart: this.handleHotkeyGoToStart,
       goToFavourites: this.handleHotkeyGoToFavourites,
+      goToEmojiReactions: this.handleHotkeyGoToEmojiReactions,
       goToPinned: this.handleHotkeyGoToPinned,
       goToProfile: this.handleHotkeyGoToProfile,
       goToBlocked: this.handleHotkeyGoToBlocked,
@@ -581,7 +618,7 @@ class UI extends PureComponent {
 
     return (
       <HotKeys keyMap={keyMap} handlers={handlers} ref={this.setHotkeysRef} attach={window} focused>
-        <div className={classNames('ui', { 'is-composing': isComposing })} ref={this.setRef} style={{ pointerEvents: dropdownMenuIsOpen ? 'none' : null }}>
+        <div className={classNames('ui', { 'is-composing': isComposing })} ref={this.setRef}>
           <Header />
 
           <SwitchingColumnsArea location={location} singleColumn={layout === 'mobile' || layout === 'single-column'}>

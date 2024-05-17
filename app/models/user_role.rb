@@ -36,13 +36,19 @@ class UserRole < ApplicationRecord
     manage_roles: (1 << 17),
     manage_user_access: (1 << 18),
     delete_user_data: (1 << 19),
+    manage_sensitive_words: (1 << 29),
+    manage_ng_words: (1 << 30),
   }.freeze
+
+  EVERYONE_ROLE_ID = -99
+  NOBODY_POSITION = -1
 
   module Flags
     NONE = 0
     ALL  = FLAGS.values.reduce(&:|)
 
-    DEFAULT = FLAGS[:invite_users]
+    DEFAULT = 0
+    EVERYONE_ALLOWED = FLAGS[:invite_users]
 
     CATEGORIES = {
       invites: %i(
@@ -61,6 +67,8 @@ class UserRole < ApplicationRecord
         manage_blocks
         manage_taxonomies
         manage_invites
+        manage_ng_words
+        manage_sensitive_words
       ).freeze,
 
       administration: %i(
@@ -94,18 +102,21 @@ class UserRole < ApplicationRecord
 
   before_validation :set_position
 
-  scope :assignable, -> { where.not(id: -99).order(position: :asc) }
+  scope :assignable, -> { where.not(id: EVERYONE_ROLE_ID).order(position: :asc) }
+  scope :highlighted, -> { where(highlighted: true) }
+  scope :with_color, -> { where.not(color: [nil, '']) }
+  scope :providing_styles, -> { highlighted.with_color }
 
   has_many :users, inverse_of: :role, foreign_key: 'role_id', dependent: :nullify
 
   def self.nobody
-    @nobody ||= UserRole.new(permissions: Flags::NONE, position: -1)
+    @nobody ||= UserRole.new(permissions: Flags::NONE, position: NOBODY_POSITION)
   end
 
   def self.everyone
-    UserRole.find(-99)
+    UserRole.find(EVERYONE_ROLE_ID)
   rescue ActiveRecord::RecordNotFound
-    UserRole.create!(id: -99, permissions: Flags::DEFAULT)
+    UserRole.create!(id: EVERYONE_ROLE_ID, permissions: Flags::DEFAULT)
   end
 
   def self.that_can(*any_of_privileges)
@@ -113,7 +124,7 @@ class UserRole < ApplicationRecord
   end
 
   def everyone?
-    id == -99
+    id == EVERYONE_ROLE_ID
   end
 
   def nobody?
@@ -168,7 +179,7 @@ class UserRole < ApplicationRecord
   end
 
   def set_position
-    self.position = -1 if everyone?
+    self.position = NOBODY_POSITION if everyone?
   end
 
   def validate_own_role_edition
@@ -187,6 +198,6 @@ class UserRole < ApplicationRecord
   end
 
   def validate_dangerous_permissions
-    errors.add(:permissions_as_keys, :dangerous) if everyone? && Flags::DEFAULT & permissions != permissions
+    errors.add(:permissions_as_keys, :dangerous) if everyone? && Flags::EVERYONE_ALLOWED & permissions != permissions
   end
 end

@@ -4,12 +4,15 @@ class ActivityPub::Parser::StatusParser
   include JsonLdHelper
 
   # @param [Hash] json
-  # @param [Hash] magic_values
-  # @option magic_values [String] :followers_collection
-  def initialize(json, magic_values = {})
-    @json         = json
-    @object       = json['object'] || json
-    @magic_values = magic_values
+  # @param [Hash] options
+  # @option options [String] :followers_collection
+  # @option options [Hash]   :object
+  def initialize(json, **options)
+    @json    = json
+    @object  = options[:object] || json['object'] || json
+    @options = options
+    @account = options[:account]
+    @friend  = options[:friend_domain]
   end
 
   def uri
@@ -76,16 +79,49 @@ class ActivityPub::Parser::StatusParser
   def visibility
     if audience_to.any? { |to| ActivityPub::TagManager.instance.public_collection?(to) }
       :public
+    elsif audience_to.include?('kmyblue:LocalPublic') && @friend
+      :public_unlisted
     elsif audience_cc.any? { |cc| ActivityPub::TagManager.instance.public_collection?(cc) }
       :unlisted
-    elsif audience_to.include?(@magic_values[:followers_collection])
+    elsif audience_to.include?('kmyblue:LoginOnly') || audience_to.include?('as:LoginOnly') || audience_to.include?('LoginUser')
+      :login
+    elsif audience_to.include?(@options[:followers_collection])
       :private
     else
       :direct
     end
   end
 
+  def distributable_visibility?
+    %i(public public_unlisted unlisted login).include?(visibility)
+  end
+
+  def searchability
+    from_audience = searchability_from_audience
+    return from_audience if from_audience
+    return nil if default_searchability_from_bio?
+
+    searchability_from_bio || (misskey_software? ? misskey_searchability : nil)
+  end
+
+  def limited_scope
+    case @object['limitedScope']
+    when 'Mutual'
+      :mutual
+    when 'Circle'
+      :circle
+    when 'Reply'
+      :reply
+    else
+      :none
+    end
+  end
+
   def language
+    @language ||= original_language || (misskey_software? ? 'ja' : nil)
+  end
+
+  def original_language
     if content_language_map?
       @object['contentMap'].keys.first
     elsif name_language_map?
@@ -105,6 +141,12 @@ class ActivityPub::Parser::StatusParser
     as_array(@object['cc'] || @json['cc']).map { |x| value_or_id(x) }
   end
 
+  def audience_searchable_by
+    return nil if @object['searchableBy'].nil?
+
+    @audience_searchable_by = as_array(@object['searchableBy']).map { |x| value_or_id(x) }
+  end
+
   def summary_language_map?
     @object['summaryMap'].is_a?(Hash) && !@object['summaryMap'].empty?
   end
@@ -115,5 +157,64 @@ class ActivityPub::Parser::StatusParser
 
   def name_language_map?
     @object['nameMap'].is_a?(Hash) && !@object['nameMap'].empty?
+  end
+
+  def instance_info
+    @instance_info ||= InstanceInfo.find_by(domain: @account.domain)
+  end
+
+  def misskey_software?
+    info = instance_info
+    return false if info.nil?
+
+    %w(misskey calckey).include?(info.software)
+  end
+
+  def misskey_searchability
+    %i(public unlisted).include?(visibility) ? :public : :limited
+  end
+
+  SCAN_SEARCHABILITY_RE = /\[searchability:(public|followers|reactors|private)\]/
+  SCAN_SEARCHABILITY_FEDIBIRD_RE = /searchable_by_(all_users|followers_only|reacted_users_only|nobody)/
+
+  def default_searchability_from_bio?
+    note = @account.note
+    return false if note.blank?
+
+    note.include?('searchable_by_default_range')
+  end
+
+  def searchability_from_bio
+    note = @account.note
+    return nil if note.blank?
+
+    searchability_bio = note.scan(SCAN_SEARCHABILITY_FEDIBIRD_RE).first || note.scan(SCAN_SEARCHABILITY_RE).first
+    return nil unless searchability_bio
+
+    searchability = searchability_bio[0]
+    return nil if searchability.nil?
+
+    searchability = :public  if %w(public all_users).include?(searchability)
+    searchability = :private if %w(followers followers_only).include?(searchability)
+    searchability = :direct  if %w(reactors reacted_users_only).include?(searchability)
+    searchability = :limited if %w(private nobody).include?(searchability)
+
+    searchability
+  end
+
+  def searchability_from_audience
+    if audience_searchable_by.nil?
+      nil
+    elsif audience_searchable_by.any? { |uri| ActivityPub::TagManager.instance.public_collection?(uri) }
+      :public
+    elsif audience_searchable_by.include?('kmyblue:Limited') || audience_searchable_by.include?('as:Limited')
+      :limited
+    elsif audience_searchable_by.include?('kmyblue:LocalPublic') && @friend
+      :public_unlisted
+    elsif audience_searchable_by.include?(@account.followers_url)
+      :private
+    else
+      :direct
+    end
   end
 end

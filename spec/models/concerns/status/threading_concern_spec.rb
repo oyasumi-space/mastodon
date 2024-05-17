@@ -129,4 +129,56 @@ describe Status::ThreadingConcern do
       expect(a.descendants(20)).to eq [c, d, e, f]
     end
   end
+
+  describe '#readable_references' do
+    subject { status.readable_references(account).pluck(:id) }
+
+    let(:visibility) { :public }
+    let(:alice) { Fabricate(:account) }
+    let(:referred_account) { Fabricate(:account) }
+    let(:status) { Fabricate(:status, account: account) }
+    let(:referred_status) { Fabricate(:status, account: referred_account, visibility: visibility) }
+    let(:referred_follower) { Fabricate(:account) }
+    let(:follower) { Fabricate(:account) }
+    let(:third_account) { Fabricate(:account) }
+    let(:account) { third_account }
+
+    before do
+      referred_follower.follow!(referred_account)
+      follower.follow!(alice)
+      Fabricate(:status_reference, status: status, target_status: referred_status)
+    end
+
+    it 'with a simple case' do
+      expect(subject).to include referred_status.id
+    end
+
+    context 'when private post' do
+      let(:visibility) { :private }
+
+      context 'with referred post follower' do
+        let(:account) { referred_follower }
+
+        it 'can show' do
+          expect(subject).to include referred_status.id
+        end
+      end
+
+      context 'with original post follower' do
+        let(:account) { follower }
+
+        it 'can show' do
+          expect(subject).to_not include referred_status.id
+        end
+      end
+
+      context 'with other account' do
+        let(:account) { third_account }
+
+        it 'can show' do
+          expect(subject).to_not include referred_status.id
+        end
+      end
+    end
+  end
 end

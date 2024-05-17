@@ -2,6 +2,8 @@
 
 class NodeInfo::Serializer < ActiveModel::Serializer
   include RoutingHelper
+  include KmyblueCapabilitiesHelper
+  include RegistrationLimitationHelper
 
   attributes :version, :software, :protocols, :services, :usage, :open_registrations, :metadata
 
@@ -10,7 +12,7 @@ class NodeInfo::Serializer < ActiveModel::Serializer
   end
 
   def software
-    { name: 'mastodon', version: Mastodon::Version.to_s }
+    { name: 'kmyblue', version: Mastodon::Version.to_s }
   end
 
   def services
@@ -34,13 +36,18 @@ class NodeInfo::Serializer < ActiveModel::Serializer
   end
 
   def open_registrations
-    Setting.registrations_mode != 'none' && !Rails.configuration.x.single_user_mode
+    Setting.registrations_mode != 'none' && !reach_registrations_limit? && !Rails.configuration.x.single_user_mode
   end
 
   def metadata
     {
       nodeName: Setting.site_title,
       nodeDescription: Setting.site_short_description,
+      features: capabilities_for_nodeinfo,
+      upstream: {
+        name: 'Mastodon',
+        version: Mastodon::Version.to_s_of_mastodon,
+      },
     }
   end
 

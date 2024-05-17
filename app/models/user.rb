@@ -14,7 +14,6 @@
 #  sign_in_count             :integer          default(0), not null
 #  current_sign_in_at        :datetime
 #  last_sign_in_at           :datetime
-#  admin                     :boolean          default(FALSE), not null
 #  confirmation_token        :string
 #  confirmed_at              :datetime
 #  confirmation_sent_at      :datetime
@@ -29,7 +28,6 @@
 #  otp_backup_codes          :string           is an Array
 #  account_id                :bigint(8)        not null
 #  disabled                  :boolean          default(FALSE), not null
-#  moderator                 :boolean          default(FALSE), not null
 #  invite_id                 :bigint(8)
 #  chosen_languages          :string           is an Array
 #  created_by_application_id :bigint(8)
@@ -41,6 +39,7 @@
 #  role_id                   :bigint(8)
 #  settings                  :text
 #  time_zone                 :string
+#  otp_secret                :string
 #
 
 class User < ApplicationRecord
@@ -51,10 +50,13 @@ class User < ApplicationRecord
     last_sign_in_ip
     skip_sign_in_token
     filtered_languages
+    admin
+    moderator
   )
 
   include LanguagesHelper
   include Redisable
+  include RegistrationLimitationHelper
   include User::HasSettings
   include User::LdapAuthenticable
   include User::Omniauthable
@@ -69,8 +71,12 @@ class User < ApplicationRecord
   # to check their feed
   ACTIVE_DURATION = ENV.fetch('USER_ACTIVE_DAYS', 7).to_i.days.freeze
 
+  REACTION_DECK_MAX = 256
+
   devise :two_factor_authenticatable,
          otp_secret_encryption_key: Rails.configuration.x.otp_secret
+
+  include LegacyOtpSecret # Must be after the above `devise` line in order to override the legacy method
 
   devise :two_factor_backupable,
          otp_number_of_backup_codes: 10
@@ -95,6 +101,8 @@ class User < ApplicationRecord
   accepts_nested_attributes_for :invite_request, reject_if: ->(attributes) { attributes['text'].blank? && !Setting.require_invite_text }
   validates :invite_request, presence: true, on: :create, if: :invite_text_required?
 
+  validates :email, presence: true, email_address: true
+
   validates_with BlacklistedEmailValidator, if: -> { ENV['EMAIL_DOMAIN_LISTS_APPLY_AFTER_CONFIRMATION'] == 'true' || !confirmed? }
   validates_with EmailMxValidator, if: :validate_email_dns?
   validates :agreement, acceptance: { allow_nil: false, accept: [true, 'true', '1'] }, on: :create
@@ -107,14 +115,16 @@ class User < ApplicationRecord
   validates :confirm_password, absence: true, on: :create
   validate :validate_role_elevation
 
+  scope :account_not_suspended, -> { joins(:account).merge(Account.without_suspended) }
   scope :recent, -> { order(id: :desc) }
   scope :pending, -> { where(approved: false) }
   scope :approved, -> { where(approved: true) }
   scope :confirmed, -> { where.not(confirmed_at: nil) }
   scope :enabled, -> { where(disabled: false) }
   scope :disabled, -> { where(disabled: true) }
-  scope :inactive, -> { where(arel_table[:current_sign_in_at].lt(ACTIVE_DURATION.ago)) }
-  scope :active, -> { confirmed.where(arel_table[:current_sign_in_at].gteq(ACTIVE_DURATION.ago)).joins(:account).where(accounts: { suspended_at: nil }) }
+  scope :active, -> { confirmed.signed_in_recently.account_not_suspended }
+  scope :signed_in_recently, -> { where(current_sign_in_at: ACTIVE_DURATION.ago..) }
+  scope :not_signed_in_recently, -> { where(current_sign_in_at: ...ACTIVE_DURATION.ago) }
   scope :matches_email, ->(value) { where(arel_table[:email].matches("#{value}%")) }
   scope :matches_ip, ->(value) { left_joins(:ips).where('user_ips.ip <<= ?', value).group('users.id') }
 
@@ -126,11 +136,6 @@ class User < ApplicationRecord
   normalizes :locale, with: ->(locale) { I18n.available_locales.exclude?(locale.to_sym) ? nil : locale }
   normalizes :time_zone, with: ->(time_zone) { ActiveSupport::TimeZone[time_zone].nil? ? nil : time_zone }
   normalizes :chosen_languages, with: ->(chosen_languages) { chosen_languages.compact_blank.presence }
-
-  # This avoids a deprecation warning from Rails 5.1
-  # It seems possible that a future release of devise-two-factor will
-  # handle this itself, and this can be removed from our User class.
-  attribute :otp_secret
 
   has_many :session_activations, dependent: :destroy
 
@@ -147,6 +152,10 @@ class User < ApplicationRecord
     else
       where(role_id: matching_role_ids)
     end
+  end
+
+  def self.skip_mx_check?
+    Rails.env.local?
   end
 
   def role
@@ -186,37 +195,18 @@ class User < ApplicationRecord
   end
 
   def confirm
-    new_user      = !confirmed?
-    self.approved = true if open_registrations? && !sign_up_from_ip_requires_approval?
+    raise Mastodon::ValidationError, I18n.t('devise.registrations.sign_up_failed_because_reach_limit') if !invited? && reach_registrations_limit?
 
-    super
-
-    if new_user
-      # Avoid extremely unlikely race condition when approving and confirming
-      # the user at the same time
-      reload unless approved?
-
-      if approved?
-        prepare_new_user!
-      else
-        notify_staff_about_pending_account!
-      end
+    wrap_email_confirmation do
+      super
     end
   end
 
-  def confirm!
-    new_user      = !confirmed?
-    self.approved = true if open_registrations?
-
-    skip_confirmation!
-    save!
-
-    if new_user
-      # Avoid extremely unlikely race condition when approving and confirming
-      # the user at the same time
-      reload unless approved?
-
-      prepare_new_user! if approved?
+  # Mark current email as confirmed, bypassing Devise
+  def mark_email_as_confirmed!
+    wrap_email_confirmation do
+      skip_confirmation!
+      save!
     end
   end
 
@@ -359,6 +349,16 @@ class User < ApplicationRecord
     Doorkeeper::AccessToken.by_resource_owner(self).in_batches do |batch|
       batch.update_all(revoked_at: Time.now.utc)
       Web::PushSubscription.where(access_token_id: batch).delete_all
+
+      # Revoke each access token for the Streaming API, since `update_all``
+      # doesn't trigger ActiveRecord Callbacks:
+      # TODO: #28793 Combine into a single topic
+      payload = Oj.dump(event: :kill)
+      redis.pipelined do |pipeline|
+        batch.ids.each do |id|
+          pipeline.publish("timeline:access_token:#{id}", payload)
+        end
+      end
     end
   end
 
@@ -426,18 +426,57 @@ class User < ApplicationRecord
     end
   end
 
+  def grant_approval_on_confirmation?
+    # Re-check approval on confirmation if the server has switched to open registrations
+    open_registrations? && !sign_up_from_ip_requires_approval? && !sign_up_email_requires_approval?
+  end
+
+  def wrap_email_confirmation
+    new_user      = !confirmed?
+    self.approved = true if grant_approval_on_confirmation?
+
+    yield
+
+    if new_user
+      # Avoid extremely unlikely race condition when approving and confirming
+      # the user at the same time
+      reload unless approved?
+
+      if approved?
+        prepare_new_user!
+      else
+        notify_staff_about_pending_account!
+      end
+    end
+  end
+
   def sign_up_from_ip_requires_approval?
-    !sign_up_ip.nil? && IpBlock.where(severity: :sign_up_requires_approval).where('ip >>= ?', sign_up_ip.to_s).exists?
+    sign_up_ip.present? && IpBlock.severity_sign_up_requires_approval.exists?(['ip >>= ?', sign_up_ip.to_s])
   end
 
   def sign_up_email_requires_approval?
-    return false unless email.present? || unconfirmed_email.present?
+    return false if email.blank?
 
-    EmailDomainBlock.requires_approval?(email.presence || unconfirmed_email, attempt_ip: sign_up_ip)
+    _, domain = email.split('@', 2)
+    return false if domain.blank?
+
+    records = []
+
+    # Doing this conditionally is not very satisfying, but this is consistent
+    # with the MX records validations we do and keeps the specs tractable.
+    unless self.class.skip_mx_check?
+      Resolv::DNS.open do |dns|
+        dns.timeouts = 5
+
+        records = dns.getresources(domain, Resolv::DNS::Resource::IN::MX).to_a.map { |e| e.exchange.to_s }.compact_blank
+      end
+    end
+
+    EmailDomainBlock.requires_approval?(records + [domain], attempt_ip: sign_up_ip)
   end
 
   def open_registrations?
-    Setting.registrations_mode == 'open'
+    Setting.registrations_mode == 'open' && registrations_in_time?
   end
 
   def external?
@@ -456,8 +495,9 @@ class User < ApplicationRecord
     BootstrapTimelineWorker.perform_async(account_id)
     ActivityTracker.increment('activity:accounts:local')
     ActivityTracker.record('activity:logins', id)
-    UserMailer.welcome(self).deliver_later
+    UserMailer.welcome(self).deliver_later(wait: 1.hour)
     TriggerWebhookWorker.perform_async('account.approved', 'Account', account_id)
+    reset_registration_limit_caches!
   end
 
   def prepare_returning_user!
@@ -484,7 +524,7 @@ class User < ApplicationRecord
   end
 
   def validate_email_dns?
-    email_changed? && !external? && !Rails.env.local?
+    email_changed? && !external? && !self.class.skip_mx_check?
   end
 
   def validate_role_elevation

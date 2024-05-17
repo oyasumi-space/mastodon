@@ -1,13 +1,14 @@
 import { connect } from 'react-redux';
 
-import { initBoostModal } from '../../../actions/boosts';
 import { mentionCompose } from '../../../actions/compose';
 import {
   reblog,
   favourite,
   unreblog,
   unfavourite,
+  emojiReact,
 } from '../../../actions/interactions';
+import { openModal } from '../../../actions/modal';
 import {
   hideStatus,
   revealStatus,
@@ -49,8 +50,16 @@ const mapDispatchToProps = dispatch => ({
       if (e.shiftKey || !boostModal) {
         this.onModalReblog(status);
       } else {
-        dispatch(initBoostModal({ status, onReblog: this.onModalReblog }));
+        dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: this.onModalReblog } }));
       }
+    }
+  },
+
+  onReblogForceModal (status) {
+    if (status.get('reblogged')) {
+      dispatch(unreblog(status));
+    } else {
+      dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: this.onModalReblog } }));
     }
   },
 
@@ -60,6 +69,10 @@ const mapDispatchToProps = dispatch => ({
     } else {
       dispatch(favourite(status));
     }
+  },
+
+  onEmojiReact (status, emoji) {
+    dispatch(emojiReact(status, emoji));
   },
 
   onToggleHidden (status) {

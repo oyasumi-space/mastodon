@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ReblogService, type: :service do
+RSpec.describe ReblogService do
   let(:alice)  { Fabricate(:account, username: 'alice') }
 
   context 'when creates a reblog with appropriate visibility' do
@@ -14,6 +14,10 @@ RSpec.describe ReblogService, type: :service do
 
     before do
       subject.call(alice, status, visibility: reblog_visibility)
+    end
+
+    it 'a simple case reblogs publicly' do
+      expect(status.reblogs.first.visibility).to eq 'public'
     end
 
     describe 'boosting privately' do
@@ -34,6 +38,65 @@ RSpec.describe ReblogService, type: :service do
     end
   end
 
+  context 'when public visibility is disabled' do
+    subject { described_class.new }
+
+    let(:status) { Fabricate(:status, account: alice, visibility: :public) }
+
+    before do
+      Setting.enable_public_visibility = false
+      subject.call(alice, status, visibility: :public)
+    end
+
+    it 'reblogs as public unlisted' do
+      expect(status.reblogs.first.visibility).to eq 'public_unlisted'
+    end
+  end
+
+  context 'when public unlisted visibility is disabled' do
+    subject { described_class.new }
+
+    let(:status) { Fabricate(:status, account: alice, visibility: :public) }
+
+    before do
+      Setting.enable_public_unlisted_visibility = false
+      subject.call(alice, status, visibility: :public_unlisted)
+    end
+
+    it 'reblogs as public unlisted' do
+      expect(status.reblogs.first.visibility).to eq 'unlisted'
+    end
+  end
+
+  context 'with ng rule' do
+    subject { described_class.new }
+
+    let(:status) { Fabricate(:status, account: alice, visibility: :public) }
+    let(:account) { Fabricate(:account) }
+
+    context 'when rule matches' do
+      before do
+        Fabricate(:ng_rule, reaction_type: ['reblog'])
+      end
+
+      it 'does not reblog' do
+        expect { subject.call(account, status) }.to raise_error Mastodon::ValidationError
+        expect(account.reblogged?(status)).to be false
+      end
+    end
+
+    context 'when rule does not match' do
+      before do
+        Fabricate(:ng_rule, account_display_name: 'else', reaction_type: ['reblog'])
+      end
+
+      it 'reblogs' do
+        expect { subject.call(account, status) }.to_not raise_error
+        expect(account.reblogged?(status)).to be true
+      end
+    end
+  end
+
   context 'when the reblogged status is discarded in the meantime' do
     let(:status) { Fabricate(:status, account: alice, visibility: :public, text: 'discard-status-text') }
 
@@ -46,7 +109,7 @@ RSpec.describe ReblogService, type: :service do
           Status
             .where(id: reblog_of_id)
             .where(text: 'discard-status-text')
-            .update_all(deleted_at: Time.now.utc) # rubocop:disable Rails/SkipsModelValidations
+            .update_all(deleted_at: Time.now.utc)
         end
       end
     end

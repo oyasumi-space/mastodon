@@ -49,6 +49,7 @@ RSpec.describe 'Domain Blocks' do
           {
             id: domain_block.id.to_s,
             domain: domain_block.domain,
+            digest: domain_block.domain_digest,
             created_at: domain_block.created_at.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
             severity: domain_block.severity.to_s,
             reject_media: domain_block.reject_media,
@@ -56,6 +57,15 @@ RSpec.describe 'Domain Blocks' do
             private_comment: domain_block.private_comment,
             public_comment: domain_block.public_comment,
             obfuscate: domain_block.obfuscate,
+            block_trends: domain_block.block_trends,
+            reject_favourite: domain_block.reject_favourite,
+            reject_hashtag: domain_block.reject_hashtag,
+            detect_invalid_subscription: domain_block.detect_invalid_subscription,
+            reject_new_follow: domain_block.reject_new_follow,
+            reject_reply_exclude_followers: domain_block.reject_reply_exclude_followers,
+            reject_send_sensitive: domain_block.reject_send_sensitive,
+            reject_straight_follow: domain_block.reject_straight_follow,
+            reject_friend: domain_block.reject_friend,
           }
         end
       end
@@ -85,6 +95,29 @@ RSpec.describe 'Domain Blocks' do
 
     let!(:domain_block) { Fabricate(:domain_block) }
 
+    let(:expected_response) do
+      {
+        id: domain_block.id.to_s,
+        domain: domain_block.domain,
+        created_at: domain_block.created_at.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
+        severity: domain_block.severity.to_s,
+        reject_media: domain_block.reject_media,
+        reject_reports: domain_block.reject_reports,
+        private_comment: domain_block.private_comment,
+        public_comment: domain_block.public_comment,
+        obfuscate: domain_block.obfuscate,
+        block_trends: domain_block.block_trends,
+        reject_favourite: domain_block.reject_favourite,
+        reject_hashtag: domain_block.reject_hashtag,
+        detect_invalid_subscription: domain_block.detect_invalid_subscription,
+        reject_new_follow: domain_block.reject_new_follow,
+        reject_reply_exclude_followers: domain_block.reject_reply_exclude_followers,
+        reject_send_sensitive: domain_block.reject_send_sensitive,
+        reject_straight_follow: domain_block.reject_straight_follow,
+        reject_friend: domain_block.reject_friend,
+      }
+    end
+
     it_behaves_like 'forbidden for wrong scope', 'write:statuses'
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
@@ -97,6 +130,7 @@ RSpec.describe 'Domain Blocks' do
         {
           id: domain_block.id.to_s,
           domain: domain_block.domain,
+          digest: domain_block.domain_digest,
           created_at: domain_block.created_at.strftime('%Y-%m-%dT%H:%M:%S.%LZ'),
           severity: domain_block.severity.to_s,
           reject_media: domain_block.reject_media,
@@ -104,6 +138,15 @@ RSpec.describe 'Domain Blocks' do
           private_comment: domain_block.private_comment,
           public_comment: domain_block.public_comment,
           obfuscate: domain_block.obfuscate,
+          block_trends: domain_block.block_trends,
+          reject_favourite: domain_block.reject_favourite,
+          reject_hashtag: domain_block.reject_hashtag,
+          detect_invalid_subscription: domain_block.detect_invalid_subscription,
+          reject_new_follow: domain_block.reject_new_follow,
+          reject_reply_exclude_followers: domain_block.reject_reply_exclude_followers,
+          reject_send_sensitive: domain_block.reject_send_sensitive,
+          reject_straight_follow: domain_block.reject_straight_follow,
+          reject_friend: domain_block.reject_friend,
         }
       )
     end
@@ -128,7 +171,7 @@ RSpec.describe 'Domain Blocks' do
     it_behaves_like 'forbidden for wrong role', ''
     it_behaves_like 'forbidden for wrong role', 'Moderator'
 
-    it 'returns expected domain name and severity', :aggregate_failures do
+    it 'creates a domain block with the expected domain name and severity', :aggregate_failures do
       subject
 
       body = body_as_json
@@ -144,7 +187,44 @@ RSpec.describe 'Domain Blocks' do
       expect(DomainBlock.find_by(domain: 'foo.bar.com')).to be_present
     end
 
-    context 'when a stricter domain block already exists' do
+    context 'when a looser domain block already exists on a higher level domain' do
+      let(:params) { { domain: 'foo.bar.com', severity: :suspend } }
+
+      before do
+        Fabricate(:domain_block, domain: 'bar.com', severity: :silence)
+      end
+
+      it 'creates a domain block with the expected domain name and severity', :aggregate_failures do
+        subject
+
+        body = body_as_json
+
+        expect(response).to have_http_status(200)
+        expect(body).to match a_hash_including(
+          {
+            domain: 'foo.bar.com',
+            severity: 'suspend',
+          }
+        )
+
+        expect(DomainBlock.find_by(domain: 'foo.bar.com')).to be_present
+      end
+    end
+
+    context 'when a domain block already exists on the same domain' do
+      before do
+        Fabricate(:domain_block, domain: 'foo.bar.com', severity: :silence)
+      end
+
+      it 'returns existing domain block in error', :aggregate_failures do
+        subject
+
+        expect(response).to have_http_status(422)
+        expect(body_as_json[:existing_domain_block][:domain]).to eq('foo.bar.com')
+      end
+    end
+
+    context 'when a stricter domain block already exists on a higher level domain' do
       before do
         Fabricate(:domain_block, domain: 'bar.com', severity: :suspend)
       end
@@ -188,6 +268,7 @@ RSpec.describe 'Domain Blocks' do
         {
           id: domain_block.id.to_s,
           domain: domain_block.domain,
+          digest: domain_block.domain_digest,
           severity: 'suspend',
         }
       )

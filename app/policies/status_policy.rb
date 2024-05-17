@@ -1,22 +1,38 @@
 # frozen_string_literal: true
 
 class StatusPolicy < ApplicationPolicy
-  def initialize(current_account, record, preloaded_relations = {})
+  def initialize(current_account, record, preloaded_relations = {}, preloaded_status_relations = {})
     super(current_account, record)
 
     @preloaded_relations = preloaded_relations
+    @preloaded_status_relations = preloaded_status_relations
   end
+
+  delegate :reply?, :expired?, to: :record
 
   def show?
     return false if author.unavailable?
 
     if requires_mention?
       owned? || mention_exists?
+    elsif login?
+      owned? || !current_account.nil?
     elsif private?
       owned? || following_author? || mention_exists?
     else
-      current_account.nil? || (!author_blocking? && !author_blocking_domain?)
+      current_account.nil? || (!author_blocking? && !author_blocking_domain? && !server_blocking_domain?)
     end
+  end
+
+  def show_mentioned_users?
+    record.limited_visibility? ? owned_conversation? : owned?
+  end
+
+  def show_activity?
+    return false unless show?
+    return true unless record.expires?
+
+    following_author_domain?
   end
 
   def reblog?
@@ -25,6 +41,14 @@ class StatusPolicy < ApplicationPolicy
 
   def favourite?
     show? && !blocking_author?
+  end
+
+  def emoji_reaction?
+    show? && !blocking_author?
+  end
+
+  def quote?
+    %i(public public_unlisted unlisted).include?(record.visibility.to_sym) && show? && !blocking_author?
   end
 
   def destroy?
@@ -47,8 +71,21 @@ class StatusPolicy < ApplicationPolicy
     author.id == current_account&.id
   end
 
+  def owned_conversation?
+    record.conversation&.local? &&
+      (record.conversation.ancestor_status.nil? ? owned? : record.conversation.ancestor_status.account_id == current_account&.id)
+  end
+
   def private?
     record.private_visibility?
+  end
+
+  def login?
+    record.login_visibility?
+  end
+
+  def public?
+    record.public_visibility? || record.public_unlisted_visibility?
   end
 
   def mention_exists?
@@ -57,7 +94,7 @@ class StatusPolicy < ApplicationPolicy
     if record.mentions.loaded?
       record.mentions.any? { |mention| mention.account_id == current_account.id }
     else
-      record.mentions.where(account: current_account).exists?
+      record.mentions.exists?(account: current_account)
     end
   end
 
@@ -85,7 +122,31 @@ class StatusPolicy < ApplicationPolicy
     @preloaded_relations[:following] ? @preloaded_relations[:following][author.id] : current_account.following?(author)
   end
 
+  def following_author_domain?
+    return false if current_account.nil?
+
+    author.followed_by_domain?(current_account.domain, record.created_at)
+  end
+
   def author
     record.account
+  end
+
+  def server_blocking_domain?
+    if record.reblog? && record.reblog.local?
+      server_blocking_domain_of_status?(record) || server_blocking_domain_of_status?(record.reblog)
+    else
+      server_blocking_domain_of_status?(record)
+    end
+  end
+
+  def server_blocking_domain_of_status?(status)
+    @domain_block ||= DomainBlock.find_by(domain: current_account&.domain)
+    if @domain_block
+      (@domain_block.detect_invalid_subscription && status.sending_maybe_compromised_privacy?) ||
+        (@domain_block.reject_send_sensitive && status.sending_sensitive?)
+    else
+      false
+    end
   end
 end

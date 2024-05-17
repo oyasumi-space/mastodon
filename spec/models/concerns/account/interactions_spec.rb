@@ -9,6 +9,8 @@ describe Account::Interactions do
   let(:target_account)     { Fabricate(:account, username: 'target') }
   let(:target_account_id)  { target_account.id }
   let(:target_account_ids) { [target_account_id] }
+  let(:follower_account)   { Fabricate(:account, username: 'follower') }
+  let(:followee_account)   { Fabricate(:account, username: 'followee') }
 
   describe '.following_map' do
     subject { Account.following_map(target_account_ids, account_id) }
@@ -250,6 +252,24 @@ describe Account::Interactions do
     end
   end
 
+  describe '#block_idna_domain!' do
+    subject do
+      [
+        account.block_domain!(idna_domain),
+        account.block_domain!(punycode_domain),
+      ]
+    end
+
+    let(:idna_domain) { '대한민국.한국' }
+    let(:punycode_domain) { 'xn--3e0bs9hfvinn1a.xn--3e0b707e' }
+
+    it 'creates single AccountDomainBlock' do
+      expect do
+        expect(subject).to all(be_a AccountDomainBlock)
+      end.to change { account.domain_blocks.count }.by 1
+    end
+  end
+
   describe '#unfollow!' do
     subject { account.unfollow!(target_account) }
 
@@ -345,6 +365,28 @@ describe Account::Interactions do
     end
   end
 
+  describe '#unblock_idna_domain!' do
+    subject { account.unblock_domain!(punycode_domain) }
+
+    let(:idna_domain) { '대한민국.한국' }
+    let(:punycode_domain) { 'xn--3e0bs9hfvinn1a.xn--3e0b707e' }
+
+    context 'when blocking the domain' do
+      it 'returns destroyed AccountDomainBlock' do
+        account_domain_block = Fabricate(:account_domain_block, domain: idna_domain)
+        account.domain_blocks << account_domain_block
+        expect(subject).to be_a AccountDomainBlock
+        expect(subject).to be_destroyed
+      end
+    end
+
+    context 'when unblocking idna domain' do
+      it 'returns nil' do
+        expect(subject).to be_nil
+      end
+    end
+  end
+
   describe '#following?' do
     subject { account.following?(target_account) }
 
@@ -375,6 +417,43 @@ describe Account::Interactions do
     context 'when not followed by target_account' do
       it 'returns false' do
         expect(subject).to be false
+      end
+    end
+  end
+
+  describe '#followed_by_domain?' do
+    subject { account.followed_by_domain?('example.com') }
+
+    let(:target_account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
+
+    context 'when followed by target_account' do
+      it 'returns true' do
+        account.passive_relationships.create(account: target_account)
+        expect(subject).to be true
+      end
+    end
+
+    context 'when not followed by target_account' do
+      it 'returns false' do
+        expect(subject).to be false
+      end
+    end
+
+    context 'with status' do
+      subject { account.followed_by_domain?('example.com', '2022/12/24 10:00:00') }
+
+      context 'when followed by target_account since the time' do
+        it 'returns true' do
+          account.passive_relationships.create(account: target_account, created_at: '2022/12/22 10:00:00')
+          expect(subject).to be true
+        end
+      end
+
+      context 'when followed by target_account after the time' do
+        it 'returns false' do
+          account.passive_relationships.create(account: target_account, created_at: '2022/12/26 10:00:00')
+          expect(subject).to be false
+        end
       end
     end
   end
@@ -707,6 +786,22 @@ describe Account::Interactions do
 
     it 'includes only the list from the active follower and from oneself' do
       expect(account.lists_for_local_distribution.to_a).to contain_exactly(follower_list, self_list)
+    end
+  end
+
+  describe '#mutuals' do
+    subject { account.mutuals }
+
+    context 'when following target_account' do
+      it 'mutual one' do
+        account.follow!(target_account)
+        target_account.follow!(account)
+        follower_account.follow!(account)
+        account.follow!(followee_account)
+
+        expect(subject.count).to eq 1
+        expect(subject.first.id).to eq target_account.id
+      end
     end
   end
 end

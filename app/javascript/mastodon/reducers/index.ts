@@ -7,8 +7,15 @@ import { accountsReducer } from './accounts';
 import accounts_map from './accounts_map';
 import alerts from './alerts';
 import announcements from './announcements';
-import blocks from './blocks';
-import boosts from './boosts';
+import antennaAdder from './antenna_adder';
+import antennaEditor from './antenna_editor';
+import antennas from './antennas';
+import bookmark_categories from './bookmark_categories';
+import bookmarkCategoryAdder from './bookmark_category_adder';
+import bookmarkCategoryEditor from './bookmark_category_editor';
+import circleAdder from './circle_adder';
+import circleEditor from './circle_editor';
+import circles from './circles';
 import compose from './compose';
 import contexts from './contexts';
 import conversations from './conversations';
@@ -22,15 +29,17 @@ import history from './history';
 import listAdder from './list_adder';
 import listEditor from './list_editor';
 import lists from './lists';
-import markers from './markers';
+import { markersReducer } from './markers';
 import media_attachments from './media_attachments';
 import meta from './meta';
 import { modalReducer } from './modal';
-import mutes from './mutes';
+import { notificationPolicyReducer } from './notification_policy';
+import { notificationRequestsReducer } from './notification_requests';
 import notifications from './notifications';
-import picture_in_picture from './picture_in_picture';
+import { pictureInPictureReducer } from './picture_in_picture';
 import polls from './polls';
 import push_notifications from './push_notifications';
+import reaction_deck from './reaction_deck';
 import { relationshipsReducer } from './relationships';
 import search from './search';
 import server from './server';
@@ -60,9 +69,6 @@ const reducers = {
   relationships: relationshipsReducer,
   settings,
   push_notifications,
-  mutes,
-  blocks,
-  boosts,
   server,
   contexts,
   compose,
@@ -74,16 +80,28 @@ const reducers = {
   lists,
   listEditor,
   listAdder,
+  antennas,
+  antennaEditor,
+  antennaAdder,
+  circles,
+  circleEditor,
+  circleAdder,
+  bookmark_categories,
+  bookmarkCategoryEditor,
+  bookmarkCategoryAdder,
   filters,
   conversations,
   suggestions,
   polls,
   trends,
-  markers,
-  picture_in_picture,
+  markers: markersReducer,
+  picture_in_picture: pictureInPictureReducer,
   history,
   tags,
   followed_tags,
+  reaction_deck,
+  notificationPolicy: notificationPolicyReducer,
+  notificationRequests: notificationRequestsReducer,
 };
 
 // We want the root state to be an ImmutableRecord, which is an object with a defined list of keys,

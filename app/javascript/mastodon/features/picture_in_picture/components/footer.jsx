@@ -9,12 +9,11 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
-import OpenInNewIcon from 'mastodon/../material-icons/400-24px/open_in_new.svg?react';
-import RepeatIcon from 'mastodon/../material-icons/400-24px/repeat.svg?react';
-import ReplyIcon from 'mastodon/../material-icons/400-24px/reply.svg?react';
-import ReplyAllIcon from 'mastodon/../material-icons/400-24px/reply_all.svg?react';
-import StarIcon from 'mastodon/../material-icons/400-24px/star.svg?react';
-import { initBoostModal } from 'mastodon/actions/boosts';
+import OpenInNewIcon from '@/material-icons/400-24px/open_in_new.svg?react';
+import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
+import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
+import ReplyAllIcon from '@/material-icons/400-24px/reply_all.svg?react';
+import StarIcon from '@/material-icons/400-24px/star.svg?react';
 import { replyCompose } from 'mastodon/actions/compose';
 import { reblog, favourite, unreblog, unfavourite } from 'mastodon/actions/interactions';
 import { openModal } from 'mastodon/actions/modal';
@@ -140,7 +139,7 @@ class Footer extends ImmutablePureComponent {
       } else if ((e && e.shiftKey) || !boostModal) {
         this._performReblog(status);
       } else {
-        dispatch(initBoostModal({ status, onReblog: this._performReblog }));
+        dispatch(openModal({ modalType: 'BOOST', modalProps: { status, onReblog: this._performReblog } }));
       }
     } else {
       dispatch(openModal({
@@ -155,11 +154,11 @@ class Footer extends ImmutablePureComponent {
   };
 
   handleOpenClick = e => {
+    const { status, onClose, history } = this.props;
+
     if (e.button !== 0 || !history) {
       return;
     }
-
-    const { status, onClose } = this.props;
 
     if (onClose) {
       onClose();
@@ -171,8 +170,8 @@ class Footer extends ImmutablePureComponent {
   render () {
     const { status, intl, withOpenButton } = this.props;
 
-    const publicStatus  = ['public', 'unlisted'].includes(status.get('visibility'));
-    const reblogPrivate = status.getIn(['account', 'id']) === me && status.get('visibility') === 'private';
+    const publicStatus  = ['public', 'unlisted', 'public_unlisted', 'login'].includes(status.get('visibility_ex'));
+    const reblogPrivate = status.getIn(['account', 'id']) === me && status.get('visibility_ex') === 'private';
 
     let replyIcon, replyIconComponent, replyTitle;
 
@@ -210,4 +209,4 @@ class Footer extends ImmutablePureComponent {
 
 }
 
-export default  withRouter(connect(makeMapStateToProps)(injectIntl(Footer)));
+export default  connect(makeMapStateToProps)(withRouter(injectIntl(Footer)));

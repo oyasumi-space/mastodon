@@ -20,6 +20,9 @@ module Mastodon::CLI
     option :import, type: :boolean, default: true, desc: 'Import data from the database to the index'
     option :clean, type: :boolean, default: true, desc: 'Remove outdated documents from the index'
     option :reset_chewy, type: :boolean, default: false, desc: "Reset Chewy's internal index"
+    option :full, type: :boolean, default: false, desc: 'Import full data over Mastodon default importer'
+    option :from, type: :string, default: nil, desc: 'Statuses start date'
+    option :to, type: :string, default: nil, desc: 'Statuses end date'
     desc 'deploy', 'Create or upgrade Elasticsearch indices and populate them'
     long_desc <<~LONG_DESC
       If Elasticsearch is empty, this command will create the necessary indices
@@ -41,7 +44,7 @@ module Mastodon::CLI
                 end
 
       pool      = Concurrent::FixedThreadPool.new(options[:concurrency], max_queue: options[:concurrency] * 10)
-      importers = indices.index_with { |index| "Importer::#{index.name}Importer".constantize.new(batch_size: options[:batch_size], executor: pool) }
+      importers = indices.index_with { |index| "Importer::#{index.name}Importer".constantize.new(batch_size: options[:batch_size], executor: pool, full: options[:full], from: options[:from], to: options[:to]) }
       progress  = ProgressBar.create(
         {
           total: nil,
@@ -100,6 +103,14 @@ module Mastodon::CLI
       progress.finish
 
       say("Indexed #{added} records, de-indexed #{removed}", :green, true)
+    rescue Elasticsearch::Transport::Transport::ServerError => e
+      fail_with_message <<~ERROR
+        There was an issue connecting to the search server. Make sure the
+        server is configured and running correctly, and that the environment
+        variable settings match what the server is expecting.
+
+        #{e.message}
+      ERROR
     end
 
     private
@@ -110,17 +121,11 @@ module Mastodon::CLI
     end
 
     def verify_deploy_concurrency!
-      return unless options[:concurrency] < 1
-
-      say('Cannot run with this concurrency setting, must be at least 1', :red)
-      exit(1)
+      fail_with_message 'Cannot run with this concurrency setting, must be at least 1' if options[:concurrency] < 1
     end
 
     def verify_deploy_batch_size!
-      return unless options[:batch_size] < 1
-
-      say('Cannot run with this batch_size setting, must be at least 1', :red)
-      exit(1)
+      fail_with_message 'Cannot run with this batch_size setting, must be at least 1' if options[:batch_size] < 1
     end
 
     def progress_output_options

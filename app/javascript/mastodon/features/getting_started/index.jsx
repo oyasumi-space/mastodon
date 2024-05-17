@@ -9,24 +9,26 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
-import AlternateEmailIcon from 'mastodon/../material-icons/400-24px/alternate_email.svg?react';
-import BookmarksIcon from 'mastodon/../material-icons/400-24px/bookmarks-fill.svg?react';
-import PeopleIcon from 'mastodon/../material-icons/400-24px/group.svg?react';
-import HomeIcon from 'mastodon/../material-icons/400-24px/home-fill.svg?react';
-import ListAltIcon from 'mastodon/../material-icons/400-24px/list_alt.svg?react';
-import MenuIcon from 'mastodon/../material-icons/400-24px/menu.svg?react';
-import PersonAddIcon from 'mastodon/../material-icons/400-24px/person_add.svg?react';
-import PublicIcon from 'mastodon/../material-icons/400-24px/public.svg?react';
-import SettingsIcon from 'mastodon/../material-icons/400-24px/settings-fill.svg?react';
-import StarIcon from 'mastodon/../material-icons/400-24px/star.svg?react';
-import TagIcon from 'mastodon/../material-icons/400-24px/tag.svg?react';
+import CirclesIcon from '@/material-icons/400-24px/account_circle-fill.svg?react';
+import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BookmarksIcon from '@/material-icons/400-24px/bookmarks-fill.svg?react';
+import ExploreIcon from '@/material-icons/400-24px/explore.svg?react';
+import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
+import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
+import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
+import SettingsIcon from '@/material-icons/400-24px/settings-fill.svg?react';
+import StarIcon from '@/material-icons/400-24px/star.svg?react';
+import AntennaIcon from '@/material-icons/400-24px/wifi.svg?react';
 import { fetchFollowRequests } from 'mastodon/actions/accounts';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import LinkFooter from 'mastodon/features/ui/components/link_footer';
 
-import { me, showTrends } from '../../initial_state';
-import NavigationContainer from '../compose/containers/navigation_container';
+import { dtlTag, enableDtlMenu, me, showTrends } from '../../initial_state';
+import { NavigationBar } from '../compose/components/navigation_bar';
 import ColumnLink from '../ui/components/column_link';
 import ColumnSubheading from '../ui/components/column_subheading';
 
@@ -38,6 +40,7 @@ const messages = defineMessages({
   public_timeline: { id: 'navigation_bar.public_timeline', defaultMessage: 'Federated timeline' },
   settings_subheading: { id: 'column_subheading.settings', defaultMessage: 'Settings' },
   community_timeline: { id: 'navigation_bar.community_timeline', defaultMessage: 'Local timeline' },
+  deep_timeline: { id: 'navigation_bar.deep_timeline', defaultMessage: 'Deep timeline' },
   explore: { id: 'navigation_bar.explore', defaultMessage: 'Explore' },
   direct: { id: 'navigation_bar.direct', defaultMessage: 'Private mentions' },
   bookmarks: { id: 'navigation_bar.bookmarks', defaultMessage: 'Bookmarks' },
@@ -49,6 +52,8 @@ const messages = defineMessages({
   mutes: { id: 'navigation_bar.mutes', defaultMessage: 'Muted users' },
   pins: { id: 'navigation_bar.pins', defaultMessage: 'Pinned posts' },
   lists: { id: 'navigation_bar.lists', defaultMessage: 'Lists' },
+  antennas: { id: 'navigation_bar.antennas', defaultMessage: 'Antennas' },
+  circles: { id: 'navigation_bar.circles', defaultMessage: 'Circles' },
   discover: { id: 'navigation_bar.discover', defaultMessage: 'Discover' },
   personal: { id: 'navigation_bar.personal', defaultMessage: 'Personal' },
   security: { id: 'navigation_bar.security', defaultMessage: 'Security' },
@@ -82,7 +87,7 @@ class GettingStarted extends ImmutablePureComponent {
 
   static propTypes = {
     intl: PropTypes.object.isRequired,
-    myAccount: ImmutablePropTypes.map,
+    myAccount: ImmutablePropTypes.record,
     multiColumn: PropTypes.bool,
     fetchFollowRequests: PropTypes.func.isRequired,
     unreadFollowRequests: PropTypes.number,
@@ -112,12 +117,21 @@ class GettingStarted extends ImmutablePureComponent {
 
     if (showTrends) {
       navItems.push(
-        <ColumnLink key='explore' icon='hashtag' iconComponent={TagIcon} text={intl.formatMessage(messages.explore)} to='/explore' />,
+        <ColumnLink key='explore' icon='explore' iconComponent={ExploreIcon} text={intl.formatMessage(messages.explore)} to='/explore' />,
       );
     }
 
     navItems.push(
       <ColumnLink key='community_timeline' icon='users' iconComponent={PeopleIcon} text={intl.formatMessage(messages.community_timeline)} to='/public/local' />,
+    );
+
+    if (signedIn && enableDtlMenu && dtlTag) {
+      navItems.push(
+        <ColumnLink key='deep_timeline' icon='users' iconComponent={PeopleIcon} text={intl.formatMessage(messages.deep_timeline)} to={`/tags/${dtlTag}`} />,
+      );
+    }
+
+    navItems.push(
       <ColumnLink key='public_timeline' icon='globe' iconComponent={PublicIcon} text={intl.formatMessage(messages.public_timeline)} to='/public' />,
     );
 
@@ -126,9 +140,11 @@ class GettingStarted extends ImmutablePureComponent {
         <ColumnSubheading key='header-personal' text={intl.formatMessage(messages.personal)} />,
         <ColumnLink key='home' icon='home' iconComponent={HomeIcon} text={intl.formatMessage(messages.home_timeline)} to='/home' />,
         <ColumnLink key='direct' icon='at' iconComponent={AlternateEmailIcon} text={intl.formatMessage(messages.direct)} to='/conversations' />,
-        <ColumnLink key='bookmark' icon='bookmarks' iconComponent={BookmarksIcon} text={intl.formatMessage(messages.bookmarks)} to='/bookmarks' />,
+        <ColumnLink key='bookmark' icon='bookmarks' iconComponent={BookmarksIcon} text={intl.formatMessage(messages.bookmarks)} to='/bookmark_categories' />,
         <ColumnLink key='favourites' icon='star' iconComponent={StarIcon} text={intl.formatMessage(messages.favourites)} to='/favourites' />,
         <ColumnLink key='lists' icon='list-ul' iconComponent={ListAltIcon} text={intl.formatMessage(messages.lists)} to='/lists' />,
+        <ColumnLink key='antennas' icon='wifi' iconComponent={AntennaIcon} text={intl.formatMessage(messages.antennas)} to='/antennasw' />,
+        <ColumnLink key='circles' icon='user-circle' iconComponent={CirclesIcon} text={intl.formatMessage(messages.circles)} to='/circles' />,
       );
 
       if (myAccount.get('locked') || unreadFollowRequests > 0) {
@@ -143,7 +159,7 @@ class GettingStarted extends ImmutablePureComponent {
 
     return (
       <Column>
-        {(signedIn && !multiColumn) ? <NavigationContainer /> : <ColumnHeader title={intl.formatMessage(messages.menu)} icon='bars' iconComponent={MenuIcon} multiColumn={multiColumn} />}
+        {(signedIn && !multiColumn) ? <NavigationBar /> : <ColumnHeader title={intl.formatMessage(messages.menu)} icon='bars' iconComponent={MenuIcon} multiColumn={multiColumn} />}
 
         <div className='getting-started scrollable scrollable--flex'>
           <div className='getting-started__wrapper'>

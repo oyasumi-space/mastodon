@@ -1,3 +1,5 @@
+// Kmyblue tracking marker: copied antennas, circles, bookmark_categories
+
 import PropTypes from 'prop-types';
 
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
@@ -9,7 +11,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
-import ListAltIcon from 'mastodon/../material-icons/400-24px/list_alt.svg?react';
+import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import { fetchLists } from 'mastodon/actions/lists';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
@@ -23,6 +25,7 @@ import NewListForm from './components/new_list_form';
 const messages = defineMessages({
   heading: { id: 'column.lists', defaultMessage: 'Lists' },
   subheading: { id: 'lists.subheading', defaultMessage: 'Your lists' },
+  with_antenna: { id: 'lists.with_antenna', defaultMessage: 'Antenna' },
 });
 
 const getOrderedLists = createSelector([state => state.get('lists')], lists => {
@@ -77,7 +80,8 @@ class Lists extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {lists.map(list =>
-            <ColumnLink key={list.get('id')} to={`/lists/${list.get('id')}`} icon='list-ul' iconComponent={ListAltIcon} text={list.get('title')} />,
+            (<ColumnLink key={list.get('id')} to={`/lists/${list.get('id')}`} icon='list-ul' iconComponent={ListAltIcon} text={list.get('title')}
+              badge={(list.get('antennas') && list.get('antennas').size > 0) ? intl.formatMessage(messages.with_antenna) : undefined} />),
           )}
         </ScrollableList>
 

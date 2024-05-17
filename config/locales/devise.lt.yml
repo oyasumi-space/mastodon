@@ -12,6 +12,7 @@ lt:
       last_attempt: Turi dar vieną bandymą, kol tavo paskyra bus užrakinta.
       locked: Tavo paskyra užrakinta.
       not_found_in_database: Netinkami %{authentication_keys} arba slaptažodis.
+      omniauth_user_creation_failure: Klaida kuriant šios tapatybės paskyrą.
       pending: Tavo paskyra vis dar peržiūrima.
       timeout: Tavo seansas baigėsi. Norėdamas (-a) tęsti, prisijunk dar kartą.
       unauthenticated: Prieš tęsdamas (-a) turi prisijungti arba užsiregistruoti.
@@ -47,16 +48,19 @@ lt:
         subject: 'Mastodon: slaptažodžio keitimo instrukcijos'
         title: Slaptažodžio keitimas
       two_factor_disabled:
-        explanation: Dviejų tapatybės patikrinimas tavo paskyrai buvo išjungtas. Prisijungimas dabar galimas naudojant tik el. pašto adresą ir slaptažodį.
+        explanation: Prisijungimas dabar galimas naudojant tik el. pašto adresą ir slaptažodį.
         subject: 'Mastodon: dviejų tapatybės patikrinimas išjungtas'
+        subtitle: Dviejų tapatybės patikrinimas tavo paskyrai buvo išjungtas.
         title: 2FA išjungta
       two_factor_enabled:
-        explanation: Tavo paskyrai įgalintas dvejų tapatybės patikrinimas. Prisijungiant reikės susietos TOTP programėlės sugeneruoto priegos rakto.
-        subject: 'Mastodon: dviejų tapatybės patikrinimas įgalintas'
-        title: 2FA įgalinta
+        explanation: Prisijungiant reikės susietos TOTP programėlės sugeneruoto priegos rakto.
+        subject: 'Mastodon: dviejų tapatybės patvirtinimas įjungtas'
+        subtitle: Tavo paskyrai įjungtas dviejų tapatybės patikrinimas.
+        title: 2FA įjungta
       two_factor_recovery_codes_changed:
         explanation: Ankstesnieji atkūrimo kodai yra negaliojantys ir sugeneruojami nauji.
         subject: 'Mastodon: dviejų tapatybės atkūrimo kodai iš naujo sugeneruoti'
+        subtitle: Ankstesnieji atkūrimo kodai yra negaliojantys ir sugeneruojami nauji.
         title: Pakeisti 2FA atkūrimo kodai
       unlock_instructions:
         subject: 'Mastodon: atrakinimo instrukcijos'
@@ -70,13 +74,15 @@ lt:
           subject: 'Mastodon: saugumo raktas ištrintas'
           title: Vienas iš tavo saugumo raktų buvo ištrintas
       webauthn_disabled:
-        explanation: Tavo paskyrai buvo išjungtas tapatybės nustatymas naudojant saugumo raktus. Prisijungimas dabar galimas naudojant tik susietos TOTP programėlės sugeneruotą prieigos raktą.
+        explanation: Tavo paskyrai išjungtas tapatybės nustatymas naudojant saugumo raktus.
+        extra: Prisijungimas dabar galimas naudojant tik susietos TOTP programėlės sugeneruotą prieigos raktą.
         subject: 'Mastodon: tapatybės nustatymas naudojant saugumo raktai išjungta'
         title: Saugumo raktai išjungti
       webauthn_enabled:
-        explanation: Saugumo rakto tapatybės nustatymas tavo paskyrai įgalintas. Dabar prisijungimui galima naudoti saugumo raktą.
-        subject: 'Mastodon: saugumo rakto tapatybės nustatymas įgalintas'
-        title: Saugumo raktai įgalinti
+        explanation: Tavo paskyrai įjungtas saugumo rakto tapatybės nustatymas.
+        extra: Tavo saugumo raktą dabar galima naudoti prisijungimui.
+        subject: 'Mastodon: saugumo rakto tapatybės nustatymas įjungtas'
+        title: Saugumo raktai įjungti
     omniauth_callbacks:
       failure: Nepavyko nustatyti tapatybės iš %{kind}, nes „%{reason}“.
       success: Sėkmingai nustatyta tapatybė iš %{kind} paskyros.

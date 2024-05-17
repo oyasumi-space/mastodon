@@ -11,24 +11,31 @@
   %p.lead= t('edit_profile.hint_html')
 
   %h4= t('edit_profile.basic_information')
-
   .fields-row
     .fields-row__column.fields-row__column-6
       .fields-group
         = f.input :display_name, wrapper: :with_block_label, input_html: { maxlength: 30, data: { default: @account.username } }
 
       .fields-group
-        = f.input :note, wrapper: :with_block_label, input_html: { maxlength: 500 }
+        = f.input :note, wrapper: :with_block_label, input_html: { maxlength: 500, rows: 8 }
+
+      = f.simple_fields_for :settings, current_user.settings do |ff|
+        .fields-group
+          = ff.input :bio_markdown, input_html: { name: 'account[bio_markdown]' }, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_bio_markdown')
 
     .fields-row__column.fields-group.fields-row__column-6
       .input.with_block_label
         %label= t('simple_form.labels.defaults.fields')
         %span.hint= t('simple_form.hints.account.fields')
 
+        .row
+          %p.fields-label= t('simple_form.labels.account.fields.name')
+          %p.fields-label= t('simple_form.labels.account.fields.value')
+
         = f.simple_fields_for :fields do |fields_f|
           .row
-            = fields_f.input :name, placeholder: t('simple_form.labels.account.fields.name'), input_html: { maxlength: 255 }
-            = fields_f.input :value, placeholder: t('simple_form.labels.account.fields.value'), input_html: { maxlength: 255 }
+            = fields_f.input :name, placeholder: fields_f.index.zero? ? t("simple_form.labels.account.fields.examples.name_#{fields_f.index + 1}") : t('simple_form.labels.account.fields.name'), input_html: { maxlength: 255 }
+            = fields_f.input :value, placeholder: fields_f.index.zero? ? t("simple_form.labels.account.fields.examples.value_#{fields_f.index + 1}") : t('simple_form.labels.account.fields.value'), input_html: { maxlength: 255 }
 
   .fields-row
     .fields-row__column.fields-row__column-6
@@ -65,7 +72,13 @@
   %h4= t('edit_profile.other')
 
   .fields-group
-    = f.input :bot, as: :boolean, wrapper: :with_label, hint: t('simple_form.hints.defaults.bot')
+    = f.input :my_actor_type,
+              as: :radio_buttons,
+              collection: %w(person bot),
+              collection_wrapper_tag: 'ul',
+              item_wrapper_tag: 'li',
+              label_method: ->(item) { safe_join([t("simple_form.labels.defaults.#{item}"), content_tag(:span, I18n.t("simple_form.hints.defaults.#{item}"), class: 'hint')]) },
+              wrapper: :with_floating_label
 
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit

@@ -6,13 +6,13 @@ import { useIntl, defineMessages, FormattedMessage } from 'react-intl';
 import { Helmet } from 'react-helmet';
 import { NavLink } from 'react-router-dom';
 
-import PublicIcon from 'mastodon/../material-icons/400-24px/public.svg?react';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import { addColumn } from 'mastodon/actions/columns';
 import { changeSetting } from 'mastodon/actions/settings';
 import { connectPublicStream, connectCommunityStream } from 'mastodon/actions/streaming';
 import { expandPublicTimeline, expandCommunityTimeline } from 'mastodon/actions/timelines';
 import { DismissableBanner } from 'mastodon/components/dismissable_banner';
-import initialState, { domain } from 'mastodon/initial_state';
+import initialState, { domain, enableLocalTimeline } from 'mastodon/initial_state';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 import Column from '../../components/column';
@@ -42,15 +42,17 @@ const ColumnSettings = () => {
   );
 
   return (
-    <div>
-      <div className='column-settings__row'>
-        <SettingToggle
-          settings={settings}
-          settingPath={['onlyMedia']}
-          onChange={onChange}
-          label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />}
-        />
-      </div>
+    <div className='column-settings'>
+      <section>
+        <div className='column-settings__row'>
+          <SettingToggle
+            settings={settings}
+            settingPath={['onlyMedia']}
+            onChange={onChange}
+            label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />}
+          />
+        </div>
+      </section>
     </div>
   );
 };
@@ -171,19 +173,21 @@ const Firehose = ({ feedType, multiColumn }) => {
         <ColumnSettings />
       </ColumnHeader>
 
-      <div className='account__section-headline'>
-        <NavLink exact to='/public/local'>
-          <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
-        </NavLink>
+      {enableLocalTimeline && (
+        <div className='account__section-headline'>
+          <NavLink exact to='/public/local'>
+            <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
+          </NavLink>
+          
+          <NavLink exact to='/public/remote'>
+            <FormattedMessage tagName='div' id='firehose.remote' defaultMessage='Other servers' />
+          </NavLink>
 
-        <NavLink exact to='/public/remote'>
-          <FormattedMessage tagName='div' id='firehose.remote' defaultMessage='Other servers' />
-        </NavLink>
-
-        <NavLink exact to='/public'>
-          <FormattedMessage tagName='div' id='firehose.all' defaultMessage='All' />
-        </NavLink>
-      </div>
+          <NavLink exact to='/public'>
+            <FormattedMessage tagName='div' id='firehose.all' defaultMessage='All' />
+          </NavLink>
+        </div>
+      )}
 
       <StatusListContainer
         prepend={prependBanner}

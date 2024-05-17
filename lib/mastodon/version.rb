@@ -4,6 +4,20 @@ module Mastodon
   module Version
     module_function
 
+    def kmyblue_major
+      13
+    end
+
+    def kmyblue_minor
+      0
+    end
+
+    def kmyblue_flag
+      # 'LTS'
+      'dev'
+      # nil
+    end
+
     def major
       4
     end
@@ -17,14 +31,35 @@ module Mastodon
     end
 
     def default_prerelease
-      'alpha.0'
+      'alpha.3'
     end
 
     def prerelease
       ENV['MASTODON_VERSION_PRERELEASE'].presence || default_prerelease
     end
 
+    def to_a_of_kmyblue
+      [kmyblue_major, kmyblue_minor].compact
+    end
+
+    def to_s_of_kmyblue
+      components = [to_a_of_kmyblue.join('.')]
+      components << "-#{kmyblue_flag}" if kmyblue_flag.present?
+      components.join
+    end
+
+    def to_s_of_mastodon
+      components = [to_a.join('.')]
+      components << "-#{prerelease}" if prerelease.present?
+      components << "+#{build_metadata_of_mastodon}" if build_metadata_of_mastodon.present?
+      components.join
+    end
+
     def build_metadata
+      ['kmyblue', to_s_of_kmyblue, build_metadata_of_mastodon].compact.join('.')
+    end
+
+    def build_metadata_of_mastodon
       ENV.fetch('MASTODON_VERSION_METADATA', nil)
     end
 
@@ -40,11 +75,23 @@ module Mastodon
     end
 
     def gem_version
-      @gem_version ||= Gem::Version.new(to_s.split('+')[0])
+      @gem_version ||= if ENV.fetch('UPDATE_CHECK_SOURCE', 'kmyblue') == 'kmyblue'
+                         Gem::Version.new("#{kmyblue_major}.#{kmyblue_minor}")
+                       else
+                         Gem::Version.new(to_s.split('+')[0])
+                       end
+    end
+
+    def lts?
+      kmyblue_flag == 'LTS'
+    end
+
+    def dev?
+      kmyblue_flag == 'dev'
     end
 
     def repository
-      ENV.fetch('GITHUB_REPOSITORY', 'mastodon/mastodon')
+      ENV.fetch('GITHUB_REPOSITORY', 'kmycode/mastodon')
     end
 
     def source_base_url

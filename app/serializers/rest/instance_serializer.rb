@@ -8,10 +8,12 @@ class REST::InstanceSerializer < ActiveModel::Serializer
   end
 
   include RoutingHelper
+  include KmyblueCapabilitiesHelper
+  include RegistrationLimitationHelper
 
   attributes :domain, :title, :version, :source_url, :description,
              :usage, :thumbnail, :languages, :configuration,
-             :registrations
+             :registrations, :fedibird_capabilities
 
   has_one :contact, serializer: ContactSerializer
   has_many :rules, serializer: REST::RuleSerializer
@@ -28,7 +30,7 @@ class REST::InstanceSerializer < ActiveModel::Serializer
       }
     else
       {
-        url: full_pack_url('media/images/preview.png'),
+        url: frontend_asset_url('images/preview.png'),
       }
     end
   end
@@ -54,11 +56,14 @@ class REST::InstanceSerializer < ActiveModel::Serializer
 
       accounts: {
         max_featured_tags: FeaturedTag::LIMIT,
+        max_pinned_statuses: StatusPinValidator::PIN_LIMIT,
       },
 
       statuses: {
         max_characters: StatusLengthValidator::MAX_CHARS,
-        max_media_attachments: 4,
+        max_media_attachments: MediaAttachment::LOCAL_STATUS_ATTACHMENT_MAX,
+        max_media_attachments_with_poll: MediaAttachment::LOCAL_STATUS_ATTACHMENT_MAX_WITH_POLL,
+        max_media_attachments_from_activitypub: MediaAttachment::ACTIVITYPUB_STATUS_ATTACHMENT_MAX,
         characters_reserved_per_url: StatusLengthValidator::URL_PLACEHOLDER_CHARS,
       },
 
@@ -76,10 +81,30 @@ class REST::InstanceSerializer < ActiveModel::Serializer
         max_characters_per_option: PollValidator::MAX_OPTION_CHARS,
         min_expiration: PollValidator::MIN_EXPIRATION,
         max_expiration: PollValidator::MAX_EXPIRATION,
+        allow_image: true,
       },
 
       translation: {
         enabled: TranslationService.configured?,
+      },
+
+      emoji_reactions: {
+        max_reactions: EmojiReaction::EMOJI_REACTION_LIMIT,
+        max_reactions_per_account: EmojiReaction::EMOJI_REACTION_PER_ACCOUNT_LIMIT,
+        max_reactions_per_remote_account: EmojiReaction::EMOJI_REACTION_PER_REMOTE_ACCOUNT_LIMIT,
+      },
+
+      reaction_deck: {
+        max_emojis: User::REACTION_DECK_MAX,
+      },
+
+      reactions: {
+        max_reactions: EmojiReaction::EMOJI_REACTION_PER_ACCOUNT_LIMIT,
+      },
+
+      # https://github.com/mastodon/mastodon/pull/27009
+      search: {
+        enabled: Chewy.enabled?,
       },
     }
   end
@@ -87,7 +112,8 @@ class REST::InstanceSerializer < ActiveModel::Serializer
   def registrations
     {
       enabled: registrations_enabled?,
-      approval_required: Setting.registrations_mode == 'approved',
+      approval_required: Setting.registrations_mode == 'approved' || (Setting.registrations_mode == 'open' && !registrations_in_time?),
+      limit_reached: Setting.registrations_mode != 'none' && reach_registrations_limit?,
       message: registrations_enabled? ? nil : registrations_message,
       url: ENV.fetch('SSO_ACCOUNT_SIGN_UP', nil),
     }
@@ -96,7 +122,7 @@ class REST::InstanceSerializer < ActiveModel::Serializer
   private
 
   def registrations_enabled?
-    Setting.registrations_mode != 'none' && !Rails.configuration.x.single_user_mode
+    Setting.registrations_mode != 'none' && !reach_registrations_limit? && !Rails.configuration.x.single_user_mode
   end
 
   def registrations_message

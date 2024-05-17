@@ -8,7 +8,9 @@ class Api::V1::Timelines::PublicController < Api::V1::Timelines::BaseController
   def show
     cache_if_unauthenticated!
     @statuses = load_statuses
-    render json: @statuses, each_serializer: REST::StatusSerializer, relationships: StatusRelationshipsPresenter.new(@statuses, current_user&.account_id)
+    render json: @statuses, each_serializer: REST::StatusSerializer,
+           relationships: StatusRelationshipsPresenter.new(@statuses, current_user&.account_id),
+           emoji_reaction_permitted_account_ids: EmojiReactionAccountsPresenter.new(@statuses, current_user&.account_id)
   end
 
   private
@@ -18,11 +20,11 @@ class Api::V1::Timelines::PublicController < Api::V1::Timelines::BaseController
   end
 
   def load_statuses
-    cached_public_statuses_page
+    preloaded_public_statuses_page
   end
 
-  def cached_public_statuses_page
-    cache_collection(public_statuses, Status)
+  def preloaded_public_statuses_page
+    preload_collection(public_statuses, Status)
   end
 
   def public_statuses

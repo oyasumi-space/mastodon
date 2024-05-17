@@ -12,4 +12,9 @@ export const CustomEmojiFactory = Record<CustomEmojiShape>({
   url: '',
   category: '',
   visible_in_picker: false,
+  width: 32,
+  height: 32,
+  sensitive: false,
+  aliases: [],
+  license: '',
 });

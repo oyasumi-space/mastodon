@@ -37,7 +37,7 @@ class Api::V1::FollowRequestsController < Api::BaseController
   end
 
   def default_accounts
-    Account.without_suspended.includes(:follow_requests, :account_stat).references(:follow_requests)
+    Account.without_suspended.includes(:follow_requests, :account_stat, :user).references(:follow_requests)
   end
 
   def paginated_follow_requests
@@ -46,10 +46,6 @@ class Api::V1::FollowRequestsController < Api::BaseController
       params[:max_id],
       params[:since_id]
     )
-  end
-
-  def insert_pagination_headers
-    set_pagination_headers(next_path, prev_path)
   end
 
   def next_path

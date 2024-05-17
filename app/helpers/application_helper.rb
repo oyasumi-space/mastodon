@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  include RegistrationLimitationHelper
+
   DANGEROUS_SCOPES = %w(
     read
     write
@@ -28,20 +30,12 @@ module ApplicationHelper
     number_to_human(number, **options)
   end
 
-  def active_nav_class(*paths)
-    paths.any? { |path| current_page?(path) } ? 'active' : ''
-  end
-
-  def show_landing_strip?
-    !user_signed_in? && !single_user_mode?
-  end
-
   def open_registrations?
-    Setting.registrations_mode == 'open'
+    Setting.registrations_mode == 'open' && registrations_in_time?
   end
 
   def approved_registrations?
-    Setting.registrations_mode == 'approved'
+    Setting.registrations_mode == 'approved' || (Setting.registrations_mode == 'open' && !registrations_in_time?)
   end
 
   def closed_registrations?
@@ -121,8 +115,16 @@ module ApplicationHelper
     content_tag(:i, nil, attributes.merge(class: class_names.join(' ')))
   end
 
+  def material_symbol(icon, attributes = {})
+    inline_svg_tag(
+      "400-24px/#{icon}.svg",
+      class: %w(icon).concat(attributes[:class].to_s.split),
+      role: :img
+    )
+  end
+
   def check_icon
-    content_tag(:svg, tag.path('fill-rule': 'evenodd', 'clip-rule': 'evenodd', d: 'M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z'), xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 20 20', fill: 'currentColor')
+    inline_svg_tag 'check.svg'
   end
 
   def visibility_icon(status)
@@ -130,6 +132,10 @@ module ApplicationHelper
       fa_icon('globe', title: I18n.t('statuses.visibilities.public'))
     elsif status.unlisted_visibility?
       fa_icon('unlock', title: I18n.t('statuses.visibilities.unlisted'))
+    elsif status.public_unlisted_visibility?
+      fa_icon('cloud', title: I18n.t('statuses.visibilities.public_unlisted'))
+    elsif status.login_visibility?
+      fa_icon('key', title: I18n.t('statuses.visibilities.login'))
     elsif status.private_visibility? || status.limited_visibility?
       fa_icon('lock', title: I18n.t('statuses.visibilities.private'))
     elsif status.direct_visibility?
@@ -195,10 +201,14 @@ module ApplicationHelper
       text: [params[:title], params[:text], params[:url]].compact.join(' '),
     }
 
-    permit_visibilities = %w(public unlisted private direct)
-    default_privacy     = current_account&.user&.setting_default_privacy
+    permit_visibilities = %w(public unlisted public_unlisted login private direct)
+    permit_searchabilities = %w(public unlisted public_unlisted login private direct)
+    default_privacy = current_account&.user&.setting_default_privacy
     permit_visibilities.shift(permit_visibilities.index(default_privacy) + 1) if default_privacy.present?
     state_params[:visibility] = params[:visibility] if permit_visibilities.include? params[:visibility]
+    default_searchability = current_account&.user&.setting_default_searchability
+    permit_searchabilities.shift(permit_searchabilities.index(default_privacy) + 1) if default_searchability.present?
+    state_params[:searchability] = params[:searchability] if permit_searchabilities.include? params[:searchability]
 
     if user_signed_in? && current_user.functional?
       state_params[:settings]          = state_params[:settings].merge(Web::Setting.find_by(user: current_user)&.data || {})
@@ -213,7 +223,7 @@ module ApplicationHelper
       state_params[:moved_to_account] = current_account.moved_to_account
     end
 
-    state_params[:owner] = Account.local.without_suspended.where('id > 0').first if single_user_mode?
+    state_params[:owner] = Account.local.without_suspended.without_internal.first if single_user_mode?
 
     json = ActiveModelSerializers::SerializableResource.new(InitialStatePresenter.new(state_params), serializer: InitialStateSerializer).to_json
     # rubocop:disable Rails/OutputSafety
@@ -238,6 +248,22 @@ module ApplicationHelper
 
   def prerender_custom_emojis(html, custom_emojis, other_options = {})
     EmojiFormatter.new(html, custom_emojis, other_options.merge(animate: prefers_autoplay?)).to_s
+  end
+
+  def prerender_custom_emojis_from_hash(html, custom_emojis_hash)
+    prerender_custom_emojis(html, JSON.parse([custom_emojis_hash].to_json, object_class: OpenStruct)) # rubocop:disable Style/OpenStructUse
+  end
+
+  def instance_presenter
+    @instance_presenter ||= InstancePresenter.new
+  end
+
+  def favicon_path(size = '48')
+    instance_presenter.favicon&.file&.url(size)
+  end
+
+  def app_icon_path(size = '48')
+    instance_presenter.app_icon&.file&.url(size)
   end
 
   private

@@ -1144,7 +1144,6 @@ si:
   notifications:
     email_events: ඊමේල් දැනුම්දීම් සඳහා සිදුවීම්
     email_events_hint: 'ඔබට දැනුම්දීම් ලැබීමට අවශ්‍ය සිදුවීම් තෝරන්න:'
-    other_settings: වෙනත් දැනුම්දීම් සැකසුම්
   number:
     human:
       decimal_units:
@@ -1275,7 +1274,6 @@ si:
     import: ආයාතය
     import_and_export: ආයාත හා නිර්යාත
     migrate: ගිණුම් සංක්‍රමණය
-    notifications: දැනුම්දීම්
     preferences: අභිප්‍රේත
     profile: ප්‍රසිද්ධ පැතිකඩ
     relationships: අනුගමන හා අනුගාමික
@@ -1317,8 +1315,6 @@ si:
         other: ඡන්ද %{count} යි
       vote: ඡන්දය
     show_more: තව පෙන්වන්න
-    show_newer: අලුත්ම පෙන්වන්න
-    show_older: පැරණි පෙන්වන්න
     show_thread: නූල් පෙන්වන්න
     title: '%{name}: "%{quote}"'
     visibilities:
@@ -1389,7 +1385,6 @@ si:
     webauthn: ආරක්‍ෂණ යතුරු
   user_mailer:
     appeal_approved:
-      action: ඔබගේ ගිණුමට යන්න
       explanation: ඔබ %{appeal_date} දින ඉදිරිපත් කළ %{strike_date} හි ඔබේ ගිණුමට එරෙහි වර්ජනයේ අභියාචනය අනුමත කර ඇත. ඔබගේ ගිණුම නැවත වරක් හොඳ තත්වයක පවතී.
       subject: "%{date} සිට ඔබගේ අභියාචනය අනුමත කර ඇත"
       title: අභියාචනය අනුමත කර ඇත
@@ -1398,7 +1393,6 @@ si:
       subject: "%{date} සිට ඔබගේ අභියාචනය ප්‍රතික්ෂේප කර ඇත"
       title: අභියාචනය ප්‍රතික්ෂේප විය
     backup_ready:
-      explanation: ඔබගේ මාස්ටඩන් ගිණුමේ පූර්ණ උපස්ථයක් ඉල්ලා ඇත. එය දැන් බාගැනීමට හැකිය!
       subject: ඔබගේ සංරක්ෂිතය බාගැනීමට සූදානම්ය
       title: සංරක්ෂිත රැගෙන යාම
     suspicious_sign_in:
@@ -1436,11 +1430,7 @@ si:
         silence: ගිණුම සීමා කර ඇත
         suspend: ගිණුම අත්හිටුවා ඇත
     welcome:
-      edit_profile_action: පැතිකඩ පිහිටුවන්න
       explanation: ඔබ ආරම්භ කිරීමට උපදෙස් කිහිපයක් මෙන්න
-      final_action: ලිපි පළ කරන්න
-      full_handle: ඔබේ සම්පූර්ණ හසුරුව
-      full_handle_hint: මෙය ඔබ ඔබේ මිතුරන්ට පවසනු ඇත, එවිට ඔවුන්ට වෙනත් සේවාදායකයකින් ඔබට පණිවිඩ යැවීමට හෝ අනුගමනය කිරීමට හැකිය.
       subject: මාස්ටඩන් වෙත පිළිගනිමු
       title: නැවට සාදරයෙන් පිළිගනිමු, %{name}!
   users:

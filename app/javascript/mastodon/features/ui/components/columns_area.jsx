@@ -17,9 +17,14 @@ import {
   HashtagTimeline,
   DirectTimeline,
   FavouritedStatuses,
+  EmojiReactedStatuses,
   BookmarkedStatuses,
   ListTimeline,
   Directory,
+  BookmarkCategoryStatuses,
+  AntennaSetting,
+  AntennaTimeline,
+  CircleStatuses,
 } from '../util/async-components';
 import { useColumnsContext } from '../util/columns_context';
 
@@ -39,7 +44,12 @@ const componentMap = {
   'HASHTAG': HashtagTimeline,
   'DIRECT': DirectTimeline,
   'FAVOURITES': FavouritedStatuses,
+  'EMOJI_REACTIONS': EmojiReactedStatuses,
   'BOOKMARKS': BookmarkedStatuses,
+  'BOOKMARKS_EX': BookmarkCategoryStatuses,
+  'CIRCLE_STATUSES': CircleStatuses,
+  'ANTENNA': AntennaSetting,
+  'ANTENNA_TIMELINE': AntennaTimeline,
   'LIST': ListTimeline,
   'DIRECTORY': Directory,
 };

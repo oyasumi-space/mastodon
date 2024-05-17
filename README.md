@@ -1,142 +1,112 @@
-<h1><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./lib/assets/wordmark.dark.png?raw=true">
-  <source media="(prefers-color-scheme: light)" srcset="./lib/assets/wordmark.light.png?raw=true">
-  <img alt="Mastodon" src="./lib/assets/wordmark.light.png?raw=true" height="34">
-</picture></h1>
+# ![kmyblue icon](https://raw.githubusercontent.com/kmycode/mastodon/kb_development/app/javascript/icons/favicon-32x32.png) kmyblue
 
-[![GitHub release](https://img.shields.io/github/release/mastodon/mastodon.svg)][releases]
-[![Ruby Testing](https://github.com/mastodon/mastodon/actions/workflows/test-ruby.yml/badge.svg)](https://github.com/mastodon/mastodon/actions/workflows/test-ruby.yml)
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/mastodon/localized.svg)][crowdin]
+[![Ruby Testing](https://github.com/kmycode/mastodon/actions/workflows/test-ruby.yml/badge.svg)](https://github.com/kmycode/mastodon/actions/workflows/test-ruby.yml)
 
-[releases]: https://github.com/mastodon/mastodon/releases
-[crowdin]: https://crowdin.com/project/mastodon
+kmyblueは[Mastodon](https://github.com/mastodon/mastodon)のフォークです。創作作家のためのMastodonを目指して開発しました。
 
-Mastodon is a **free, open-source social network server** based on ActivityPub where users can follow friends and discover new ones. On Mastodon, users can publish anything they want: links, pictures, text, and video. All Mastodon servers are interoperable as a federated network (users on one server can seamlessly communicate with users from another one, including non-Mastodon software that implements ActivityPub!)
+kmyblueはフォーク名であり、同時に[サーバー名](https://kmy.blue)でもあります。以下は特に記述がない限り、フォークとしてのkmyblueをさします。
 
-Click below to **learn more** in a video:
+kmyblueは AGPL ライセンスで公開されているため、どなたでも自由にフォークし、このソースコードを元に自分でサーバーを立てて公開することができます。確かにサーバーkmyblueは創作作家向けのものですが、フォークとしてのkmyblueはAGPLでライセンスつけられており、ルールは全くの別物です。創作活動の一部（エロ関係含む）または全体を否定するコミュニティなどにも平等にお使いいただけます。サーバーkmyblueのルールを適用する必要もなく、「Anyone But Kmyblue」なルールを設定することすら許容されます。  
+kmyblueは、特に非収載投稿の検索が強化されているため、ローカルタイムラインに掲載されていない投稿も検索・購読することが可能な場合があります。閉鎖的なコミュニティ、あまり目立ちたくないコミュニティには特に強力な機能を提供します。それ以外のコミュニティに対しても、kmyblueはプライバシーを考慮したうえで強力な検索・購読機能を提供するため、汎用サーバーとして利用するにもある程度十分な機能が揃っています。
 
-[![Screenshot](https://blog.joinmastodon.org/2018/06/why-activitypub-is-the-future/ezgif-2-60f1b00403.gif)][youtube_demo]
+ただしkmyblueにおいて**テストコードは飾り**でしかありません。これはkmyblueを利用する人が本家Mastodonより圧倒的に少なく、バグやセキュリティインシデントを発見するだけの人数が足りないことを意味します。kmyblueは対策として自動テストを拡充しています。独自機能のテストを記述するだけでなく、本家のテストコードの補強も行っておりますが、確認漏れは必ず発生するものです。不具合が発生しても自己責任になります。既知のバグもいくつかありますし、直す予定のないものも含まれます。
 
-[youtube_demo]: https://www.youtube.com/watch?v=IPSbNdBmWKE
+テストコード、Lint どちらも動いています。
 
-## Navigation
+## インストール方法
 
-- [Project homepage 🐘](https://joinmastodon.org)
-- [Support the development via Patreon][patreon]
-- [View sponsors](https://joinmastodon.org/sponsors)
-- [Blog](https://blog.joinmastodon.org)
-- [Documentation](https://docs.joinmastodon.org)
-- [Roadmap](https://joinmastodon.org/roadmap)
-- [Official Docker image](https://github.com/mastodon/mastodon/pkgs/container/mastodon)
-- [Browse Mastodon servers](https://joinmastodon.org/communities)
-- [Browse Mastodon apps](https://joinmastodon.org/apps)
+[Wiki](https://github.com/kmycode/mastodon/wiki/Installation)を参照してください。
 
-[patreon]: https://www.patreon.com/mastodon
+## 開発への参加方法
 
-## Features
+CONTRIBUTING.mdを参照してください。
 
-<img src="/app/javascript/images/elephant_ui_working.svg?raw=true" align="right" width="30%" />
+## テスト
 
-### No vendor lock-in: Fully interoperable with any conforming platform
+```
+# デバッグ実行（以下のいずれか）
+foreman start
+DB_USER=postgres DB_PASS=password foreman start
 
-It doesn't have to be Mastodon; whatever implements ActivityPub is part of the social network! [Learn more](https://blog.joinmastodon.org/2018/06/why-activitypub-is-the-future/)
+# 一部を除く全てのテストを行う
+RAILS_ENV=test bundle exec rspec spec
 
-### Real-time, chronological timeline updates
+# ElasticSearch連携テストを行う
+新
+RAILS_ENV=test ES_ENABLED=true bundle exec rspec --tag search
+旧
+RAILS_ENV=test ES_ENABLED=true RUN_SEARCH_SPECS=true bundle exec rspec spec/search
+```
 
-Updates of people you're following appear in real-time in the UI via WebSockets. There's a firehose view as well!
+## kmyblueのブランチ
 
-### Media attachments like images and short videos
+- **main** - 管理者が本家MastodonにPRするときに使うことがあります
+- **kb_development** - 開発中の最新のソースコードです。メジャーバージョンアップデートは通常このブランチから公開されます
+- **kb_lts** - LTSの管理に使います。LTSはこのブランチから公開されます
+- **kb_patch** - 修正パッチの管理に使います。マイナーバージョンアップデートは通常このブランチから公開されます
 
-Upload and view images and WebM/MP4 videos attached to the updates. Videos with no audio track are treated like GIFs; normal videos loop continuously!
+## kmyblueの強み
 
-### Safety and moderation tools
+追加の詳細は下記記事もご覧ください。
 
-Mastodon includes private posts, locked accounts, phrase filtering, muting, blocking, and all sorts of other features, along with a reporting and moderation system. [Learn more](https://blog.joinmastodon.org/2018/07/cage-the-mastodon/)
+https://note.com/kmycode/n/n5fd5e823ed40
 
-### OAuth2 and a straightforward REST API
+以下に書いているもの以外にも多数の機能が存在します。
 
-Mastodon acts as an OAuth2 provider, so 3rd party apps can use the REST and Streaming APIs. This results in a rich app ecosystem with a lot of choices!
+### 本家Mastodonへの積極的追従
 
-## Deployment
+kmyblueは、追加機能を控えめにする代わりに本家Mastodonに積極的に追従を行います。kmyblueの追加機能そのままに、Mastodonの新機能も利用できるよう調整を行います。
 
-### Tech stack
+### ゆるやかな内輪での運用
 
-- **Ruby on Rails** powers the REST API and other web pages
-- **React.js** and Redux are used for the dynamic parts of the interface
-- **Node.js** powers the streaming API
+kmyblueは同人向けサーバーとして出発したため、同人作家に需要のある「内輪ノリを外部にできるだけもらさない」という部分に特化しています。
 
-### Requirements
+「ローカル公開」という機能によって、「ローカルタイムラインに流すが他のサーバーの連合タイムラインに流さない」投稿が可能です。ただしMisskeyのローカル限定とは異なり、他のサーバーのフォロワーのタイムラインにも投稿は流れます。自分のサーバーの中で内輪で盛り上がって、他のサーバーの連合タイムラインには外面だけの投稿を流すことも可能です。
 
-- **PostgreSQL** 12+
-- **Redis** 4+
-- **Ruby** 2.7+
-- **Node.js** 16+
+「サークル」という機能によって、特定のフォロワーにだけ見える投稿を行うことも可能です。その投稿に返信することで、相手サークルの会話に参加することも可能です。ただしサークル投稿を正常に処理できるソフトウェアは現在、kmyblue・Fedibirdに限ります。
 
-The repository includes deployment configurations for **Docker and docker-compose** as well as specific platforms like **Heroku**, **Scalingo**, and **Nanobox**. For Helm charts, reference the [mastodon/chart repository](https://github.com/mastodon/chart). The [**standalone** installation guide](https://docs.joinmastodon.org/admin/install/) is available in the documentation.
+また、通常のMastodonでは公開投稿を他のサーバーの人に自由に検索できるようにすることも可能ですが、kmyblueでは非収載投稿に対して同様の設定が可能です。つまり、ローカルタイムラインにも連合タイムラインにも流れない、誰かの目に自然に触れることはない、でも特定キーワードを使った検索では引っかかりたい、そのような需要に対応できます。
 
-## Development
+内輪とは自分のサーバーに限ったものではありません。内輪同士で複数のサーバーを運営するとき、お互いが深く繋がれるフレンドサーバーというシステムも用意しています。
 
-### Vagrant
+ただしkmyblueは、同時に連合も重視しています。ローカル限定投稿など、連合を大きく制限させるような機能は作る予定はありません。
 
-A **Vagrant** configuration is included for development purposes. To use it, complete the following steps:
+### 少人数サーバーでの運用
 
-- Install Vagrant and Virtualbox
-- Install the `vagrant-hostsupdater` plugin: `vagrant plugin install vagrant-hostsupdater`
-- Run `vagrant up`
-- Run `vagrant ssh -c "cd /vagrant && foreman start"`
-- Open `http://mastodon.local` in your browser
+kmyblueは、人の少ないサーバーでの運用を考慮して設計しています。そのため、他のサーバーのアカウントの購読機能はFedibirdほど発達していませんし、人の多いサーバー向けの独自改造もほとんど存在しません。
 
-### MacOS
+ただしサーバーの負荷については一部度外視している部分があります。たとえば絵文字リアクション機能はサーバーへ著しい負荷をかける場合があります。絵文字リアクション機能そのものを無効にする管理者オプションも存在します。
 
-To set up **MacOS** for native development, complete the following steps:
+もちろん人の多いサーバーでの運用が不便になるような修正は行っていません。人の多いサーバーでもそのままお使いいただけます。
 
-- Install the latest stable Ruby version (use a Ruby version manager for easy installation and management of Ruby versions)
-- Run `brew install postgresql@14`
-- Run `brew install redis`
-- Run `brew install imagemagick`
-- Run `brew install libidn`
-- Install Foreman or a similar tool (such as [overmind](https://github.com/DarthSim/overmind)) to handle multiple process launching.
-- Navigate to Mastodon's root directory and run `brew install nvm` then `nvm use` to use the version from .nvmrc
-- Run `corepack enable && corepack prepare`
-- Run `bundle exec rails db:setup` (optionally prepend `RAILS_ENV=development` to target the dev environment)
-- Finally, run `overmind start -f Procfile.dev`
+### 比較的高い防御力
 
-### Docker
+kmyblueでは、「Fediverseは将来的に荒むのではないか」「Fediverseは将来的にスパムに溢れるのではないか」を念頭に設計している部分があります。
 
-For development with **Docker**, complete the following steps:
+個別ユーザー向けの設定項目が複数あります。
 
-- Install Docker Desktop
-- Run `docker compose -f .devcontainer/docker-compose.yml up -d`
-- Run `docker compose -f .devcontainer/docker-compose.yml exec app .devcontainer/post-create.sh`
-- Finally, run `docker compose -f .devcontainer/docker-compose.yml exec app foreman start -f Procfile.dev`
+- Misskeyは、たとえMastodonの投稿であっても非収載投稿を自由に検索できますが、kmyblueではそれをブロックできるユーザー設定が存在します
+- 他の人からの絵文字リアクションの受け入れを制限する設定も可能であり、例えば他のサーバーから好ましくない絵文字リアクションを受け取ることを防止できます
+- 公開タイムラインの引用表示はデフォルトで無効になっています。不快な投稿を引用したものが公開タイムラインに流れても、ある程度は防止できます
+  - フィルター（ワードミュート）は、引用された投稿の内容にも適用されます。この場合、引用投稿そのものが表示されなくなります
+- 自分のフォローしている相手の投稿をフィルターから除外する設定が存在します。防御を上げすぎると不便な箇所が出てくるので、そちらも緩和できるよう可能な限り配慮しています
 
-If you are using an IDE with [support for the Development Container specification](https://containers.dev/supporting), it will run the above `docker compose` commands automatically. For **Visual Studio Code** this requires the [Dev Container extension](https://containers.dev/supporting#dev-containers).
+管理者向けには、スパムへの利用を前提とした正規表現可能なNGワード設定、細かい指定が可能な拡張ドメインブロック機能を用意しています。
 
-### GitHub Codespaces
+ただし防御力の高さは自由を犠牲にします。例えばkmyblueは、絵文字リアクションの表示サイズ調整機能など、MisskeyやFedibirdには当たり前のようにある表示設定は存在しません。騒がしくなるようなものはあまり作りたいとは考えていません。
 
-To get you coding in just a few minutes, GitHub Codespaces provides a web-based version of Visual Studio Code and a cloud-hosted development environment fully configured with the software needed for this project..
+### その他の主な機能
 
-- Click this button to create a new codespace:<br>
-  [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=52281283&devcontainer_path=.devcontainer%2Fcodespaces%2Fdevcontainer.json)
-- Wait for the environment to build. This will take a few minutes.
-- When the editor is ready, run `foreman start -f Procfile.dev` in the terminal.
-- After a few seconds, a popup will appear with a button labeled _Open in Browser_. This will open Mastodon.
-- On the _Ports_ tab, right click on the “stream” row and select _Port visibility_ → _Public_.
+- 絵文字リアクションによる手軽な交流
+- 絵文字デッキによる頻繁に使用する絵文字の登録・選択
+- 検索機能の強化（検索許可）
+- 投稿の引用
+- ブックマークの分類
 
-## Contributing
+## kmyblueは何でないか
 
-Mastodon is **free, open-source software** licensed under **AGPLv3**.
+kmyblueは、Misskeyではありません。絵文字リアクションなどMisskeyと同様の機能はありますが、根本的にUIの使い勝手が違う他にも、例えばブックマークを分類できてもそれを公開する機能を作っていません。Misskeyは「楽しむ」をコンセプトにしていますが、kmyblueはMastodonの思想を受け継ぎ、炎上や喧騒を避けることのできる落ち着いた場所を目指しています。そのため、思想に合わない機能は実装しないか、大幅に弱体化しています。
 
-You can open issues for bugs you've found or features you think are missing. You can also submit pull requests to this repository or submit translations using Crowdin. To get started, take a look at [CONTRIBUTING.md](CONTRIBUTING.md). If your contributions are accepted into Mastodon, you can request to be paid through [our OpenCollective](https://opencollective.com/mastodon).
+kmyblueは、Fedibirdではありません。確かにローカルタイムラインを無効にしFedibirdのような運営を可能にする設定は存在します。しかしkmyblueは本家追従を優先する観点からWebで対応する範囲をある程度絞り込んでいるため、Fedibirdにあるような豊富な表示設定は作っていません。絵文字の大きさすら調整することはできません。また、Fedibirdではアカウントの購読機能があります。kmyblueにも同様の機能はあるものの、Fedibirdのように一発ですぐできるようなUIではありません。購読機能は相手のフォローを伴わないため、特に利用者に擬似的なフォロー体験を与えるアカウント購読は、人の少ない小規模サーバーには向いていません。これは、小規模サーバーの運用を想定しているkmyblueがあえて作っていない部分です。
 
-**IRC channel**: #mastodon on irc.libera.chat
-
-## License
-
-Copyright (C) 2016-2024 Eugen Rochko & other Mastodon contributors (see [AUTHORS.md](AUTHORS.md))
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+kmyblueは、企業・政府機関向けに開発されたものではありません。そもそも管理者はセキュリティに関する資格や専門知識を有しておらず、高度なセキュリティの求められる機関向けのソフトウェアを制作する能力はありません。kmyblueは確かに本家Mastodonに対して大幅に機能を追加していますが、そもそも個人によるフォークは、開発者が飽きたらそこで終わりというリスクも伴います。高い信頼性・安全性を保証することはできないので、導入の際はご自身で安全を十分に確認してからお使いになることを強くおすすめします。

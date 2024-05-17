@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ReportService, type: :service do
+RSpec.describe ReportService do
   subject { described_class.new }
 
   let(:source_account) { Fabricate(:account) }
@@ -53,7 +53,7 @@ RSpec.describe ReportService, type: :service do
         end
 
         context 'when forward_to_domains includes only the replied-to domain' do
-          it 'sends ActivityPub payload only to the author of the replied-to post' do
+          it 'sends ActivityPub payload only to the author of the replied-to post', :sidekiq_inline do
             subject.call(source_account, remote_account, status_ids: [reported_status.id], forward: forward, forward_to_domains: [remote_thread_account.domain])
             expect(a_request(:post, 'http://foo.com/inbox')).to have_been_made
             expect(a_request(:post, 'http://example.com/inbox')).to_not have_been_made
@@ -61,7 +61,7 @@ RSpec.describe ReportService, type: :service do
         end
 
         context 'when forward_to_domains does not include the replied-to domain' do
-          it 'does not send ActivityPub payload to the author of the replied-to post' do
+          it 'does not send ActivityPub payload to the author of the replied-to post', :sidekiq_inline do
             subject.call(source_account, remote_account, status_ids: [reported_status.id], forward: forward)
             expect(a_request(:post, 'http://foo.com/inbox')).to_not have_been_made
           end
@@ -89,7 +89,7 @@ RSpec.describe ReportService, type: :service do
     end
 
     context 'when forward is false' do
-      it 'does not send anything' do
+      it 'does not send anything', :sidekiq_inline do
         subject.call(source_account, remote_account, forward: forward)
         expect(a_request(:post, 'http://example.com/inbox')).to_not have_been_made
       end
@@ -158,13 +158,14 @@ RSpec.describe ReportService, type: :service do
 
     before do
       Fabricate(:report, target_account: target_account)
-      ActionMailer::Base.deliveries.clear
       source_account.user.settings['notification_emails.report'] = true
       source_account.user.save
     end
 
     it 'does not send an e-mail' do
-      expect { subject.call }.to_not change(ActionMailer::Base.deliveries, :count).from(0)
+      emails = capture_emails { subject.call }
+
+      expect(emails).to be_empty
     end
   end
 end

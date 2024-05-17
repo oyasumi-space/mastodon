@@ -2,13 +2,15 @@
 
 require 'rails_helper'
 
-RSpec.describe BackupService, type: :service do
+RSpec.describe BackupService do
   subject(:service_call) { described_class.new.call(backup) }
 
   let!(:user)           { Fabricate(:user) }
   let!(:attachment)     { Fabricate(:media_attachment, account: user.account) }
   let!(:status)         { Fabricate(:status, account: user.account, text: 'Hello', visibility: :public, media_attachments: [attachment]) }
   let!(:private_status) { Fabricate(:status, account: user.account, text: 'secret', visibility: :private) }
+  let!(:limited_status) { Fabricate(:status, account: user.account, text: 'sec mutual', visibility: :limited, limited_scope: :mutual) }
+  let!(:reblog_status)  { Fabricate(:status, account: user.account, reblog_of_id: Fabricate(:status).id) }
   let!(:favourite)      { Fabricate(:favourite, account: user.account) }
   let!(:bookmark)       { Fabricate(:bookmark, account: user.account) }
   let!(:backup)         { Fabricate(:backup, user: user) }
@@ -60,10 +62,12 @@ RSpec.describe BackupService, type: :service do
     aggregate_failures do
       expect(json['@context']).to_not be_nil
       expect(json['type']).to eq 'OrderedCollection'
-      expect(json['totalItems']).to eq 2
+      expect(json['totalItems']).to eq 4
       expect(json['orderedItems'][0]['@context']).to be_nil
       expect(json['orderedItems'][0]).to include_create_item(status)
       expect(json['orderedItems'][1]).to include_create_item(private_status)
+      expect(json['orderedItems'][2]).to include_create_item(limited_status)
+      expect(json['orderedItems'][3]).to include_announce_item(reblog_status)
     end
   end
 
@@ -96,6 +100,13 @@ RSpec.describe BackupService, type: :service do
         'id' => ActivityPub::TagManager.instance.uri_for(status),
         'content' => "<p>#{status.text}</p>",
       }),
+    })
+  end
+
+  def include_announce_item(status)
+    include({
+      'type' => 'Announce',
+      'object' => ActivityPub::TagManager.instance.uri_for(status.reblog),
     })
   end
 end

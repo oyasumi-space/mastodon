@@ -23,13 +23,31 @@ module ContextHelper
     indexable: { 'toot' => 'http://joinmastodon.org/ns#', 'indexable' => 'toot:indexable' },
     memorial: { 'toot' => 'http://joinmastodon.org/ns#', 'memorial' => 'toot:memorial' },
     voters_count: { 'toot' => 'http://joinmastodon.org/ns#', 'votersCount' => 'toot:votersCount' },
+    emoji_reactions: { 'fedibird' => 'http://fedibird.com/ns#', 'emojiReactions' => { '@id' => 'fedibird:emojiReactions', '@type' => '@id' } },
+    searchable_by: { 'fedibird' => 'http://fedibird.com/ns#', 'searchableBy' => { '@id' => 'fedibird:searchableBy', '@type' => '@id' } },
+    subscribable_by: { 'kmyblue' => 'http://kmy.blue/ns#', 'subscribableBy' => { '@id' => 'kmyblue:subscribableBy', '@type' => '@id' } },
+    limited_scope: { 'kmyblue' => 'http://kmy.blue/ns#', 'limitedScope' => 'kmyblue:limitedScope' },
+    other_setting: { 'fedibird' => 'http://fedibird.com/ns#', 'otherSetting' => 'fedibird:otherSetting' },
+    references: { 'fedibird' => 'http://fedibird.com/ns#', 'references' => { '@id' => 'fedibird:references', '@type' => '@id' } },
+    quote_uri: { 'fedibird' => 'http://fedibird.com/ns#', 'quoteUri' => 'fedibird:quoteUri' },
+    keywords: { 'schema' => 'http://schema.org#', 'keywords' => 'schema:keywords' },
+    license: { 'schema' => 'http://schema.org#', 'license' => 'schema:license' },
     olm: {
-      'toot' => 'http://joinmastodon.org/ns#', 'Device' => 'toot:Device', 'Ed25519Signature' => 'toot:Ed25519Signature', 'Ed25519Key' => 'toot:Ed25519Key', 'Curve25519Key' => 'toot:Curve25519Key', 'EncryptedMessage' => 'toot:EncryptedMessage', 'publicKeyBase64' => 'toot:publicKeyBase64', 'deviceId' => 'toot:deviceId',
+      'toot' => 'http://joinmastodon.org/ns#',
+      'Device' => 'toot:Device',
+      'Ed25519Signature' => 'toot:Ed25519Signature',
+      'Ed25519Key' => 'toot:Ed25519Key',
+      'Curve25519Key' => 'toot:Curve25519Key',
+      'EncryptedMessage' => 'toot:EncryptedMessage',
+      'publicKeyBase64' => 'toot:publicKeyBase64',
+      'deviceId' => 'toot:deviceId',
       'claim' => { '@type' => '@id', '@id' => 'toot:claim' },
       'fingerprintKey' => { '@type' => '@id', '@id' => 'toot:fingerprintKey' },
       'identityKey' => { '@type' => '@id', '@id' => 'toot:identityKey' },
       'devices' => { '@type' => '@id', '@id' => 'toot:devices' },
-      'messageFranking' => 'toot:messageFranking', 'messageType' => 'toot:messageType', 'cipherText' => 'toot:cipherText'
+      'messageFranking' => 'toot:messageFranking',
+      'messageType' => 'toot:messageType',
+      'cipherText' => 'toot:cipherText',
     },
     suspended: { 'toot' => 'http://joinmastodon.org/ns#', 'suspended' => 'toot:suspended' },
   }.freeze
@@ -39,13 +57,11 @@ module ContextHelper
   end
 
   def serialized_context(named_contexts_map, context_extensions_map)
-    context_array = []
-
     named_contexts     = named_contexts_map.keys
     context_extensions = context_extensions_map.keys
 
-    named_contexts.each do |key|
-      context_array << NAMED_CONTEXT_MAP[key]
+    context_array = named_contexts.map do |key|
+      NAMED_CONTEXT_MAP[key]
     end
 
     extensions = context_extensions.each_with_object({}) do |key, h|

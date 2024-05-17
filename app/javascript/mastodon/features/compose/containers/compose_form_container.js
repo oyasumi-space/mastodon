@@ -8,6 +8,8 @@ import {
   selectComposeSuggestion,
   changeComposeSpoilerText,
   insertEmojiCompose,
+  insertExpirationCompose,
+  insertFeaturedTagCompose,
   uploadCompose,
 } from '../../../actions/compose';
 import ComposeForm from '../components/compose_form';
@@ -17,6 +19,7 @@ const mapStateToProps = state => ({
   suggestions: state.getIn(['compose', 'suggestions']),
   spoiler: state.getIn(['compose', 'spoiler']),
   spoilerText: state.getIn(['compose', 'spoiler_text']),
+  markdown: state.getIn(['compose', 'markdown']),
   privacy: state.getIn(['compose', 'privacy']),
   focusDate: state.getIn(['compose', 'focusDate']),
   caretPosition: state.getIn(['compose', 'caretPosition']),
@@ -28,6 +31,8 @@ const mapStateToProps = state => ({
   anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
+  circleId: state.getIn(['compose', 'circle_id']),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -62,6 +67,14 @@ const mapDispatchToProps = (dispatch) => ({
 
   onPickEmoji (position, data, needsSpace) {
     dispatch(insertEmojiCompose(position, data, needsSpace));
+  },
+
+  onPickExpiration (position, data) {
+    dispatch(insertExpirationCompose(position, data));
+  },
+
+  onPickFeaturedTag (position, data) {
+    dispatch(insertFeaturedTagCompose(position, data));
   },
 
 });

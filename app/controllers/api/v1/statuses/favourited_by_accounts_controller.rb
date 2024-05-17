@@ -14,14 +14,14 @@ class Api::V1::Statuses::FavouritedByAccountsController < Api::V1::Statuses::Bas
 
   def load_accounts
     scope = default_accounts
-    scope = scope.where.not(id: current_account.excluded_from_timeline_account_ids) unless current_account.nil?
+    scope = scope.not_excluded_by_account(current_account) unless current_account.nil?
     scope.merge(paginated_favourites).to_a
   end
 
   def default_accounts
     Account
       .without_suspended
-      .includes(:favourites, :account_stat)
+      .includes(:favourites, :account_stat, :user)
       .references(:favourites)
       .where(favourites: { status_id: @status.id })
   end
@@ -32,10 +32,6 @@ class Api::V1::Statuses::FavouritedByAccountsController < Api::V1::Statuses::Bas
       params[:max_id],
       params[:since_id]
     )
-  end
-
-  def insert_pagination_headers
-    set_pagination_headers(next_path, prev_path)
   end
 
   def next_path

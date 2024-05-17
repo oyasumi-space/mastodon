@@ -2,11 +2,13 @@
 
 class REST::V1::InstanceSerializer < ActiveModel::Serializer
   include RoutingHelper
+  include KmyblueCapabilitiesHelper
+  include RegistrationLimitationHelper
 
   attributes :uri, :title, :short_description, :description, :email,
              :version, :urls, :stats, :thumbnail,
              :languages, :registrations, :approval_required, :invites_enabled,
-             :configuration
+             :configuration, :fedibird_capabilities
 
   has_one :contact_account, serializer: REST::AccountSerializer
 
@@ -33,7 +35,7 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
   end
 
   def thumbnail
-    instance_presenter.thumbnail ? full_asset_url(instance_presenter.thumbnail.file.url(:'@1x')) : full_pack_url('media/images/preview.png')
+    instance_presenter.thumbnail ? full_asset_url(instance_presenter.thumbnail.file.url(:'@1x')) : frontend_asset_url('images/preview.png')
   end
 
   def stats
@@ -64,7 +66,9 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
 
       statuses: {
         max_characters: StatusLengthValidator::MAX_CHARS,
-        max_media_attachments: 4,
+        max_media_attachments: MediaAttachment::LOCAL_STATUS_ATTACHMENT_MAX,
+        max_media_attachments_with_poll: MediaAttachment::LOCAL_STATUS_ATTACHMENT_MAX_WITH_POLL,
+        max_media_attachments_from_activitypub: MediaAttachment::ACTIVITYPUB_STATUS_ATTACHMENT_MAX,
         characters_reserved_per_url: StatusLengthValidator::URL_PLACEHOLDER_CHARS,
       },
 
@@ -82,16 +86,36 @@ class REST::V1::InstanceSerializer < ActiveModel::Serializer
         max_characters_per_option: PollValidator::MAX_OPTION_CHARS,
         min_expiration: PollValidator::MIN_EXPIRATION,
         max_expiration: PollValidator::MAX_EXPIRATION,
+        allow_image: true,
+      },
+
+      emoji_reactions: {
+        max_reactions: EmojiReaction::EMOJI_REACTION_LIMIT,
+        max_reactions_per_account: EmojiReaction::EMOJI_REACTION_PER_ACCOUNT_LIMIT,
+        max_reactions_per_remote_account: EmojiReaction::EMOJI_REACTION_PER_REMOTE_ACCOUNT_LIMIT,
+      },
+
+      reaction_deck: {
+        max_emojis: User::REACTION_DECK_MAX,
+      },
+
+      reactions: {
+        max_reactions: EmojiReaction::EMOJI_REACTION_PER_ACCOUNT_LIMIT,
+      },
+
+      # https://github.com/mastodon/mastodon/pull/27009
+      search: {
+        enabled: Chewy.enabled?,
       },
     }
   end
 
   def registrations
-    Setting.registrations_mode != 'none' && !Rails.configuration.x.single_user_mode
+    Setting.registrations_mode != 'none' && !reach_registrations_limit? && !Rails.configuration.x.single_user_mode
   end
 
   def approval_required
-    Setting.registrations_mode == 'approved'
+    Setting.registrations_mode == 'approved' || (Setting.registrations_mode == 'open' && !registrations_in_time?)
   end
 
   def invites_enabled

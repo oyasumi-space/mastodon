@@ -12,6 +12,7 @@
 #  account_id      :bigint(8)        not null
 #  from_account_id :bigint(8)        not null
 #  type            :string
+#  filtered        :boolean          default(FALSE), not null
 #
 
 class Notification < ApplicationRecord
@@ -22,30 +23,78 @@ class Notification < ApplicationRecord
   LEGACY_TYPE_CLASS_MAP = {
     'Mention' => :mention,
     'Status' => :reblog,
+    'ListStatus' => :list_status,
     'Follow' => :follow,
     'FollowRequest' => :follow_request,
     'Favourite' => :favourite,
+    'EmojiReaction' => :emoji_reaction,
+    'StatusReference' => :status_reference,
     'Poll' => :poll,
+    'AccountWarning' => :moderation_warning,
   }.freeze
 
-  TYPES = %i(
-    mention
-    status
-    reblog
-    follow
-    follow_request
-    favourite
-    poll
-    update
-    admin.sign_up
-    admin.report
-  ).freeze
+  PROPERTIES = {
+    mention: {
+      filterable: true,
+    }.freeze,
+    status: {
+      filterable: false,
+    }.freeze,
+    list_status: {
+      filterable: false,
+    }.freeze,
+    reblog: {
+      filterable: true,
+    }.freeze,
+    status_reference: {
+      filterable: true,
+    }.freeze,
+    follow: {
+      filterable: true,
+    }.freeze,
+    follow_request: {
+      filterable: true,
+    }.freeze,
+    favourite: {
+      filterable: true,
+    }.freeze,
+    emoji_reaction: {
+      filterable: true,
+    }.freeze,
+    reaction: {
+      filterable: true,
+    }.freeze,
+    poll: {
+      filterable: false,
+    }.freeze,
+    update: {
+      filterable: false,
+    }.freeze,
+    severed_relationships: {
+      filterable: false,
+    }.freeze,
+    moderation_warning: {
+      filterable: false,
+    }.freeze,
+    'admin.sign_up': {
+      filterable: false,
+    }.freeze,
+    'admin.report': {
+      filterable: false,
+    }.freeze,
+  }.freeze
+
+  TYPES = PROPERTIES.keys.freeze
 
   TARGET_STATUS_INCLUDES_BY_TYPE = {
     status: :status,
+    list_status: [list_status: :status],
     reblog: [status: :reblog],
+    status_reference: [status_reference: :status],
     mention: [mention: :status],
     favourite: [favourite: :status],
+    emoji_reaction: [emoji_reaction: :status],
+    reaction: [emoji_reaction: :status],
     poll: [poll: :status],
     update: :status,
     'admin.report': [report: :target_account],
@@ -58,11 +107,16 @@ class Notification < ApplicationRecord
   with_options foreign_key: 'activity_id', optional: true do
     belongs_to :mention, inverse_of: :notification
     belongs_to :status, inverse_of: :notification
+    belongs_to :list_status, inverse_of: :notification
     belongs_to :follow, inverse_of: :notification
     belongs_to :follow_request, inverse_of: :notification
     belongs_to :favourite, inverse_of: :notification
+    belongs_to :emoji_reaction, inverse_of: :notification
+    belongs_to :status_reference, inverse_of: :notification
     belongs_to :poll, inverse_of: false
     belongs_to :report, inverse_of: false
+    belongs_to :account_warning, inverse_of: false
+    belongs_to :account_relationship_severance_event, inverse_of: false
   end
 
   validates :type, inclusion: { in: TYPES }
@@ -77,10 +131,16 @@ class Notification < ApplicationRecord
     case type
     when :status, :update
       status
+    when :list_status
+      list_status&.status
     when :reblog
       status&.reblog
+    when :status_reference
+      status_reference&.status
     when :favourite
       favourite&.status
+    when :emoji_reaction, :reaction
+      emoji_reaction&.status
     when :mention
       mention&.status
     when :poll
@@ -89,7 +149,7 @@ class Notification < ApplicationRecord
   end
 
   class << self
-    def browserable(types: [], exclude_types: [], from_account_id: nil)
+    def browserable(types: [], exclude_types: [], from_account_id: nil, include_filtered: false)
       requested_types = if types.empty?
                           TYPES
                         else
@@ -99,6 +159,7 @@ class Notification < ApplicationRecord
       requested_types -= exclude_types.map(&:to_sym)
 
       all.tap do |scope|
+        scope.merge!(where(filtered: false)) unless include_filtered || from_account_id.present?
         scope.merge!(where(from_account_id: from_account_id)) if from_account_id.present?
         scope.merge!(where(type: requested_types)) unless requested_types.size == TYPES.size
       end
@@ -126,10 +187,16 @@ class Notification < ApplicationRecord
         case notification.type
         when :status, :update
           notification.status = cached_status
+        when :list_status
+          notification.list_status.status = cached_status
         when :reblog
           notification.status.reblog = cached_status
+        when :status_reference
+          notification.status_reference.status = cached_status
         when :favourite
           notification.favourite.status = cached_status
+        when :emoji_reaction, :reaction
+          notification.emoji_reaction.status = cached_status
         when :mention
           notification.mention.status = cached_status
         when :poll
@@ -144,18 +211,30 @@ class Notification < ApplicationRecord
   after_initialize :set_from_account
   before_validation :set_from_account
 
+  after_destroy :remove_from_notification_request
+
   private
 
   def set_from_account
     return unless new_record?
 
     case activity_type
-    when 'Status', 'Follow', 'Favourite', 'FollowRequest', 'Poll', 'Report'
+    when 'Status', 'Follow', 'Favourite', 'EmojiReaction', 'EmojiReact', 'FollowRequest', 'Poll', 'Report'
       self.from_account_id = activity&.account_id
-    when 'Mention'
+    when 'Mention', 'StatusReference', 'ListStatus'
       self.from_account_id = activity&.status&.account_id
     when 'Account'
       self.from_account_id = activity&.id
+    when 'AccountRelationshipSeveranceEvent', 'AccountWarning'
+      # These do not really have an originating account, but this is mandatory
+      # in the data model, and the recipient's account will by definition
+      # always exist
+      self.from_account_id = account_id
     end
+  end
+
+  def remove_from_notification_request
+    notification_request = NotificationRequest.find_by(account_id: account_id, from_account_id: from_account_id)
+    notification_request&.reconsider_existence!
   end
 end

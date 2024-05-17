@@ -9,27 +9,31 @@ import { NavLink, withRouter } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import CheckIcon from 'mastodon/../material-icons/400-24px/check.svg?react';
-import LockIcon from 'mastodon/../material-icons/400-24px/lock.svg?react';
-import MoreHorizIcon from 'mastodon/../material-icons/400-24px/more_horiz.svg?react';
-import NotificationsIcon from 'mastodon/../material-icons/400-24px/notifications.svg?react';
-import NotificationsActiveIcon from 'mastodon/../material-icons/400-24px/notifications_active-fill.svg?react';
-import ShareIcon from 'mastodon/../material-icons/400-24px/share.svg?react';
+import CheckIcon from '@/material-icons/400-24px/check.svg?react';
+import LockIcon from '@/material-icons/400-24px/lock.svg?react';
+import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
+import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
+import NotificationsActiveIcon from '@/material-icons/400-24px/notifications_active-fill.svg?react';
+import ShareIcon from '@/material-icons/400-24px/share.svg?react';
 import { Avatar } from 'mastodon/components/avatar';
 import { Badge, AutomatedBadge, GroupBadge } from 'mastodon/components/badge';
 import { Button } from 'mastodon/components/button';
 import { CopyIconButton } from 'mastodon/components/copy_icon_button';
 import { FollowersCounter, FollowingCounter, StatusesCounter } from 'mastodon/components/counters';
+import { getFeaturedHashtagBar } from 'mastodon/components/hashtag_bar';
 import { Icon }  from 'mastodon/components/icon';
 import { IconButton } from 'mastodon/components/icon_button';
+import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { ShortNumber } from 'mastodon/components/short_number';
 import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
-import { autoPlayGif, me, domain } from 'mastodon/initial_state';
+import { autoPlayGif, me, domain as localDomain, isShowItem } from 'mastodon/initial_state';
 import { PERMISSION_MANAGE_USERS, PERMISSION_MANAGE_FEDERATION } from 'mastodon/permissions';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import AccountNoteContainer from '../containers/account_note_container';
 import FollowRequestNoteContainer from '../containers/follow_request_note_container';
+
+import { DomainPill } from './domain_pill';
 
 const messages = defineMessages({
   unfollow: { id: 'account.unfollow', defaultMessage: 'Unfollow' },
@@ -69,6 +73,9 @@ const messages = defineMessages({
   endorse: { id: 'account.endorse', defaultMessage: 'Feature on profile' },
   unendorse: { id: 'account.unendorse', defaultMessage: 'Don\'t feature on profile' },
   add_or_remove_from_list: { id: 'account.add_or_remove_from_list', defaultMessage: 'Add or Remove from lists' },
+  add_or_remove_from_antenna: { id: 'account.add_or_remove_from_antenna', defaultMessage: 'Add or Remove from antennas' },
+  add_or_remove_from_exclude_antenna: { id: 'account.add_or_remove_from_exclude_antenna', defaultMessage: 'Add or Remove from antennas as exclusion' },
+  add_or_remove_from_circle: { id: 'account.add_or_remove_from_circle', defaultMessage: 'Add or Remove from circles' },
   admin_account: { id: 'status.admin_account', defaultMessage: 'Open moderation interface for @{name}' },
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   languages: { id: 'account.languages', defaultMessage: 'Change subscribed languages' },
@@ -77,7 +84,7 @@ const messages = defineMessages({
 
 const titleFromAccount = account => {
   const displayName = account.get('display_name');
-  const acct = account.get('acct') === account.get('username') ? `${account.get('username')}@${domain}` : account.get('acct');
+  const acct = account.get('acct') === account.get('username') ? `${account.get('username')}@${localDomain}` : account.get('acct');
   const prefix = displayName.trim().length === 0 ? account.get('username') : displayName;
 
   return `${prefix} (@${acct})`;
@@ -86,9 +93,9 @@ const titleFromAccount = account => {
 const messageForFollowButton = relationship => {
   if(!relationship) return messages.follow;
 
-  if (relationship.get('following') && relationship.get('followed_by')) {
+  if (relationship.get('following') && relationship.get('followed_by') && isShowItem('relationships')) {
     return messages.mutual;
-  } else if (!relationship.get('following') && relationship.get('followed_by')) {
+  } else if (!relationship.get('following') && relationship.get('followed_by') && isShowItem('relationships')) {
     return messages.followBack;
   } else if (relationship.get('following')) {
     return messages.unfollow;
@@ -101,7 +108,6 @@ const dateFormatOptions = {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
-  hour12: false,
   hour: '2-digit',
   minute: '2-digit',
 };
@@ -110,6 +116,7 @@ class Header extends ImmutablePureComponent {
 
   static propTypes = {
     account: ImmutablePropTypes.record,
+    featuredTags: PropTypes.array,
     identity_props: ImmutablePropTypes.list,
     onFollow: PropTypes.func.isRequired,
     onBlock: PropTypes.func.isRequired,
@@ -123,6 +130,9 @@ class Header extends ImmutablePureComponent {
     onUnblockDomain: PropTypes.func.isRequired,
     onEndorseToggle: PropTypes.func.isRequired,
     onAddToList: PropTypes.func.isRequired,
+    onAddToAntenna: PropTypes.func.isRequired,
+    onAddToExcludeAntenna: PropTypes.func.isRequired,
+    onAddToCircle: PropTypes.func.isRequired,
     onEditAccountNote: PropTypes.func.isRequired,
     onChangeLanguages: PropTypes.func.isRequired,
     onInteractionModal: PropTypes.func.isRequired,
@@ -207,6 +217,16 @@ class Header extends ImmutablePureComponent {
     }
   };
 
+  handleFeaturedHashtagClick = e => {
+    const { history, account } = this.props;
+    const value = e.currentTarget.textContent.replace(/^#/, '');
+
+    if (history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      history.push(`/@${account.get('acct')}/tagged/${value}`);
+    }
+  };
+
   handleMentionClick = e => {
     const { history, onOpenURL } = this.props;
 
@@ -236,7 +256,11 @@ class Header extends ImmutablePureComponent {
       link = links[i];
 
       if (link.textContent[0] === '#' || (link.previousSibling && link.previousSibling.textContent && link.previousSibling.textContent[link.previousSibling.textContent.length - 1] === '#')) {
-        link.addEventListener('click', this.handleHashtagClick, false);
+        if (link.href && link.href.includes('/tagged/')) {
+          link.addEventListener('click', this.handleFeaturedHashtagClick, false);
+        } else {
+          link.addEventListener('click', this.handleHashtagClick, false);
+        }
       } else if (link.classList.contains('mention')) {
         link.addEventListener('click', this.handleMentionClick, false);
       }
@@ -252,7 +276,7 @@ class Header extends ImmutablePureComponent {
   }
 
   render () {
-    const { account, hidden, intl, domain } = this.props;
+    const { account, hidden, intl } = this.props;
     const { signedIn, permissions } = this.context.identity;
 
     if (!account) {
@@ -290,7 +314,7 @@ class Header extends ImmutablePureComponent {
 
     if (me !== account.get('id')) {
       if (signedIn && !account.get('relationship')) { // Wait until the relationship is loaded
-        actionBtn = '';
+        actionBtn = <Button disabled><LoadingIndicator /></Button>;
       } else if (account.getIn(['relationship', 'requested'])) {
         actionBtn = <Button text={intl.formatMessage(messages.cancel_follow_request)} title={intl.formatMessage(messages.requested)} onClick={this.props.onFollow} />;
       } else if (!account.getIn(['relationship', 'blocking'])) {
@@ -349,8 +373,13 @@ class Header extends ImmutablePureComponent {
 
         menu.push({ text: intl.formatMessage(account.getIn(['relationship', 'endorsed']) ? messages.unendorse : messages.endorse), action: this.props.onEndorseToggle });
         menu.push({ text: intl.formatMessage(messages.add_or_remove_from_list), action: this.props.onAddToList });
-        menu.push(null);
       }
+      menu.push({ text: intl.formatMessage(messages.add_or_remove_from_antenna), action: this.props.onAddToAntenna });
+      menu.push({ text: intl.formatMessage(messages.add_or_remove_from_exclude_antenna), action: this.props.onAddToExcludeAntenna });
+      if (account.getIn(['relationship', 'followed_by'])) {
+        menu.push({ text: intl.formatMessage(messages.add_or_remove_from_circle), action: this.props.onAddToCircle });
+      }
+      menu.push(null);
 
       if (account.getIn(['relationship', 'muting'])) {
         menu.push({ text: intl.formatMessage(messages.unmute, { name: account.get('username') }), action: this.props.onMute });
@@ -393,8 +422,11 @@ class Header extends ImmutablePureComponent {
     const displayNameHtml = { __html: account.get('display_name_html') };
     const fields          = account.get('fields');
     const isLocal         = account.get('acct').indexOf('@') === -1;
-    const acct            = isLocal && domain ? `${account.get('acct')}@${domain}` : account.get('acct');
+    const username        = account.get('acct').split('@')[0];
+    const domain          = isLocal ? localDomain : account.get('acct').split('@')[1];
     const isIndexable     = !account.get('noindex');
+    const featuredTagsArr = this.props.featuredTags?.map((tag) => tag.get('name')).toArray() || [];
+    const featuredTags    = getFeaturedHashtagBar(account.get('acct'), featuredTagsArr);
 
     const badges = [];
 
@@ -405,7 +437,7 @@ class Header extends ImmutablePureComponent {
     }
 
     account.get('roles', []).forEach((role) => {
-      badges.push(<Badge key={`role-badge-${role.get('id')}`} label={<span>{role.get('name')}</span>} domain={domain} />);
+      badges.push(<Badge key={`role-badge-${role.get('id')}`} label={<span>{role.get('name')}</span>} domain={domain} roleId={role.get('id')} />);
     });
 
     return (
@@ -427,15 +459,10 @@ class Header extends ImmutablePureComponent {
             </a>
 
             <div className='account__header__tabs__buttons'>
-              {!hidden && (
-                <>
-                  {actionBtn}
-                  {bellBtn}
-                  {shareBtn}
-                </>
-              )}
-
+              {!hidden && bellBtn}
+              {!hidden && shareBtn}
               <DropdownMenuContainer disabled={menu.length === 0} items={menu} icon='ellipsis-v' iconComponent={MoreHorizIcon} size={24} direction='right' />
+              {!hidden && actionBtn}
             </div>
           </div>
 
@@ -443,7 +470,9 @@ class Header extends ImmutablePureComponent {
             <h1>
               <span dangerouslySetInnerHTML={displayNameHtml} />
               <small>
-                <span>@{acct}</span> {lockedIcon}
+                <span>@{username}<span className='invisible'>@{domain}</span></span>
+                <DomainPill username={username} domain={domain} isSelf={me === account.get('id')} />
+                {lockedIcon}
               </small>
             </h1>
           </div>
@@ -460,6 +489,12 @@ class Header extends ImmutablePureComponent {
                 {(account.get('id') !== me && signedIn) && <AccountNoteContainer account={account} />}
 
                 {account.get('note').length > 0 && account.get('note') !== '<p></p>' && <div className='account__header__content translate' dangerouslySetInnerHTML={content} />}
+
+                {featuredTagsArr.length > 0 && (
+                  <div className='account__header__featured-tags'>
+                    {featuredTags}
+                  </div>
+                )}
 
                 <div className='account__header__fields'>
                   <dl>
@@ -483,6 +518,7 @@ class Header extends ImmutablePureComponent {
                 <NavLink isActive={this.isStatusesPageActive} activeClassName='active' to={`/@${account.get('acct')}`} title={intl.formatNumber(account.get('statuses_count'))}>
                   <ShortNumber
                     value={account.get('statuses_count')}
+                    isHide={account.getIn(['other_settings', 'hide_statuses_count']) || false}
                     renderer={StatusesCounter}
                   />
                 </NavLink>
@@ -490,6 +526,7 @@ class Header extends ImmutablePureComponent {
                 <NavLink exact activeClassName='active' to={`/@${account.get('acct')}/following`} title={intl.formatNumber(account.get('following_count'))}>
                   <ShortNumber
                     value={account.get('following_count')}
+                    isHide={account.getIn(['other_settings', 'hide_following_count']) || false}
                     renderer={FollowingCounter}
                   />
                 </NavLink>
@@ -497,6 +534,7 @@ class Header extends ImmutablePureComponent {
                 <NavLink exact activeClassName='active' to={`/@${account.get('acct')}/followers`} title={intl.formatNumber(account.get('followers_count'))}>
                   <ShortNumber
                     value={account.get('followers_count')}
+                    isHide={account.getIn(['other_settings', 'hide_followers_count']) || false}
                     renderer={FollowersCounter}
                   />
                 </NavLink>

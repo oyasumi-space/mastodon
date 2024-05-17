@@ -1,0 +1,11 @@
+$classic-base-color: #282c37; // Midnight Express
+$classic-secondary-color: #d9e1e8; // Pattens Blue
+
+// Variables for defaults in UI
+$simple-background-color: $classic-base-color !default;
+
+// Tell UI to use selected colors
+$ui-base-lighter-color: #969fbc !default; // Lighter darkest
+
+// For texts on inverted backgrounds
+$inverted-text-color: $classic-secondary-color !default;

@@ -44,27 +44,93 @@ RSpec.describe Auth::RegistrationsController do
     end
   end
 
-  describe 'GET #update' do
-    let(:user) { Fabricate(:user) }
+  describe 'PUT #update' do
+    let(:current_password) { 'current password' }
+    let(:user) { Fabricate(:user, password: current_password) }
 
     before do
       request.env['devise.mapping'] = Devise.mappings[:user]
       sign_in(user, scope: :user)
-      post :update
     end
 
     it 'returns http success' do
+      put :update
       expect(response).to have_http_status(200)
     end
 
     it 'returns private cache control headers' do
+      put :update
       expect(response.headers['Cache-Control']).to include('private, no-store')
+    end
+
+    it 'can update the user email' do
+      expect do
+        put :update, params: {
+          user: {
+            email: 'newemail@example.com',
+            current_password: current_password,
+          },
+        }
+        expect(response).to redirect_to(edit_user_registration_path)
+      end.to change { user.reload.unconfirmed_email }.to('newemail@example.com')
+    end
+
+    it 'requires the current password to update the email' do
+      expect do
+        put :update, params: {
+          user: {
+            email: 'newemail@example.com',
+            current_password: 'something',
+          },
+        }
+        expect(response).to have_http_status(200)
+      end.to_not(change { user.reload.unconfirmed_email })
+    end
+
+    it 'can update the user password' do
+      expect do
+        put :update, params: {
+          user: {
+            password: 'new password',
+            password_confirmation: 'new password',
+            current_password: current_password,
+          },
+        }
+        expect(response).to redirect_to(edit_user_registration_path)
+      end.to(change { user.reload.encrypted_password })
+    end
+
+    it 'requires the password confirmation' do
+      expect do
+        put :update, params: {
+          user: {
+            password: 'new password',
+            password_confirmation: 'something else',
+            current_password: current_password,
+          },
+        }
+        expect(response).to have_http_status(200)
+      end.to_not(change { user.reload.encrypted_password })
+    end
+
+    it 'requires the current password to update the password' do
+      expect do
+        put :update, params: {
+          user: {
+            password: 'new password',
+            password_confirmation: 'new password',
+            current_password: 'something',
+          },
+        }
+        expect(response).to have_http_status(200)
+      end.to_not(change { user.reload.encrypted_password })
     end
 
     context 'when suspended' do
       let(:user) { Fabricate(:user, account_attributes: { username: 'test', suspended_at: Time.now.utc }) }
 
       it 'returns http forbidden' do
+        put :update
         expect(response).to have_http_status(403)
       end
     end
@@ -137,10 +203,47 @@ RSpec.describe Auth::RegistrationsController do
 
     context 'when user has an email address requiring approval' do
       subject do
-        Setting.registrations_mode = 'open'
-        Fabricate(:email_domain_block, allow_with_approval: true, domain: 'example.com')
         request.headers['Accept-Language'] = accept_language
         post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
+      end
+
+      before do
+        Setting.registrations_mode = 'open'
+        Fabricate(:email_domain_block, allow_with_approval: true, domain: 'example.com')
+      end
+
+      it 'creates unapproved user and redirects to setup' do
+        subject
+        expect(response).to redirect_to auth_setup_path
+
+        user = User.find_by(email: 'test@example.com')
+        expect(user).to_not be_nil
+        expect(user.locale).to eq(accept_language)
+        expect(user.approved).to be(false)
+      end
+    end
+
+    context 'when user has an email address requiring approval through a MX record' do
+      subject do
+        request.headers['Accept-Language'] = accept_language
+        post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
+      end
+
+      before do
+        Setting.registrations_mode = 'open'
+        Fabricate(:email_domain_block, allow_with_approval: true, domain: 'mail.example.com')
+        allow(User).to receive(:skip_mx_check?).and_return(false)
+
+        resolver = instance_double(Resolv::DNS, :timeouts= => nil)
+
+        allow(resolver).to receive(:getresources)
+          .with('example.com', Resolv::DNS::Resource::IN::MX)
+          .and_return([instance_double(Resolv::DNS::Resource::MX, exchange: 'mail.example.com')])
+        allow(resolver).to receive(:getresources).with('example.com', Resolv::DNS::Resource::IN::A).and_return([])
+        allow(resolver).to receive(:getresources).with('example.com', Resolv::DNS::Resource::IN::AAAA).and_return([])
+        allow(resolver).to receive(:getresources).with('mail.example.com', Resolv::DNS::Resource::IN::A).and_return([instance_double(Resolv::DNS::Resource::IN::A, address: '2.3.4.5')])
+        allow(resolver).to receive(:getresources).with('mail.example.com', Resolv::DNS::Resource::IN::AAAA).and_return([instance_double(Resolv::DNS::Resource::IN::AAAA, address: 'fd00::2')])
+        allow(Resolv::DNS).to receive(:open).and_yield(resolver)
       end
 
       it 'creates unapproved user and redirects to setup' do
@@ -241,6 +344,170 @@ RSpec.describe Auth::RegistrationsController do
       def username_error_text
         Nokogiri::Slop(response.body).css('.user_account_username .error').text
       end
+    end
+
+    context 'when max user count is set' do
+      subject do
+        post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
+      end
+
+      let(:users_max) { 3 }
+
+      before do
+        Fabricate(:user)
+        Fabricate(:user)
+        Setting.registrations_mode = 'open'
+        Setting.registrations_limit = users_max
+        request.headers['Accept-Language'] = accept_language
+      end
+
+      it 'redirects to setup' do
+        subject
+        expect(response).to redirect_to auth_setup_path
+      end
+
+      it 'creates user' do
+        subject
+        user = User.find_by(email: 'test@example.com')
+        expect(user).to_not be_nil
+        expect(user.locale).to eq(accept_language)
+      end
+
+      context 'when limit is reached' do
+        let(:users_max) { 2 }
+
+        it 'does not create user' do
+          subject
+          user = User.find_by(email: 'test@example.com')
+          expect(user).to be_nil
+        end
+
+        context 'with invite' do
+          subject do
+            post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', invite_code: invite.code, agreement: 'true' } }
+          end
+
+          let(:invite) { Fabricate(:invite) }
+
+          it 'creates user' do
+            subject
+            user = User.find_by(email: 'test@example.com')
+            expect(user).to_not be_nil
+            expect(user.locale).to eq(accept_language)
+          end
+        end
+      end
+    end
+
+    context 'when max user count per day is set' do
+      subject do
+        post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
+      end
+
+      let(:users_max) { 2 }
+      let(:created_at) { Time.now.utc }
+      let(:precreate_users) { true }
+
+      before do
+        Fabricate(:user, created_at: created_at) if precreate_users
+        Setting.registrations_mode = 'open'
+        Setting.registrations_limit_per_day = users_max
+        request.headers['Accept-Language'] = accept_language
+      end
+
+      it 'creates user' do
+        subject
+        user = User.find_by(email: 'test@example.com')
+        expect(user).to_not be_nil
+        expect(user.locale).to eq(accept_language)
+      end
+
+      context 'when limit is reached' do
+        let(:users_max) { 2 }
+        let(:created_at) { Time.now.utc - 1.day }
+        let(:precreate_users) { false }
+
+        before do
+          travel_to Time.now.utc - 1.day
+          Fabricate(:user)
+          create_other_user
+        end
+
+        it 'does not create user yesterday' do
+          subject
+          user = User.find_by(email: 'test@example.com')
+          expect(user).to be_nil
+        end
+
+        it 'creates user' do
+          travel_to Time.now.utc + 1.day
+          subject
+          user = User.find_by(email: 'test@example.com')
+          expect(user).to_not be_nil
+          expect(user.locale).to eq(accept_language)
+        end
+      end
+
+      def create_other_user
+        post :create, params: { user: { account_attributes: { username: 'ohagi' }, email: 'test@ohagi.com', password: 'ohagi_must_be_tsubuan', password_confirmation: 'ohagi_must_be_tsubuan', agreement: 'true' } }
+      end
+    end
+
+    context 'when registration time range is set' do
+      subject do
+        post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
+      end
+
+      shared_examples 'registration with time' do |header, start_hour_val, end_hour_val, secondary_start_hour_val, secondary_end_hour_val, result| # rubocop:disable Metrics/ParameterLists
+        context header do
+          let(:start_hour) { start_hour_val }
+          let(:end_hour) { end_hour_val }
+          let(:secondary_start_hour) { secondary_start_hour_val }
+          let(:secondary_end_hour) { secondary_end_hour_val }
+
+          before do
+            Setting.registrations_mode = 'open'
+            Setting.registrations_start_hour = start_hour
+            Setting.registrations_end_hour = end_hour
+            Setting.registrations_secondary_start_hour = secondary_start_hour
+            Setting.registrations_secondary_end_hour = secondary_end_hour
+            request.headers['Accept-Language'] = accept_language
+
+            current = Time.now.utc
+            today = current.beginning_of_day
+            today += 1.day if current.hour >= 10
+            travel_to today + 10.hours
+          end
+
+          if result
+            it 'creates user' do
+              subject
+              user = User.find_by(email: 'test@example.com')
+              expect(user).to_not be_nil
+              expect(user.locale).to eq(accept_language)
+              expect(user.approved?).to be true
+            end
+          else
+            it 'does not create user' do
+              subject
+              user = User.find_by(email: 'test@example.com')
+              expect(user).to_not be_nil
+              expect(user.approved?).to be false
+            end
+          end
+        end
+      end
+
+      it_behaves_like 'registration with time', 'time range is not set', 0, 24, 0, 0, true
+      it_behaves_like 'registration with time', 'time range is default values', 0, 0, 0, 0, true
+      it_behaves_like 'registration with time', 'time range is set', 9, 12, 0, 0, true
+      it_behaves_like 'registration with time', 'time range is out of range', 12, 15, 0, 0, false
+      it_behaves_like 'registration with time', 'time range is invalid', 20, 15, 0, 0, true
+      it_behaves_like 'registration with time', 'secondary time range is set', 0, 4, 9, 12, true
+      it_behaves_like 'registration with time', 'secondary time range is out of range', 0, 4, 12, 15, false
+      it_behaves_like 'registration with time', 'secondary time range is invalid', 0, 4, 20, 15, false
+      it_behaves_like 'registration with time', 'both time range are invalid', 4, 0, 20, 15, true
+      it_behaves_like 'registration with time', 'only secondary time range is set', 0, 0, 9, 12, true
     end
 
     include_examples 'checks for enabled registrations', :create

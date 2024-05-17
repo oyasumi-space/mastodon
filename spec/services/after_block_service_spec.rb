@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe AfterBlockService, type: :service do
+RSpec.describe AfterBlockService do
   subject { described_class.new.call(account, target_account) }
 
   let(:account)              { Fabricate(:account) }
@@ -45,6 +45,25 @@ RSpec.describe AfterBlockService, type: :service do
 
       expect { subject }.to change {
         redis.zrange(list_timeline_key, 0, -1)
+      }.from([status.id.to_s, other_account_status.id.to_s, other_account_reblog.id.to_s]).to([other_account_status.id.to_s])
+    end
+  end
+
+  describe 'antennas' do
+    let(:antenna)              { Fabricate(:antenna, account: account, list_id: 0) }
+    let(:antenna_timeline_key) { FeedManager.instance.key(:antenna, antenna.id) }
+
+    before do
+      redis.del(antenna_timeline_key)
+    end
+
+    it "clears account's statuses" do
+      FeedManager.instance.push_to_antenna(antenna, status)
+      FeedManager.instance.push_to_antenna(antenna, other_account_status)
+      FeedManager.instance.push_to_antenna(antenna, other_account_reblog)
+
+      expect { subject }.to change {
+        redis.zrange(antenna_timeline_key, 0, -1)
       }.from([status.id.to_s, other_account_status.id.to_s, other_account_reblog.id.to_s]).to([other_account_status.id.to_s])
     end
   end

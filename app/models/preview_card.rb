@@ -10,7 +10,6 @@
 #  description                  :string           default(""), not null
 #  image_file_name              :string
 #  image_content_type           :string
-#  image_file_size              :integer
 #  image_updated_at             :datetime
 #  type                         :integer          default("link"), not null
 #  html                         :text             default(""), not null
@@ -32,6 +31,7 @@
 #  link_type                    :integer
 #  published_at                 :datetime
 #  image_description            :string           default(""), not null
+#  image_file_size              :integer
 #
 
 class PreviewCard < ApplicationRecord
@@ -47,8 +47,8 @@ class PreviewCard < ApplicationRecord
 
   self.inheritance_column = false
 
-  enum type: { link: 0, photo: 1, video: 2, rich: 3 }
-  enum link_type: { unknown: 0, article: 1 }
+  enum :type, { link: 0, photo: 1, video: 2, rich: 3 }
+  enum :link_type, { unknown: 0, article: 1 }
 
   has_many :preview_cards_statuses, dependent: :delete_all, inverse_of: :preview_card
   has_many :statuses, through: :preview_cards_statuses

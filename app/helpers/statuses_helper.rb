@@ -4,14 +4,6 @@ module StatusesHelper
   EMBEDDED_CONTROLLER = 'statuses'
   EMBEDDED_ACTION = 'embed'
 
-  def link_to_newer(url)
-    link_to t('statuses.show_newer'), url, class: 'load-more load-gap'
-  end
-
-  def link_to_older(url)
-    link_to t('statuses.show_older'), url, class: 'load-more load-gap'
-  end
-
   def nothing_here(extra_classes = '')
     content_tag(:div, class: "nothing-here #{extra_classes}") do
       t('accounts.nothing_here')
@@ -71,8 +63,14 @@ module StatusesHelper
       fa_icon 'globe fw'
     when 'unlisted'
       fa_icon 'unlock fw'
+    when 'public_unlisted'
+      fa_icon 'cloud fw'
+    when 'login'
+      fa_icon 'key fw'
     when 'private'
       fa_icon 'lock fw'
+    when 'limited'
+      fa_icon 'get-pocket fw'
     when 'direct'
       fa_icon 'at fw'
     end
