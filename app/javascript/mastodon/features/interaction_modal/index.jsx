@@ -9,11 +9,10 @@ import { connect } from 'react-redux';
 
 import { throttle, escapeRegExp } from 'lodash';
 
-import EmojiReactionIcon from '@/material-icons/400-24px/mood.svg?react';
-import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
-import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
-import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
-import StarIcon from '@/material-icons/400-24px/star.svg?react';
+import PersonAddIcon from 'mastodon/../material-icons/400-24px/person_add.svg?react';
+import RepeatIcon from 'mastodon/../material-icons/400-24px/repeat.svg?react';
+import ReplyIcon from 'mastodon/../material-icons/400-24px/reply.svg?react';
+import StarIcon from 'mastodon/../material-icons/400-24px/star.svg?react';
 import { openModal, closeModal } from 'mastodon/actions/modal';
 import api from 'mastodon/api';
 import { Button } from 'mastodon/components/button';
@@ -372,11 +371,6 @@ class InteractionModal extends React.PureComponent {
       icon = <Icon id='star' icon={StarIcon} />;
       title = <FormattedMessage id='interaction_modal.title.favourite' defaultMessage="Favorite {name}'s post" values={{ name }} />;
       actionDescription = <FormattedMessage id='interaction_modal.description.favourite' defaultMessage='With an account on Mastodon, you can favorite this post to let the author know you appreciate it and save it for later.' />;
-      break;
-    case 'emoji_reaction':
-      icon = <Icon id='smile-o' icon={EmojiReactionIcon} />;
-      title = <FormattedMessage id='interaction_modal.title.emoji_reaction' defaultMessage="Emoji react {name}'s post" values={{ name }} />;
-      actionDescription = <FormattedMessage id='interaction_modal.description.emoji_reaection' defaultMessage='With an account on Mastodon, you can emoji react this post to let the author know you appreciate it and save it for later.' />;
       break;
     case 'follow':
       icon = <Icon id='user-plus' icon={PersonAddIcon} />;

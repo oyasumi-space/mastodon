@@ -69,22 +69,22 @@ RSpec.describe Admin::AccountAction do
       end
     end
 
-    it 'sends notification, log the action, and closes other reports', :aggregate_failures do
-      other_report = Fabricate(:report, target_account: target_account)
-
-      emails = []
+    it 'creates Admin::ActionLog' do
       expect do
-        emails = capture_emails { subject }
-      end.to (change(Admin::ActionLog.where(action: type), :count).by 1)
-         .and(change { other_report.reload.action_taken? }.from(false).to(true))
+        subject
+      end.to change(Admin::ActionLog, :count).by 1
+    end
 
-      expect(emails).to contain_exactly(
-        have_attributes(
-          to: contain_exactly(target_account.user.email)
-        )
-      )
+    it 'calls process_email!' do
+      allow(account_action).to receive(:process_email!)
+      subject
+      expect(account_action).to have_received(:process_email!)
+    end
 
-      expect(LocalNotificationWorker).to have_enqueued_sidekiq_job(target_account.id, anything, 'AccountWarning', 'moderation_warning')
+    it 'calls process_reports!' do
+      allow(account_action).to receive(:process_reports!)
+      subject
+      expect(account_action).to have_received(:process_reports!)
     end
   end
 

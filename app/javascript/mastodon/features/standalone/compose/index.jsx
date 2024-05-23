@@ -1,15 +1,21 @@
-import ComposeFormContainer from 'mastodon/features/compose/containers/compose_form_container';
-import LoadingBarContainer from 'mastodon/features/ui/containers/loading_bar_container';
-import ModalContainer from 'mastodon/features/ui/containers/modal_container';
-import NotificationsContainer from 'mastodon/features/ui/containers/notifications_container';
+import { PureComponent } from 'react';
 
-const Compose = () => (
-  <>
-    <ComposeFormContainer autoFocus withoutNavigation />
-    <NotificationsContainer />
-    <ModalContainer />
-    <LoadingBarContainer className='loading-bar' />
-  </>
-);
+import ComposeFormContainer from '../../compose/containers/compose_form_container';
+import LoadingBarContainer from '../../ui/containers/loading_bar_container';
+import ModalContainer from '../../ui/containers/modal_container';
+import NotificationsContainer from '../../ui/containers/notifications_container';
 
-export default Compose;
+export default class Compose extends PureComponent {
+
+  render () {
+    return (
+      <div>
+        <ComposeFormContainer autoFocus />
+        <NotificationsContainer />
+        <ModalContainer />
+        <LoadingBarContainer className='loading-bar' />
+      </div>
+    );
+  }
+
+}

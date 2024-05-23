@@ -3,22 +3,16 @@
 class REST::StatusSerializer < ActiveModel::Serializer
   include FormattingHelper
 
-  # Please update `app/javascript/mastodon/api_types/statuses.ts` when making changes to the attributes
-
   attributes :id, :created_at, :in_reply_to_id, :in_reply_to_account_id,
-             :sensitive, :spoiler_text, :visibility, :visibility_ex, :limited_scope, :language,
-             :uri, :url, :replies_count, :reblogs_count, :searchability, :markdown,
-             :status_reference_ids, :status_references_count, :status_referred_by_count,
-             :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :edited_at
+             :sensitive, :spoiler_text, :visibility, :language,
+             :uri, :url, :replies_count, :reblogs_count,
+             :favourites_count, :edited_at
 
   attribute :favourited, if: :current_user?
   attribute :reblogged, if: :current_user?
   attribute :muted, if: :current_user?
   attribute :bookmarked, if: :current_user?
   attribute :pinned, if: :pinnable?
-  attribute :reactions, if: :reactions?
-  attribute :expires_at, if: :will_expire?
-  attribute :quote_id, if: :quote?
   has_many :filtered, serializer: REST::FilterResultSerializer, if: :current_user?
 
   attribute :content, unless: :source_requested?
@@ -31,27 +25,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
   has_many :ordered_media_attachments, key: :media_attachments, serializer: REST::MediaAttachmentSerializer
   has_many :ordered_mentions, key: :mentions
   has_many :tags
-  has_many :emojis, serializer: REST::CustomEmojiSlimSerializer
+  has_many :emojis, serializer: REST::CustomEmojiSerializer
 
   has_one :preview_card, key: :card, serializer: REST::PreviewCardSerializer
   has_one :preloadable_poll, key: :poll, serializer: REST::PollSerializer
-
-  class QuotedStatusSerializer < REST::StatusSerializer
-    attribute :quote_muted, if: :current_user?
-
-    def quote
-      nil
-    end
-
-    def quote_muted
-      if relationships
-        muted || relationships.blocks_map[object.account_id] || relationships.domain_blocks_map[object.account.domain] || false
-      else
-        muted || current_user.account.blocking?(object.account_id) || current_user.account.domain_blocking?(object.account.domain)
-      end
-    end
-  end
-  belongs_to :quote, if: :quote?, serializer: QuotedStatusSerializer, relationships: -> { relationships }
 
   def id
     object.id.to_s
@@ -79,23 +56,9 @@ class REST::StatusSerializer < ActiveModel::Serializer
     # UX differences
     if object.limited_visibility?
       'private'
-    elsif object.public_unlisted_visibility? || object.login_visibility?
-      'public'
     else
       object.visibility
     end
-  end
-
-  def visibility_ex
-    object.visibility
-  end
-
-  def limited_scope
-    !object.none_limited? && object.limited_visibility? ? object.limited_scope : nil
-  end
-
-  def searchability
-    object.compute_searchability_local
   end
 
   def sensitive
@@ -118,14 +81,6 @@ class REST::StatusSerializer < ActiveModel::Serializer
     ActivityPub::TagManager.instance.url_for(object)
   end
 
-  def status_reference_ids
-    @status_reference_ids = object.reference_objects.pluck(:target_status_id)
-  end
-
-  def status_references_count
-    status_reference_ids.size
-  end
-
   def reblogs_count
     relationships&.attributes_map&.dig(object.id, :reblogs_count) || object.reblogs_count
   end
@@ -141,47 +96,6 @@ class REST::StatusSerializer < ActiveModel::Serializer
       current_user.account.favourited?(object)
     end
   end
-
-  def emoji_reactions
-    show_emoji_reaction? ? object.emoji_reactions_grouped_by_name(current_user&.account, permitted_account_ids: emoji_reaction_permitted_account_ids) : []
-  end
-
-  def emoji_reactions_count
-    if current_user&.account.nil?
-      return 0 unless Setting.enable_emoji_reaction
-
-      object.account.emoji_reaction_policy == :allow ? object.emoji_reactions_count : 0
-    else
-      show_emoji_reaction? ? object.emoji_reactions_count : 0
-    end
-  end
-
-  def show_emoji_reaction?
-    if relationships
-      return true if relationships.emoji_reaction_allows_map.nil?
-
-      relationships.emoji_reaction_allows_map[object.account_id] || false
-    else
-      object.account.show_emoji_reaction?(current_user&.account)
-    end
-  end
-
-  def reactions
-    emoji_reactions.tap do |rs|
-      rs.each do |emoji_reaction|
-        emoji_reaction['name'] = emoji_reaction['domain'].present? ? "#{emoji_reaction['name']}@#{emoji_reaction['domain']}" : emoji_reaction['name']
-        emoji_reaction.delete('account_ids')
-        emoji_reaction.delete('me')
-        emoji_reaction.delete('domain')
-      end
-    end
-  end
-
-  def quote_id
-    object.quote_of_id.to_s
-  end
-
-  delegate :quote?, to: :object
 
   def reblogged
     if relationships
@@ -227,11 +141,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
     current_user? &&
       current_user.account_id == object.account_id &&
       !object.reblog? &&
-      %w(public unlisted public_unlisted login private).include?(object.visibility)
-  end
-
-  def reactions?
-    current_user? && current_user.setting_emoji_reaction_streaming_notify_impl2
+      %w(public unlisted private).include?(object.visibility)
   end
 
   def source_requested?
@@ -242,22 +152,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
     object.active_mentions.to_a.sort_by(&:id)
   end
 
-  def will_expire?
-    object.scheduled_expiration_status.present?
-  end
-
-  def expires_at
-    object.scheduled_expiration_status.scheduled_at
-  end
-
   private
 
   def relationships
     instance_options && instance_options[:relationships]
-  end
-
-  def emoji_reaction_permitted_account_ids
-    current_user.present? && instance_options && instance_options[:emoji_reaction_permitted_account_ids]&.permitted_account_ids
   end
 
   class ApplicationSerializer < ActiveModel::Serializer

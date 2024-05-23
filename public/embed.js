@@ -31,8 +31,6 @@
 
       var iframe = iframes.get(data.id);
 
-      if(!iframe) return;
-
       if ('source' in e && iframe.contentWindow !== e.source) {
         return;
       }
@@ -40,7 +38,7 @@
       iframe.height = data.height;
     });
 
-    document.querySelectorAll('iframe.mastodon-embed').forEach(iframe => {
+    [].forEach.call(document.querySelectorAll('iframe.mastodon-embed'), function (iframe) {
       // select unique id for each iframe
       var id = 0, failCount = 0, idBuffer = new Uint32Array(1);
       while (id === 0 || iframes.has(id)) {

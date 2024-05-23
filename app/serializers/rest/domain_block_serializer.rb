@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class REST::DomainBlockSerializer < ActiveModel::Serializer
-  attributes :domain, :digest, :severity, :severity_ex, :comment
+  attributes :domain, :digest, :severity, :comment
 
   def domain
     object.public_domain
@@ -9,14 +9,6 @@ class REST::DomainBlockSerializer < ActiveModel::Serializer
 
   def digest
     object.domain_digest
-  end
-
-  def severity
-    object.severity == 'noop' ? 'silence' : object.severity
-  end
-
-  def severity_ex
-    object.severity
   end
 
   def comment

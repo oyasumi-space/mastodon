@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ProcessMentionsService do
+RSpec.describe ProcessMentionsService, type: :service do
   subject { described_class.new }
 
   let(:account) { Fabricate(:account, username: 'alice') }
@@ -101,29 +101,6 @@ RSpec.describe ProcessMentionsService do
       it 'creates a mention' do
         expect(remote_user.mentions.where(status: status).count).to eq 1
       end
-    end
-  end
-
-  context 'with circle post' do
-    let(:status) { Fabricate(:status, account: account) }
-    let(:circle) { Fabricate(:circle, account: account) }
-    let(:follower) { Fabricate(:account) }
-    let(:other) { Fabricate(:account) }
-
-    before do
-      follower.follow!(account)
-      other.follow!(account)
-      circle.accounts << follower
-      described_class.new.call(status, limited_type: :circle, circle: circle)
-    end
-
-    it 'remains circle post on history' do
-      expect(CircleStatus.exists?(circle_id: circle.id, status_id: status.id)).to be true
-    end
-
-    it 'post is delivered to circle members' do
-      expect(status.mentioned_accounts.count).to eq 1
-      expect(status.mentioned_accounts.first.id).to eq follower.id
     end
   end
 end

@@ -17,10 +17,6 @@
   .fields-group
     = f.input :discoverable, as: :boolean, wrapper: :with_label, recommended: true
 
-  = f.simple_fields_for :settings, current_user.settings do |ff|
-    .fields-group
-      = ff.input :discoverable_local, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.discoverable_local'), hint: I18n.t('simple_form.hints.defaults.discoverable_local')
-
   .fields-group
     = f.input :unlocked, as: :boolean, wrapper: :with_label
 
@@ -28,26 +24,12 @@
 
   %p.lead= t('privacy.search_hint_html')
 
+  .fields-group
+    = f.input :indexable, as: :boolean, wrapper: :with_label
+
   = f.simple_fields_for :settings, current_user.settings do |ff|
     .fields-group
       = ff.input :indexable, wrapper: :with_label
-
-  %p.lead= t('privacy.search_kmyblue_hint_html')
-
-  .fields-group
-    = f.input :indexable, as: :boolean, wrapper: :with_label, label: I18n.t('simple_form.labels.account.indexable_kmyblue')
-
-  = f.simple_fields_for :settings, current_user.settings do |ff|
-    .fields-row
-      .fields-group.fields-row__column.fields-row__column-12
-        = ff.input :default_searchability,
-                   collection: Status.selectable_searchabilities,
-                   include_blank: false,
-                   kmyblue: true,
-                   label: I18n.t('simple_form.labels.account.searchability_kmyblue'),
-                   label_method: ->(searchability) { safe_join([I18n.t("statuses.searchabilities.#{searchability}"), I18n.t("statuses.searchabilities.#{searchability}_long")], ' - ') },
-                   required: false,
-                   wrapper: :with_label
 
   %h4= t('privacy.privacy')
 
@@ -57,11 +39,6 @@
     = f.input :show_collections, as: :boolean, wrapper: :with_label
 
   = f.simple_fields_for :settings, current_user.settings do |ff|
-    .fields-group
-      = ff.input :show_statuses_count, as: :boolean, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_statuses_count'), hint: false
-      = ff.input :show_following_count, as: :boolean, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_following_count'), hint: false
-      = ff.input :show_followers_count, as: :boolean, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_followers_count'), hint: false
-
     .fields-group
       = ff.input :show_application, wrapper: :with_label
 

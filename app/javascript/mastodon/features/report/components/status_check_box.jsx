@@ -42,7 +42,7 @@ class StatusCheckBox extends PureComponent {
           </div>
 
           <div>
-            <DisplayName account={status.get('account')} /> · <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('limited_scope') || status.get('visibility_ex')} /></span> <RelativeTimestamp timestamp={status.get('created_at')} />
+            <DisplayName account={status.get('account')} /> · <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility')} /></span> <RelativeTimestamp timestamp={status.get('created_at')} />
           </div>
         </div>
 

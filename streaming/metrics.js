@@ -1,6 +1,6 @@
 // @ts-check
 
-import metrics from 'prom-client';
+const metrics = require('prom-client');
 
 /**
  * @typedef StreamingMetrics
@@ -18,7 +18,7 @@ import metrics from 'prom-client';
  * @param {import('pg').Pool} pgPool
  * @returns {StreamingMetrics}
  */
-export function setupMetrics(channels, pgPool) {
+function setupMetrics(channels, pgPool) {
   // Collect metrics from Node.js
   metrics.collectDefaultMetrics();
 
@@ -101,3 +101,5 @@ export function setupMetrics(channels, pgPool) {
     messagesSent,
   };
 }
+
+exports.setupMetrics = setupMetrics;

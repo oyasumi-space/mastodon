@@ -25,11 +25,14 @@ class Admin::Metrics::Dimension::SoftwareVersionsDimension < Admin::Metrics::Dim
   end
 
   def ruby_version
+    yjit = defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
+    value = "#{RUBY_VERSION}p#{RUBY_PATCHLEVEL}#{yjit ? ' +YJIT' : ''}"
+
     {
       key: 'ruby',
       human_key: 'Ruby',
-      value: "#{RUBY_VERSION}p#{RUBY_PATCHLEVEL}",
-      human_value: RUBY_DESCRIPTION,
+      value: value,
+      human_value: value,
     }
   end
 

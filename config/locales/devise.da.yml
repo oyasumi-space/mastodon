@@ -12,7 +12,6 @@ da:
       last_attempt: Du har ét forsøg mere, før din konto bliver låst.
       locked: Din konto er låst.
       not_found_in_database: Ugyldig %{authentication_keys} eller adgangskode.
-      omniauth_user_creation_failure: Fejl under oprettelse af konto for denne identitet.
       pending: Din konto er stadig under revision.
       timeout: Session udløbet. Log ind igen for at fortsætte.
       unauthenticated: Log ind eller tilmeld dig for at fortsætte.
@@ -48,19 +47,16 @@ da:
         subject: 'Mastodon: Instruktioner til adgangskodenulstilling'
         title: Adgangskodenulstilling
       two_factor_disabled:
-        explanation: Indlogning er nu mulig via kun e-mailadresse og adgangskode.
+        explanation: Tofaktorgodkendelse for kontoen er blevet deaktiveret. Indlogning er nu kun mulig via email og adgangskode.
         subject: 'Mastodon: Tofaktorgodkendelse deaktiveret'
-        subtitle: Tofaktorgodkendelse for kontoen er blevet deaktiveret.
         title: 2FA deaktiveret
       two_factor_enabled:
-        explanation: Token genereret af parret TOTP-app vil være nødvendig for indlogning.
+        explanation: Tofaktorgodkendelse er blevet aktiveret for kontoen. Indlogning vil kærve et token genereret af den parrede TOTP-app.
         subject: 'Mastodon: Tofaktorgodkendelse aktiveret'
-        subtitle: Tofaktorgodkendelse er blevet aktiveret for kontoen.
         title: 2FA aktiveret
       two_factor_recovery_codes_changed:
         explanation: De tidligere gendannelseskoder er ugyldiggjorte og nye er genereret.
         subject: 'Mastodan: Tofaktorgendannelseskoder genereret igen'
-        subtitle: Tidligere gendannelseskoder er ugyldiggjorte og nye er genereret.
         title: 2FA gendannelseskoder skiftet
       unlock_instructions:
         subject: 'Mastodon: Oplåsningsinstruktioner'
@@ -74,13 +70,11 @@ da:
           subject: 'Mastodon: Sikkerhedsnøgle slettet'
           title: En af dine sikkerhedsnøgler er blevet slettet
       webauthn_disabled:
-        explanation: Godkendelse med sikkerhedsnøgler er blevet deaktiveret for kontoen.
-        extra: Indlogning er nu mulig kun via tokenet genereret af parret TOTP-app.
+        explanation: Godkendelse med sikkerhedsnøgler er blevet deaktiveret for kontoen. Indlogning er nu kun mulig via token genereret af den parrede TOTP-app.
         subject: 'Mastodon: Godkendelse med sikkerhedsnøgler deaktiveret'
         title: Sikkerhedsnøgler deaktiveret
       webauthn_enabled:
-        explanation: Sikkerhedsnøglegodkendelse er blevet aktiveret for kontoen.
-        extra: Sikkerhedsnøglen kan nu bruges til indlogning.
+        explanation: Sikkerhedsnøglegodkendelse er aktiveret for kontoen. Din sikkerhedsnøgle kan nu bruges til indlogning.
         subject: 'Mastodon: Sikkerhedsnøglegodkendelse aktiveret'
         title: Sikkerhedsnøgler aktiveret
     omniauth_callbacks:

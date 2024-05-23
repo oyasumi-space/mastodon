@@ -1,53 +1,32 @@
-import { useRef, useCallback } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import { useSelector, useDispatch } from 'react-redux';
+import SensitiveButtonContainer from '../containers/sensitive_button_container';
+import UploadContainer from '../containers/upload_container';
+import UploadProgressContainer from '../containers/upload_progress_container';
 
-import { changeMediaOrder } from 'mastodon/actions/compose';
+export default class UploadForm extends ImmutablePureComponent {
 
-import { Upload } from './upload';
-import { UploadProgress } from './upload_progress';
+  static propTypes = {
+    mediaIds: ImmutablePropTypes.list.isRequired,
+  };
 
-export const UploadForm = () => {
-  const dispatch = useDispatch();
-  const mediaIds = useSelector(state => state.getIn(['compose', 'media_attachments']).map(item => item.get('id')));
-  const active = useSelector(state => state.getIn(['compose', 'is_uploading']));
-  const progress = useSelector(state => state.getIn(['compose', 'progress']));
-  const isProcessing = useSelector(state => state.getIn(['compose', 'is_processing']));
+  render () {
+    const { mediaIds } = this.props;
 
-  const dragItem = useRef();
-  const dragOverItem = useRef();
+    return (
+      <div className='compose-form__upload-wrapper'>
+        <UploadProgressContainer />
 
-  const handleDragStart = useCallback(id => {
-    dragItem.current = id;
-  }, [dragItem]);
-
-  const handleDragEnter = useCallback(id => {
-    dragOverItem.current = id;
-  }, [dragOverItem]);
-
-  const handleDragEnd = useCallback(() => {
-    dispatch(changeMediaOrder(dragItem.current, dragOverItem.current));
-    dragItem.current = null;
-    dragOverItem.current = null;
-  }, [dispatch, dragItem, dragOverItem]);
-
-  return (
-    <>
-      <UploadProgress active={active} progress={progress} isProcessing={isProcessing} />
-
-      {mediaIds.size > 0 && (
-        <div className='compose-form__uploads'>
+        <div className='compose-form__uploads-wrapper'>
           {mediaIds.map(id => (
-            <Upload
-              key={id}
-              id={id}
-              onDragStart={handleDragStart}
-              onDragEnter={handleDragEnter}
-              onDragEnd={handleDragEnd}
-            />
+            <UploadContainer id={id} key={id} />
           ))}
         </div>
-      )}
-    </>
-  );
-};
+
+        {!mediaIds.isEmpty() && <SensitiveButtonContainer />}
+      </div>
+    );
+  }
+
+}

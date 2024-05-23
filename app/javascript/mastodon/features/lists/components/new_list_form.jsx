@@ -1,5 +1,3 @@
-// Kmyblue tracking marker: copied antennas/new_antenna_form, circles/new_circle_form, bookmark_categories/new_bookmark_category_form
-
 import PropTypes from 'prop-types';
 import { PureComponent } from 'react';
 

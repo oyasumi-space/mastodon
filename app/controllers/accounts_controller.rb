@@ -25,7 +25,7 @@ class AccountsController < ApplicationController
 
         limit     = params[:limit].present? ? [params[:limit].to_i, PAGE_SIZE_MAX].min : PAGE_SIZE
         @statuses = filtered_statuses.without_reblogs.limit(limit)
-        @statuses = preload_collection(@statuses, Status)
+        @statuses = cache_collection(@statuses, Status)
       end
 
       format.json do
@@ -46,11 +46,7 @@ class AccountsController < ApplicationController
   end
 
   def default_statuses
-    if current_account.present?
-      @account.statuses.distributable_visibility
-    else
-      @account.statuses.distributable_visibility_for_anonymous
-    end
+    @account.statuses.where(visibility: [:public, :unlisted])
   end
 
   def only_media_scope

@@ -2,8 +2,6 @@
 
 class InitialStateSerializer < ActiveModel::Serializer
   include RoutingHelper
-  include DtlHelper
-  include RegistrationLimitationHelper
 
   attributes :meta, :compose, :accounts,
              :media_attachments, :settings,
@@ -19,47 +17,23 @@ class InitialStateSerializer < ActiveModel::Serializer
 
     if object.current_account
       store[:me]                = object.current_account.id.to_s
+      store[:unfollow_modal]    = object_account_user.setting_unfollow_modal
       store[:boost_modal]       = object_account_user.setting_boost_modal
       store[:delete_modal]      = object_account_user.setting_delete_modal
       store[:auto_play_gif]     = object_account_user.setting_auto_play_gif
       store[:display_media]     = object_account_user.setting_display_media
-      store[:display_media_expand] = object_account_user.setting_display_media_expand
-      store[:expand_spoilers] = object_account_user.setting_expand_spoilers
-      store[:enable_emoji_reaction] = object_account_user.setting_enable_emoji_reaction && Setting.enable_emoji_reaction
-      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu
+      store[:expand_spoilers]   = object_account_user.setting_expand_spoilers
       store[:reduce_motion]     = object_account_user.setting_reduce_motion
       store[:disable_swiping]   = object_account_user.setting_disable_swiping
       store[:advanced_layout]   = object_account_user.setting_advanced_layout
       store[:use_blurhash]      = object_account_user.setting_use_blurhash
       store[:use_pending_items] = object_account_user.setting_use_pending_items
       store[:show_trends]       = Setting.trends && object_account_user.setting_trends
-      store[:bookmark_category_needed] = object_account_user.setting_bookmark_category_needed
-      store[:simple_timeline_menu] = object_account_user.setting_simple_timeline_menu
-      store[:boost_menu] = object_account_user.setting_boost_menu
-      store[:hide_items] = [
-        object_account_user.setting_hide_favourite_menu ? 'favourite_menu' : nil,
-        object_account_user.setting_hide_recent_emojis ? 'recent_emojis' : nil,
-        object_account_user.setting_hide_blocking_quote ? 'blocking_quote' : nil,
-        object_account_user.setting_hide_emoji_reaction_unavailable_server ? 'emoji_reaction_unavailable_server' : nil,
-        object_account_user.setting_hide_quote_unavailable_server ? 'quote_unavailable_server' : nil,
-        object_account_user.setting_hide_status_reference_unavailable_server ? 'status_reference_unavailable_server' : nil,
-        object_account_user.setting_hide_emoji_reaction_count ? 'emoji_reaction_count' : nil,
-        object_account_user.setting_show_emoji_reaction_on_timeline ? nil : 'emoji_reaction_on_timeline',
-        object_account_user.setting_show_quote_in_home ? nil : 'quote_in_home',
-        object_account_user.setting_show_quote_in_public ? nil : 'quote_in_public',
-        object_account_user.setting_show_relationships ? nil : 'relationships',
-      ].compact
-      store[:enabled_visibilities] = enabled_visibilities
-      store[:featured_tags] = object.current_account.featured_tags.pluck(:name)
     else
       store[:auto_play_gif] = Setting.auto_play_gif
       store[:display_media] = Setting.display_media
       store[:reduce_motion] = Setting.reduce_motion
       store[:use_blurhash]  = Setting.use_blurhash
-      store[:enable_emoji_reaction] = Setting.enable_emoji_reaction
-      store[:hide_items] = [
-        Setting.enable_emoji_reaction ? nil : 'emoji_reaction_on_timeline',
-      ].compact
     end
 
     store[:disabled_account_id] = object.disabled_account.id.to_s if object.disabled_account
@@ -74,12 +48,10 @@ class InitialStateSerializer < ActiveModel::Serializer
     store = {}
 
     if object.current_account
-      store[:me]                    = object.current_account.id.to_s
-      store[:default_privacy]       = object.visibility || object_account_user.setting_default_privacy
-      store[:stay_privacy]          = object_account_user.setting_stay_privacy
-      store[:default_searchability] = object.searchability || object_account_user.setting_default_searchability
-      store[:default_sensitive]     = object_account_user.setting_default_sensitive
-      store[:default_language]      = object_account_user.preferred_posting_language
+      store[:me]                = object.current_account.id.to_s
+      store[:default_privacy]   = object.visibility || object_account_user.setting_default_privacy
+      store[:default_sensitive] = object_account_user.setting_default_sensitive
+      store[:default_language]  = object_account_user.preferred_posting_language
     end
 
     store[:text] = object.text if object.text
@@ -112,13 +84,6 @@ class InitialStateSerializer < ActiveModel::Serializer
     LanguagesHelper::SUPPORTED_LOCALES.map { |(key, value)| [key, value[0], value[1]] }
   end
 
-  def enabled_visibilities
-    vs = object_account_user.setting_enabled_visibilities
-    vs -= %w(public_unlisted) unless Setting.enable_public_unlisted_visibility
-    vs -= %w(public) unless Setting.enable_public_visibility
-    vs
-  end
-
   private
 
   def default_meta_store
@@ -127,14 +92,11 @@ class InitialStateSerializer < ActiveModel::Serializer
       activity_api_enabled: Setting.activity_api_enabled,
       admin: object.admin&.id&.to_s,
       domain: Addressable::IDNA.to_unicode(instance_presenter.domain),
-      dtl_tag: dtl_enabled? ? dtl_tag_name : nil,
-      enable_local_timeline: Setting.enable_local_timeline,
       limited_federation_mode: Rails.configuration.x.limited_federation_mode,
       locale: I18n.locale,
       mascot: instance_presenter.mascot&.file&.url,
       profile_directory: Setting.profile_directory,
-      registrations_open: Setting.registrations_mode != 'none' && !reach_registrations_limit? && !Rails.configuration.x.single_user_mode,
-      registrations_reach_limit: Setting.registrations_mode != 'none' && reach_registrations_limit?,
+      registrations_open: Setting.registrations_mode != 'none' && !Rails.configuration.x.single_user_mode,
       repository: Mastodon::Version.repository,
       search_enabled: Chewy.enabled?,
       single_user_mode: Rails.configuration.x.single_user_mode,

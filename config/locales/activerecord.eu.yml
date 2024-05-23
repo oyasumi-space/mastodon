@@ -19,7 +19,7 @@ eu:
         account:
           attributes:
             username:
-              invalid: letrak, zenbakiak eta azpimarrak soilik izan behar ditu
+              invalid: letrak, zenbakiak eta gidoi baxuak besterik ez
               reserved: erreserbatuta dago
         admin/webhook:
           attributes:

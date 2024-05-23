@@ -38,12 +38,12 @@ hu:
         application: Alkalmazás
         callback_url: Visszahívási URL
         delete: Eltávolítás
-        empty: Nincsenek saját alkalmazásaid.
+        empty: Nincsenek saját alkalmazások.
         name: Név
         new: Új alkalmazás
         scopes: Hatókörök
         show: Megjelenítés
-        title: Saját alkalmazások
+        title: Alkalmazásaid
       new:
         title: Új alkalmazás
       show:
@@ -77,7 +77,7 @@ hu:
         never_used: Soha sem volt használva
         scopes: Jogosultságok
         superapp: Belső
-        title: Hitelesített saját alkalmazások
+        title: Hitelesített alkalmazásaid
     errors:
       messages:
         access_denied: Az erőforrás tulajdonosa vagy az engedélyező kiszolgáló elutasította a kérést.
@@ -129,7 +129,7 @@ hu:
         crypto: Végpontok közti titkosítás
         favourites: Kedvencek
         filters: Szűrők
-        follow: Követések, némítások és letiltások
+        follow: Követések, Némítások és Letiltások
         follows: Követések
         lists: Listák
         media: Médiamellékletek
@@ -174,7 +174,6 @@ hu:
       read:filters: szűrök megtekintése
       read:follows: követések megtekintése
       read:lists: listák megtekintése
-      read:me: csak a fiókod alapvető adatainak elolvasása
       read:mutes: némítások megtekintése
       read:notifications: értesítések megtekintése
       read:reports: bejelentések megtekintése

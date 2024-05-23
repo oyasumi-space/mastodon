@@ -12,7 +12,7 @@ const buildSearch = (data) => {
     }
 
     (Array.isArray(strings) ? strings : [strings]).forEach((string) => {
-      (split ? string.split(/[-|_|\s]+/) : [string]).filter((s) => s).forEach((s) => {
+      (split ? string.split(/[-|_|\s]+/) : [string]).forEach((s) => {
         s = s.toLowerCase();
 
         if (search.indexOf(s) === -1) {
@@ -135,19 +135,19 @@ function getData(emoji, skin, set) {
       }
     }
 
-    if (Object.hasOwn(data.short_names, emoji)) {
+    if (Object.prototype.hasOwnProperty.call(data.short_names, emoji)) {
       emoji = data.short_names[emoji];
     }
 
-    if (Object.hasOwn(data.emojis, emoji)) {
+    if (Object.prototype.hasOwnProperty.call(data.emojis, emoji)) {
       emojiData = data.emojis[emoji];
     }
   } else if (emoji.id) {
-    if (Object.hasOwn(data.short_names, emoji.id)) {
+    if (Object.prototype.hasOwnProperty.call(data.short_names, emoji.id)) {
       emoji.id = data.short_names[emoji.id];
     }
 
-    if (Object.hasOwn(data.emojis, emoji.id)) {
+    if (Object.prototype.hasOwnProperty.call(data.emojis, emoji.id)) {
       emojiData = data.emojis[emoji.id];
       skin = skin || emoji.skin;
     }
@@ -216,7 +216,7 @@ function deepMerge(a, b) {
     let originalValue = a[key],
       value = originalValue;
 
-    if (Object.hasOwn(b, key)) {
+    if (Object.prototype.hasOwnProperty.call(b, key)) {
       value = b[key];
     }
 

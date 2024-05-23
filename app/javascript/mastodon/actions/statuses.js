@@ -39,8 +39,6 @@ export const STATUS_TRANSLATE_SUCCESS = 'STATUS_TRANSLATE_SUCCESS';
 export const STATUS_TRANSLATE_FAIL    = 'STATUS_TRANSLATE_FAIL';
 export const STATUS_TRANSLATE_UNDO    = 'STATUS_TRANSLATE_UNDO';
 
-export const STATUS_EMOJI_REACTION_UPDATE = 'STATUS_EMOJI_REACTION_UPDATE';
-
 export function fetchStatusRequest(id, skipLoading) {
   return {
     type: STATUS_FETCH_REQUEST,
@@ -180,9 +178,9 @@ export function fetchContext(id) {
   return (dispatch, getState) => {
     dispatch(fetchContextRequest(id));
 
-    api(getState).get(`/api/v1/statuses/${id}/context?with_reference=1`).then(response => {
-      dispatch(importFetchedStatuses(response.data.ancestors.concat(response.data.descendants).concat(response.data.references)));
-      dispatch(fetchContextSuccess(id, response.data.ancestors, response.data.descendants, response.data.references));
+    api(getState).get(`/api/v1/statuses/${id}/context`).then(response => {
+      dispatch(importFetchedStatuses(response.data.ancestors.concat(response.data.descendants)));
+      dispatch(fetchContextSuccess(id, response.data.ancestors, response.data.descendants));
 
     }).catch(error => {
       if (error.response && error.response.status === 404) {
@@ -201,13 +199,12 @@ export function fetchContextRequest(id) {
   };
 }
 
-export function fetchContextSuccess(id, ancestors, descendants, references) {
+export function fetchContextSuccess(id, ancestors, descendants) {
   return {
     type: CONTEXT_FETCH_SUCCESS,
     id,
     ancestors,
     descendants,
-    references,
     statuses: ancestors.concat(descendants),
   };
 }
@@ -350,9 +347,4 @@ export const undoStatusTranslation = (id, pollId) => ({
   type: STATUS_TRANSLATE_UNDO,
   id,
   pollId,
-});
-
-export const updateEmojiReaction = (emoji_reaction) => ({
-  type: STATUS_EMOJI_REACTION_UPDATE,
-  emoji_reaction,
 });

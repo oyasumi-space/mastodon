@@ -5,11 +5,10 @@ class UserMailer < Devise::Mailer
 
   helper :accounts
   helper :application
-  helper :mascot
-  helper :formatting
   helper :instance
-  helper :routing
   helper :statuses
+  helper :formatting
+  helper :routing
 
   before_action :set_instance
 
@@ -136,12 +135,6 @@ class UserMailer < Devise::Mailer
 
     return unless @resource.active_for_authentication?
 
-    @suggestions = AccountSuggestions.new(@resource.account).get(5)
-    @tags = Trends.tags.query.allowed.limit(5)
-    @has_account_fields = @resource.account.display_name.present? || @resource.account.note.present? || @resource.account.avatar.present?
-    @has_active_relationships = @resource.account.active_relationships.exists?
-    @has_statuses = @resource.account.statuses.exists?
-
     I18n.with_locale(locale) do
       mail subject: default_i18n_subject
     end
@@ -187,18 +180,6 @@ class UserMailer < Devise::Mailer
   end
 
   def suspicious_sign_in(user, remote_ip, user_agent, timestamp)
-    @resource   = user
-    @remote_ip  = remote_ip
-    @user_agent = user_agent
-    @detection  = Browser.new(user_agent)
-    @timestamp  = timestamp.to_time.utc
-
-    I18n.with_locale(locale) do
-      mail subject: default_i18n_subject
-    end
-  end
-
-  def failed_2fa(user, remote_ip, user_agent, timestamp)
     @resource   = user
     @remote_ip  = remote_ip
     @user_agent = user_agent

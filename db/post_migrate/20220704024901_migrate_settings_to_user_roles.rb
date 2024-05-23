@@ -3,9 +3,7 @@
 class MigrateSettingsToUserRoles < ActiveRecord::Migration[6.1]
   disable_ddl_transaction!
 
-  class UserRole < ApplicationRecord
-    EVERYONE_ROLE_ID = -99
-  end
+  class UserRole < ApplicationRecord; end
 
   def up
     process_role_everyone
@@ -19,7 +17,7 @@ class MigrateSettingsToUserRoles < ActiveRecord::Migration[6.1]
   private
 
   def process_role_everyone
-    everyone_role = UserRole.find_by(id: UserRole::EVERYONE_ROLE_ID)
+    everyone_role = UserRole.find_by(id: -99)
     return unless everyone_role
 
     everyone_role.permissions &= ~::UserRole::FLAGS[:invite_users] unless min_invite_role == 'user'

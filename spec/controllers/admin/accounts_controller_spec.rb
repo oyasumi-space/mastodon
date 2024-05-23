@@ -9,17 +9,6 @@ RSpec.describe Admin::AccountsController do
 
   describe 'GET #index' do
     let(:current_user) { Fabricate(:user, role: UserRole.find_by(name: 'Admin')) }
-    let(:params) do
-      {
-        origin: 'local',
-        by_domain: 'domain',
-        status: 'active',
-        username: 'username',
-        display_name: 'display name',
-        email: 'local-part@domain',
-        ip: '0.0.0.42',
-      }
-    end
 
     around do |example|
       default_per_page = Account.default_per_page
@@ -28,26 +17,37 @@ RSpec.describe Admin::AccountsController do
       Account.paginates_per default_per_page
     end
 
-    before do
-      Fabricate(:account)
-
+    it 'filters with parameters' do
       account_filter = instance_double(AccountFilter, results: Account.all)
       allow(AccountFilter).to receive(:new).and_return(account_filter)
+      params = {
+        origin: 'local',
+        by_domain: 'domain',
+        status: 'active',
+        username: 'username',
+        display_name: 'display name',
+        email: 'local-part@domain',
+        ip: '0.0.0.42',
+      }
+
+      get :index, params: params
+
+      expect(AccountFilter).to have_received(:new).with(hash_including(params))
     end
 
-    it 'returns success and paginates and filters with parameters' do
-      get :index, params: params.merge(page: 2)
+    it 'paginates accounts' do
+      Fabricate(:account)
 
-      expect(response)
-        .to have_http_status(200)
-      expect(assigns(:accounts))
-        .to have_attributes(
-          count: eq(1),
-          klass: be(Account)
-        )
-      expect(AccountFilter)
-        .to have_received(:new)
-        .with(hash_including(params))
+      get :index, params: { page: 2 }
+
+      accounts = assigns(:accounts)
+      expect(accounts.count).to eq 1
+      expect(accounts.klass).to be Account
+    end
+
+    it 'returns http success' do
+      get :index
+      expect(response).to have_http_status(200)
     end
   end
 
@@ -153,9 +153,13 @@ RSpec.describe Admin::AccountsController do
     context 'when user is admin' do
       let(:role) { UserRole.find_by(name: 'Admin') }
 
-      it 'succeeds in approving account and logs action' do
+      it 'succeeds in approving account' do
         expect(subject).to redirect_to admin_accounts_path(status: 'pending')
         expect(user.reload).to be_approved
+      end
+
+      it 'logs action' do
+        expect(subject).to have_http_status 302
 
         expect(latest_admin_action_log)
           .to be_present
@@ -191,8 +195,12 @@ RSpec.describe Admin::AccountsController do
     context 'when user is admin' do
       let(:role) { UserRole.find_by(name: 'Admin') }
 
-      it 'succeeds in rejecting account and logs action' do
+      it 'succeeds in rejecting account' do
         expect(subject).to redirect_to admin_accounts_path(status: 'pending')
+      end
+
+      it 'logs action' do
+        expect(subject).to have_http_status 302
 
         expect(latest_admin_action_log)
           .to be_present
@@ -278,9 +286,12 @@ RSpec.describe Admin::AccountsController do
     context 'when user is admin' do
       let(:role) { UserRole.find_by(name: 'Admin') }
 
-      it 'succeeds in removing email blocks and redirects to admin account path' do
+      it 'succeeds in removing email blocks' do
         expect { subject }.to change { CanonicalEmailBlock.where(reference_account: account).count }.from(1).to(0)
+      end
 
+      it 'redirects to admin account path' do
+        subject
         expect(response).to redirect_to admin_account_path(account.id)
       end
     end

@@ -9,11 +9,7 @@ exports[`<AutosuggestEmoji /> renders emoji with custom url 1`] = `
     className="emojione"
     src="http://example.com/emoji.png"
   />
-  <div
-    className="autosuggest-emoji__name"
-  >
-    :foobar:
-  </div>
+  :foobar:
 </div>
 `;
 
@@ -26,10 +22,6 @@ exports[`<AutosuggestEmoji /> renders native emoji 1`] = `
     className="emojione"
     src="/emoji/1f499.svg"
   />
-  <div
-    className="autosuggest-emoji__name"
-  >
-    :foobar:
-  </div>
+  :foobar:
 </div>
 `;

@@ -37,7 +37,7 @@ class ActivityPub::Activity
         ActivityPub::Activity::Delete
       when 'Follow'
         ActivityPub::Activity::Follow
-      when 'Like', 'EmojiReaction', 'EmojiReact'
+      when 'Like'
         ActivityPub::Activity::Like
       when 'Block'
         ActivityPub::Activity::Block
@@ -154,7 +154,7 @@ class ActivityPub::Activity
     if object_uri.start_with?('http')
       return if ActivityPub::TagManager.instance.local_uri?(object_uri)
 
-      ActivityPub::FetchRemoteStatusService.new.call(object_uri, on_behalf_of: @account.followers.local.first, request_id: @options[:request_id])
+      ActivityPub::FetchRemoteStatusService.new.call(object_uri, id: true, on_behalf_of: @account.followers.local.first, request_id: @options[:request_id])
     elsif @object['url'].present?
       ::FetchRemoteStatusService.new.call(@object['url'], request_id: @options[:request_id])
     end
@@ -169,8 +169,7 @@ class ActivityPub::Activity
   end
 
   def requested_through_relay?
-    @options[:relayed_through_actor] &&
-      (Relay.find_by(inbox_url: @options[:relayed_through_actor].inbox_url)&.enabled? || FriendDomain.free_receivings.exists?(inbox_url: @options[:relayed_through_actor].inbox_url))
+    @options[:relayed_through_actor] && Relay.find_by(inbox_url: @options[:relayed_through_actor].inbox_url)&.enabled?
   end
 
   def reject_payload!

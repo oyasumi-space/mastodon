@@ -74,12 +74,12 @@ class Trends::Statuses < Trends::Base
 
     # Now that all trends have up-to-date scores, and all the ones below the threshold have
     # been removed, we can recalculate their positions
-    StatusTrend.recalculate_ordered_rank
+    StatusTrend.connection.exec_update('UPDATE status_trends SET rank = t0.calculated_rank FROM (SELECT id, row_number() OVER w AS calculated_rank FROM status_trends WINDOW w AS (PARTITION BY language ORDER BY score DESC)) t0 WHERE status_trends.id = t0.id')
   end
 
   def request_review
     StatusTrend.pluck('distinct language').flat_map do |language|
-      score_at_threshold = StatusTrend.where(language: language, allowed: true).by_rank.ranked_below(options[:review_threshold]).first&.score || 0
+      score_at_threshold = StatusTrend.where(language: language, allowed: true).order(rank: :desc).where('rank <= ?', options[:review_threshold]).first&.score || 0
       status_trends      = StatusTrend.where(language: language, allowed: false).joins(:status).includes(status: :account)
 
       status_trends.filter_map do |trend|
@@ -106,23 +106,13 @@ class Trends::Statuses < Trends::Base
   private
 
   def eligible?(status)
-    (status.searchability.nil? || status.compute_searchability == 'public') &&
-      (status.public_visibility? || status.public_unlisted_visibility?) &&
-      status.account.discoverable? && !status.account.silenced? && !status.account.sensitized? &&
-      status.spoiler_text.blank? && (!status.sensitive? || status.media_attachments.none?) &&
-      !status.reply? && valid_locale?(status.language) && !domain_blocked?(status)
-  end
-
-  def domain_blocked?(status)
-    return false if status.account.local?
-
-    DomainBlock.block_trends?(status.account.domain)
+    status.public_visibility? && status.account.discoverable? && !status.account.silenced? && !status.account.sensitized? && status.spoiler_text.blank? && !status.sensitive? && !status.reply? && valid_locale?(status.language)
   end
 
   def calculate_scores(statuses, at_time)
     items = statuses.map do |status|
       expected  = 1.0
-      observed  = (status.reblogs_count + status.favourites_count + (status.emoji_reaction_accounts_count * 0.8)).to_f
+      observed  = (status.reblogs_count + status.favourites_count).to_f
 
       score = if expected > observed || observed < options[:threshold]
                 0

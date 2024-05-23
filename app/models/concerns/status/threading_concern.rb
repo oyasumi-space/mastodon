@@ -3,23 +3,6 @@
 module Status::ThreadingConcern
   extend ActiveSupport::Concern
 
-  class_methods do
-    def permitted_statuses_from_ids(ids, account, stable: false)
-      statuses    = Status.with_accounts(ids).to_a
-      account_ids = statuses.map(&:account_id).uniq
-      domains     = statuses.filter_map(&:account_domain).uniq
-      relations   = account&.relations_map(account_ids, domains) || {}
-
-      statuses.reject! { |status| StatusFilter.new(status, account, relations).filtered? }
-
-      if stable
-        statuses.sort_by! { |status| ids.index(status.id) }
-      else
-        statuses
-      end
-    end
-  end
-
   def ancestors(limit, account = nil)
     find_statuses_from_tree_path(ancestor_ids(limit), account)
   end
@@ -28,17 +11,8 @@ module Status::ThreadingConcern
     find_statuses_from_tree_path(descendant_ids(limit, depth), account, promote: true)
   end
 
-  def readable_references(account = nil)
-    statuses = references.to_a
-    account_ids = statuses.map(&:account_id).uniq
-    domains = statuses.filter_map(&:account_domain).uniq
-    relations = account&.relations_map(account_ids, domains) || {}
-    statuses.reject! { |status| StatusFilter.new(status, account, relations).filtered? }
-    statuses
-  end
-
   def self_replies(limit)
-    account.statuses.distributable_visibility.where(in_reply_to_id: id).reorder(id: :asc).limit(limit)
+    account.statuses.where(in_reply_to_id: id, visibility: [:public, :unlisted]).reorder(id: :asc).limit(limit)
   end
 
   private
@@ -102,7 +76,15 @@ module Status::ThreadingConcern
   end
 
   def find_statuses_from_tree_path(ids, account, promote: false)
-    statuses = Status.permitted_statuses_from_ids(ids, account, stable: true)
+    statuses    = Status.with_accounts(ids).to_a
+    account_ids = statuses.map(&:account_id).uniq
+    domains     = statuses.filter_map(&:account_domain).uniq
+    relations   = account&.relations_map(account_ids, domains) || {}
+
+    statuses.reject! { |status| StatusFilter.new(status, account, relations).filtered? }
+
+    # Order ancestors/descendants by tree path
+    statuses.sort_by! { |status| ids.index(status.id) }
 
     # Bring self-replies to the top
     if promote

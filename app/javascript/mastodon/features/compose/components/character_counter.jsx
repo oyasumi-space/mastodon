@@ -1,18 +1,26 @@
 import PropTypes from 'prop-types';
+import { PureComponent } from 'react';
 
 import { length } from 'stringz';
 
-export const CharacterCounter = ({ text, max }) => {
-  const diff = max - length(text);
+export default class CharacterCounter extends PureComponent {
 
-  if (diff < 0) {
-    return <span className='character-counter character-counter--over'>{diff}</span>;
+  static propTypes = {
+    text: PropTypes.string.isRequired,
+    max: PropTypes.number.isRequired,
+  };
+
+  checkRemainingText (diff) {
+    if (diff < 0) {
+      return <span className='character-counter character-counter--over'>{diff}</span>;
+    }
+
+    return <span className='character-counter'>{diff}</span>;
   }
 
-  return <span className='character-counter'>{diff}</span>;
-};
+  render () {
+    const diff = this.props.max - length(this.props.text);
+    return this.checkRemainingText(diff);
+  }
 
-CharacterCounter.propTypes = {
-  text: PropTypes.string.isRequired,
-  max: PropTypes.number.isRequired,
-};
+}

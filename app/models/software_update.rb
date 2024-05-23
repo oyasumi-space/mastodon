@@ -16,7 +16,7 @@
 class SoftwareUpdate < ApplicationRecord
   self.inheritance_column = nil
 
-  enum :type, { patch: 0, minor: 1, major: 2 }, suffix: :type
+  enum type: { patch: 0, minor: 1, major: 2 }, _suffix: :type
 
   def gem_version
     Gem::Version.new(version)
@@ -35,14 +35,6 @@ class SoftwareUpdate < ApplicationRecord
 
     def urgent_pending?
       pending_to_a.any?(&:urgent?)
-    end
-
-    def major_pending?
-      pending_to_a.any?(&:major_type?)
-    end
-
-    def patch_pending?
-      pending_to_a.any?(&:patch_type?)
     end
   end
 end

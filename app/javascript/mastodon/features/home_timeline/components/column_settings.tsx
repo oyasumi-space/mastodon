@@ -24,36 +24,43 @@ export const ColumnSettings: React.FC = () => {
   );
 
   return (
-    <div className='column-settings'>
-      <section>
-        <div className='column-settings__row'>
-          <SettingToggle
-            prefix='home_timeline'
-            settings={settings}
-            settingPath={['shows', 'reblog']}
-            onChange={onChange}
-            label={
-              <FormattedMessage
-                id='home.column_settings.show_reblogs'
-                defaultMessage='Show boosts'
-              />
-            }
-          />
+    <div>
+      <span className='column-settings__section'>
+        <FormattedMessage
+          id='home.column_settings.basic'
+          defaultMessage='Basic'
+        />
+      </span>
 
-          <SettingToggle
-            prefix='home_timeline'
-            settings={settings}
-            settingPath={['shows', 'reply']}
-            onChange={onChange}
-            label={
-              <FormattedMessage
-                id='home.column_settings.show_replies'
-                defaultMessage='Show replies'
-              />
-            }
-          />
-        </div>
-      </section>
+      <div className='column-settings__row'>
+        <SettingToggle
+          prefix='home_timeline'
+          settings={settings}
+          settingPath={['shows', 'reblog']}
+          onChange={onChange}
+          label={
+            <FormattedMessage
+              id='home.column_settings.show_reblogs'
+              defaultMessage='Show boosts'
+            />
+          }
+        />
+      </div>
+
+      <div className='column-settings__row'>
+        <SettingToggle
+          prefix='home_timeline'
+          settings={settings}
+          settingPath={['shows', 'reply']}
+          onChange={onChange}
+          label={
+            <FormattedMessage
+              id='home.column_settings.show_replies'
+              defaultMessage='Show replies'
+            />
+          }
+        />
+      </div>
     </div>
   );
 };

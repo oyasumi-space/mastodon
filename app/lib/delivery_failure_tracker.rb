@@ -28,7 +28,7 @@ class DeliveryFailureTracker
   end
 
   def available?
-    !UnavailableDomain.exists?(domain: @host)
+    !UnavailableDomain.where(domain: @host).exists?
   end
 
   def exhausted_deliveries_days

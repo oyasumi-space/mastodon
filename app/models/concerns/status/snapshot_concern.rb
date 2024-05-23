@@ -19,7 +19,6 @@ module Status::SnapshotConcern
       status_id: id,
       text: text,
       spoiler_text: spoiler_text,
-      markdown: markdown,
       sensitive: sensitive,
       ordered_media_attachment_ids: ordered_media_attachment_ids&.dup || media_attachments.pluck(:id),
       media_descriptions: ordered_media_attachments.map(&:description),

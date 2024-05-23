@@ -23,9 +23,7 @@ module Admin::ActionLogsHelper
       link_to log.human_identifier, disputes_strike_path(log.target_id)
     when 'Announcement'
       link_to truncate(log.human_identifier), edit_admin_announcement_path(log.target_id)
-    when 'CustomEmoji'
-      link_to log.human_identifier, edit_admin_custom_emoji_path(log.target_id)
-    when 'IpBlock', 'Instance'
+    when 'IpBlock', 'Instance', 'CustomEmoji'
       log.human_identifier
     when 'CanonicalEmailBlock'
       content_tag(:samp, (log.human_identifier.presence || '')[0...7], title: log.human_identifier)

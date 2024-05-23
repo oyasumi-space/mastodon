@@ -30,7 +30,10 @@ module Mastodon::CLI
       it at the root.
     LONG_DESC
     def add(*domains)
-      fail_with_message 'No domain(s) given' if domains.empty?
+      if domains.empty?
+        say('No domain(s) given', :red)
+        exit(1)
+      end
 
       skipped = 0
       processed = 0
@@ -73,7 +76,10 @@ module Mastodon::CLI
 
     desc 'remove DOMAIN...', 'Remove e-mail domain blocks'
     def remove(*domains)
-      fail_with_message 'No domain(s) given' if domains.empty?
+      if domains.empty?
+        say('No domain(s) given', :red)
+        exit(1)
+      end
 
       skipped = 0
       processed = 0

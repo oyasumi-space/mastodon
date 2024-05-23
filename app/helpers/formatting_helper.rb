@@ -18,16 +18,8 @@ module FormattingHelper
   end
   module_function :extract_status_plain_text
 
-  def extract_status_plain_text_with_spoiler_text(status)
-    PlainTextFormatter.new("#{status.spoiler_text}\n#{status.text}", status.local?).to_s
-  end
-
   def status_content_format(status)
-    html_aware_format(status.text, status.local?, markdown: status.markdown, preloaded_accounts: [status.account] + (status.respond_to?(:active_mentions) ? status.active_mentions.map(&:account) : []))
-  end
-
-  def emoji_name_format(emoji_reaction, status)
-    html_aware_format(emoji_reaction['url'].present? ? ":#{emoji_reaction['name']}:" : emoji_reaction['name'], status.local?, markdown: status.markdown)
+    html_aware_format(status.text, status.local?, preloaded_accounts: [status.account] + (status.respond_to?(:active_mentions) ? status.active_mentions.map(&:account) : []))
   end
 
   def rss_status_content_format(status)
@@ -57,19 +49,19 @@ module FormattingHelper
     prerender_custom_emojis(
       safe_join([before_html, html, after_html]),
       status.emojis,
-      style: 'min-width: 1.1em; height: 1.1em; object-fit: contain; vertical-align: middle; margin: -.2ex .15em .2ex'
+      style: 'width: 1.1em; height: 1.1em; object-fit: contain; vertical-align: middle; margin: -.2ex .15em .2ex'
     ).to_str
   end
 
   def account_bio_format(account)
-    html_aware_format(account.note, account.local?, markdown: account.user&.setting_bio_markdown)
+    html_aware_format(account.note, account.local?)
   end
 
   def account_field_value_format(field, with_rel_me: true)
     if field.verified? && !field.account.local?
       TextFormatter.shortened_link(field.value_for_verification)
     else
-      html_aware_format(field.value, field.account.local?, markdown: false, with_rel_me: with_rel_me, with_domains: true, multiline: false)
+      html_aware_format(field.value, field.account.local?, with_rel_me: with_rel_me, with_domains: true, multiline: false)
     end
   end
 end

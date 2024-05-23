@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class ActivityPub::InboxesController < ActivityPub::BaseController
+  include SignatureVerification
   include JsonLdHelper
+  include AccountOwnedConcern
 
   before_action :skip_unknown_actor_activity
   before_action :require_actor_signature!
@@ -22,7 +24,7 @@ class ActivityPub::InboxesController < ActivityPub::BaseController
 
   def unknown_affected_account?
     json = Oj.load(body, mode: :strict)
-    json.is_a?(Hash) && %w(Delete Update).include?(json['type']) && json['actor'].present? && json['actor'] == value_or_id(json['object']) && !Account.exists?(uri: json['actor'])
+    json.is_a?(Hash) && %w(Delete Update).include?(json['type']) && json['actor'].present? && json['actor'] == value_or_id(json['object']) && !Account.where(uri: json['actor']).exists?
   rescue Oj::ParseError
     false
   end
@@ -60,10 +62,11 @@ class ActivityPub::InboxesController < ActivityPub::BaseController
     return if raw_params.blank? || ENV['DISABLE_FOLLOWERS_SYNCHRONIZATION'] == 'true' || signed_request_account.nil?
 
     # Re-using the syntax for signature parameters
-    params = SignatureParser.parse(raw_params)
+    tree   = SignatureParamsParser.new.parse(raw_params)
+    params = SignatureParamsTransformer.new.apply(tree)
 
     ActivityPub::PrepareFollowersSynchronizationService.new.call(signed_request_account, params)
-  rescue SignatureParser::ParsingError
+  rescue Parslet::ParseFailed
     Rails.logger.warn 'Error parsing Collection-Synchronization header'
   end
 

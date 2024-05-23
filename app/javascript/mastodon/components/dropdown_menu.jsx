@@ -9,6 +9,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { supportsPassiveEvents } from 'detect-passive-events';
 import Overlay from 'react-overlays/Overlay';
 
+import CloseIcon from 'mastodon/../material-icons/400-24px/close.svg?react';
 import { CircularProgress } from 'mastodon/components/circular_progress';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
@@ -164,13 +165,12 @@ class Dropdown extends PureComponent {
     children: PropTypes.node,
     icon: PropTypes.string,
     iconComponent: PropTypes.func,
-    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]),
+    items: PropTypes.oneOfType([PropTypes.array, ImmutablePropTypes.list]).isRequired,
     loading: PropTypes.bool,
     size: PropTypes.number,
     title: PropTypes.string,
     disabled: PropTypes.bool,
     scrollable: PropTypes.bool,
-    active: PropTypes.bool,
     status: ImmutablePropTypes.map,
     isUserTouching: PropTypes.func,
     onOpen: PropTypes.func.isRequired,
@@ -285,7 +285,6 @@ class Dropdown extends PureComponent {
       children,
       renderItem,
       renderHeader,
-      active,
     } = this.props;
 
     const open = this.state.id === openDropdownId;
@@ -299,9 +298,9 @@ class Dropdown extends PureComponent {
     }) : (
       <IconButton
         icon={!open ? icon : 'close'}
-        iconComponent={iconComponent}
+        iconComponent={!open ? iconComponent : CloseIcon}
         title={title}
-        active={open || active}
+        active={open}
         disabled={disabled}
         size={size}
         onClick={this.handleClick}

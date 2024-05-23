@@ -33,8 +33,6 @@ class Admin::StatusBatchAction
       handle_delete!
     when 'mark_as_sensitive'
       handle_mark_as_sensitive!
-    when 'force_cw'
-      handle_force_cw!
     when 'report'
       handle_report!
     when 'remove_from_report'
@@ -67,8 +65,7 @@ class Admin::StatusBatchAction
       statuses.each { |status| Tombstone.find_or_create_by(uri: status.uri, account: status.account, by_moderator: true) } unless target_account.local?
     end
 
-    process_notification!
-
+    UserMailer.warning(target_account.user, @warning).deliver_later! if warnable?
     RemovalWorker.push_bulk(status_ids) { |status_id| [status_id, { 'preserve' => target_account.local?, 'immediate' => !target_account.local? }] }
   end
 
@@ -83,7 +80,7 @@ class Admin::StatusBatchAction
       authorize([:admin, status], :update?)
 
       if target_account.local?
-        UpdateStatusService.new.call(status, representative_account.id, sensitive: true, bypass_validation: true)
+        UpdateStatusService.new.call(status, representative_account.id, sensitive: true)
       else
         status.update(sensitive: true)
       end
@@ -104,43 +101,7 @@ class Admin::StatusBatchAction
       text: text
     )
 
-    process_notification!
-  end
-
-  def handle_force_cw!
-    representative_account = Account.representative
-
-    # Can't use a transaction here because UpdateStatusService queues
-    # Sidekiq jobs
-    statuses.find_each do |status|
-      authorize([:admin, status], :update?)
-
-      status_text = status.text
-      status_text = "#{status.spoiler_text}\n\n#{status_text}" if status.spoiler_text
-
-      if target_account.local?
-        UpdateStatusService.new.call(status, representative_account.id, spoiler_text: 'CW', text: status_text, bypass_validation: true)
-      else
-        status.update(spoiler_text: 'CW', text: status_text)
-      end
-
-      log_action(:update, status)
-
-      if with_report?
-        report.resolve!(current_account)
-        log_action(:resolve, report)
-      end
-    end
-
-    @warning = target_account.strikes.create!(
-      action: :force_cw,
-      account: current_account,
-      report: report,
-      status_ids: status_ids,
-      text: text
-    )
-
-    process_notification!
+    UserMailer.warning(target_account.user, @warning).deliver_later! if warnable?
   end
 
   def handle_report!
@@ -164,13 +125,6 @@ class Admin::StatusBatchAction
 
   def with_report?
     !report.nil?
-  end
-
-  def process_notification!
-    return unless warnable?
-
-    UserMailer.warning(target_account.user, @warning).deliver_later!
-    LocalNotificationWorker.perform_async(target_account.id, @warning.id, 'AccountWarning', 'moderation_warning')
   end
 
   def warnable?

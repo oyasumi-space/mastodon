@@ -16,8 +16,6 @@ class Admin::ActionLogFilter
     confirm_user: { target_type: 'User', action: 'confirm' }.freeze,
     approve_user: { target_type: 'User', action: 'approve' }.freeze,
     reject_user: { target_type: 'User', action: 'reject' }.freeze,
-    approve_remote_account: { target_type: 'Account', action: 'approve_remote' }.freeze,
-    reject_remote_account: { target_type: 'Account', action: 'reject_remote' }.freeze,
     create_account_warning: { target_type: 'AccountWarning', action: 'create' }.freeze,
     create_announcement: { target_type: 'Announcement', action: 'create' }.freeze,
     create_custom_emoji: { target_type: 'CustomEmoji', action: 'create' }.freeze,
@@ -62,8 +60,6 @@ class Admin::ActionLogFilter
     update_announcement: { target_type: 'Announcement', action: 'update' }.freeze,
     update_custom_emoji: { target_type: 'CustomEmoji', action: 'update' }.freeze,
     update_status: { target_type: 'Status', action: 'update' }.freeze,
-    force_cw_status: { target_type: 'Status', action: 'force_cw' }.freeze,
-    force_sensitive_status: { target_type: 'Status', action: 'force_sensitive' }.freeze,
     update_user_role: { target_type: 'UserRole', action: 'update' }.freeze,
     update_ip_block: { target_type: 'IpBlock', action: 'update' }.freeze,
     unblock_email_account: { target_type: 'Account', action: 'unblock_email' }.freeze,
@@ -76,7 +72,7 @@ class Admin::ActionLogFilter
   end
 
   def results
-    scope = latest_action_logs.includes(:target, :account)
+    scope = latest_action_logs.includes(:target)
 
     params.each do |key, value|
       next if key.to_s == 'page'

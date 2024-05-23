@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/integer/time'
+require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -44,8 +44,8 @@ Rails.application.configure do
   config.force_ssl = true
   config.ssl_options = {
     redirect: {
-      exclude: ->(request) { request.path.start_with?('/health') || request.headers['Host'].end_with?('.onion') || request.headers['Host'].end_with?('.i2p') },
-    },
+      exclude: ->(request) { request.path.start_with?('/health') || request.headers["Host"].end_with?('.onion') || request.headers["Host"].end_with?('.i2p') }
+    }
   }
 
   # Info include generic and useful information about system operation, but avoids logging too much
@@ -86,7 +86,9 @@ Rails.application.configure do
   config.lograge.enabled = true
 
   config.lograge.custom_payload do |controller|
-    { key: controller.signature_key_id } if controller.respond_to?(:signed_request?) && controller.signed_request?
+    if controller.respond_to?(:signed_request?) && controller.signed_request?
+      { key: controller.signature_key_id }
+    end
   end
 
   # Use a different logger for distributed setups.
@@ -155,7 +157,6 @@ Rails.application.configure do
     'Referrer-Policy' => 'same-origin',
   }
 
-  # TODO: Remove once devise-two-factor data migration complete
   config.x.otp_secret = ENV.fetch('OTP_SECRET')
 
   # Enable DNS rebinding protection and other `Host` header attacks.

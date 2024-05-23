@@ -2,6 +2,6 @@
 
 Fabricator(:featured_tag) do
   account { Fabricate.build(:account) }
-  tag { nil }
+  tag { Fabricate.build(:tag) }
   name { sequence(:name) { |i| "Tag#{i}" } }
 end

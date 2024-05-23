@@ -53,6 +53,7 @@ const messages = defineMessages({
 });
 
 const dateFormatOptions = {
+  hour12: false,
   year: 'numeric',
   month: 'short',
   day: '2-digit',
@@ -102,7 +103,7 @@ const getUnitDelay = (units: string) => {
 };
 
 export const timeAgoString = (
-  intl: Pick<IntlShape, 'formatDate' | 'formatMessage'>,
+  intl: IntlShape,
   date: Date,
   now: number,
   year: number,
@@ -191,7 +192,7 @@ const timeRemainingString = (
 interface Props {
   intl: IntlShape;
   timestamp: string;
-  year?: number;
+  year: number;
   futureDate?: boolean;
   short?: boolean;
 }
@@ -201,6 +202,11 @@ interface States {
 class RelativeTimestamp extends Component<Props, States> {
   state = {
     now: Date.now(),
+  };
+
+  static defaultProps = {
+    year: new Date().getFullYear(),
+    short: true,
   };
 
   _timer: number | undefined;
@@ -252,13 +258,7 @@ class RelativeTimestamp extends Component<Props, States> {
   }
 
   render() {
-    const {
-      timestamp,
-      intl,
-      futureDate,
-      year = new Date().getFullYear(),
-      short = true,
-    } = this.props;
+    const { timestamp, intl, year, futureDate, short } = this.props;
 
     const timeGiven = timestamp.includes('T');
     const date = new Date(timestamp);

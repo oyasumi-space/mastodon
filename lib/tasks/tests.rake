@@ -2,23 +2,6 @@
 
 namespace :tests do
   namespace :migrations do
-    desc 'Prepares all migrations and test data for consistency checks'
-    task prepare_database: :environment do
-      {
-        '2' => 2017_10_10_025614,
-        '2_4' => 2018_05_14_140000,
-        '2_4_3' => 2018_07_07_154237,
-        '3_3_0' => 2020_12_18_054746,
-      }.each do |release, version|
-        ActiveRecord::Tasks::DatabaseTasks
-          .migration_connection
-          .migration_context
-          .migrate(version)
-        Rake::Task["tests:migrations:populate_v#{release}"]
-          .invoke
-      end
-    end
-
     desc 'Check that database state is consistent with a successful migration from populated data'
     task check_database: :environment do
       unless Account.find_by(username: 'admin', domain: nil)&.hide_collections? == false
@@ -41,7 +24,7 @@ namespace :tests do
         exit(1)
       end
 
-      if Account.exists?(domain: Rails.configuration.x.local_domain)
+      if Account.where(domain: Rails.configuration.x.local_domain).exists?
         puts 'Faux remote accounts not properly cleaned up'
         exit(1)
       end
@@ -51,7 +34,7 @@ namespace :tests do
         exit(1)
       end
 
-      if Account.find(Account::INSTANCE_ACTOR_ID).private_key.blank?
+      if Account.find(-99).private_key.blank?
         puts 'Instance actor does not have a private key'
         exit(1)
       end
@@ -105,54 +88,6 @@ namespace :tests do
         puts 'Locale for fr-QC users not updated to fr-CA as expected'
         exit(1)
       end
-
-      policy = NotificationPolicy.find_by(account: User.find(1).account)
-      unless policy.filter_private_mentions == false && policy.filter_not_following == true
-        puts 'Notification policy not migrated as expected'
-        exit(1)
-      end
-
-      unless Identity.where(provider: 'foo', uid: 0).count == 1
-        puts 'Identities not deduplicated as expected'
-        exit(1)
-      end
-
-      unless WebauthnCredential.where(user_id: 1, nickname: 'foo').count == 1
-        puts 'Webauthn credentials not deduplicated as expected'
-        exit(1)
-      end
-
-      unless AccountAlias.where(account_id: 1, uri: 'https://example.com/users/foobar').count == 1
-        puts 'Account aliases not deduplicated as expected'
-        exit(1)
-      end
-
-      # This is checking the attribute rather than the method, to avoid the legacy fallback
-      # and ensure the data has been migrated
-      unless Account.find_local('qcuser').user[:otp_secret] == 'anotpsecretthatshouldbeencrypted'
-        puts "DEBUG: #{Account.find_local('qcuser').user.inspect}"
-        puts 'OTP secret for user not preserved as expected'
-        exit(1)
-      end
-
-      puts 'No errors found. Database state is consistent with a successful migration process.'
-    end
-
-    desc 'Populate the database with test data for 3.3.0'
-    task populate_v3_3_0: :environment do # rubocop:disable Naming/VariableNumber
-      ActiveRecord::Base.connection.execute(<<~SQL.squish)
-        INSERT INTO "webauthn_credentials"
-          (user_id, nickname, external_id, public_key, created_at, updated_at)
-        VALUES
-          (1, 'foo', 1, 'foo', now(), now()),
-          (1, 'foo', 2, 'bar', now(), now());
-
-        INSERT INTO "account_aliases"
-          (account_id, uri, acct, created_at, updated_at)
-        VALUES
-          (1, 'https://example.com/users/foobar', 'foobar@example.com', now(), now()),
-          (1, 'https://example.com/users/foobar', 'foobar@example.com', now(), now());
-      SQL
     end
 
     desc 'Populate the database with test data for 2.4.3'
@@ -206,7 +141,7 @@ namespace :tests do
         INSERT INTO "settings"
           (id, thing_type, thing_id, var, value, created_at, updated_at)
         VALUES
-          (3, 'User', 1, 'notification_emails', E'--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\nfollow: false\nreblog: true\nfavourite: true\nmention: false\nfollow_request: true\ndigest: true\nreport: true\npending_account: false\npending_friend_server: true\ntrending_tag: true\nappeal: true\n', now(), now()),
+          (3, 'User', 1, 'notification_emails', E'--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\nfollow: false\nreblog: true\nfavourite: true\nmention: false\nfollow_request: true\ndigest: true\nreport: true\npending_account: false\ntrending_tag: true\nappeal: true\n', now(), now()),
           (4, 'User', 1, 'trends', E'--- false\n', now(), now());
 
         INSERT INTO "accounts"
@@ -221,27 +156,14 @@ namespace :tests do
           (4, 10, 'kmruser@localhost', now(), now(), false, 'ku', '{en,kmr,ku,ckb}');
 
         INSERT INTO "users"
-          (id, account_id, email, created_at, updated_at, locale,
-           encrypted_otp_secret, encrypted_otp_secret_iv, encrypted_otp_secret_salt,
-           otp_required_for_login)
+          (id, account_id, email, created_at, updated_at, locale)
         VALUES
-          (5, 11, 'qcuser@localhost', now(), now(), 'fr-QC',
-           E'Fttsy7QAa0edaDfdfSz094rRLAxc8cJweDQ4BsWH/zozcdVA8o9GLqcKhn2b\nGi/V\n',
-           'rys3THICkr60BoWC',
-           '_LMkAGvdg7a+sDIKjI3mR2Q==',
-           true);
+          (5, 11, 'qcuser@localhost', now(), now(), 'fr-QC');
 
         INSERT INTO "settings"
           (id, thing_type, thing_id, var, value, created_at, updated_at)
         VALUES
-          (5, 'User', 4, 'default_language', E'--- kmr\n', now(), now()),
-          (6, 'User', 1, 'interactions', E'--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\nmust_be_follower: false\nmust_be_following: true\nmust_be_following_dm: false\n', now(), now());
-
-        INSERT INTO "identities"
-          (provider, uid, user_id, created_at, updated_at)
-        VALUES
-          ('foo', 0, 1, now(), now()),
-          ('foo', 0, 1, now(), now());
+          (5, 'User', 4, 'default_language', E'--- kmr\n', now(), now());
       SQL
     end
 

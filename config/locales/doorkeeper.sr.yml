@@ -22,12 +22,12 @@ sr:
         authorize: Ауторизуј
         cancel: Поништи
         destroy: Уништи
-        edit: Уреди
+        edit: Измени
         submit: Пошаљи
       confirmations:
         destroy: Да ли сте сигурни?
       edit:
-        title: Уреди апликацију
+        title: Измени апликацију
       form:
         error: Опс! Проверите формулар за евентуалне грешке
       help:
@@ -174,7 +174,6 @@ sr:
       read:filters: погледај своје филтере
       read:follows: погледај кога пратиш
       read:lists: погледај своје листе
-      read:me: чита само основне информације о вашем налогу
       read:mutes: погледај игнорисања
       read:notifications: погледај своја обавештења
       read:reports: погледај своје пријаве

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe RemoveFromFollowersService do
+RSpec.describe RemoveFromFollowersService, type: :service do
   subject { described_class.new }
 
   let(:bob) { Fabricate(:account, username: 'bob') }

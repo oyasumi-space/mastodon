@@ -8,22 +8,6 @@ describe '/api/v1/accounts' do
   let(:token)   { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: scopes) }
   let(:headers) { { 'Authorization' => "Bearer #{token.token}" } }
 
-  describe 'GET /api/v1/accounts?ids[]=:id' do
-    let(:account) { Fabricate(:account) }
-    let(:other_account) { Fabricate(:account) }
-    let(:scopes) { 'read:accounts' }
-
-    it 'returns expected response' do
-      get '/api/v1/accounts', headers: headers, params: { ids: [account.id, other_account.id, 123_123] }
-
-      expect(response).to have_http_status(200)
-      expect(body_as_json).to contain_exactly(
-        hash_including(id: account.id.to_s),
-        hash_including(id: other_account.id.to_s)
-      )
-    end
-  end
-
   describe 'GET /api/v1/accounts/:id' do
     context 'when logged out' do
       let(:account) { Fabricate(:account) }
@@ -99,19 +83,11 @@ describe '/api/v1/accounts' do
 
   describe 'POST /api/v1/accounts/:id/follow' do
     let(:scopes) { 'write:follows' }
-    let(:my_actor_type) { 'Person' }
-    let(:lock_follow_from_bot) { false }
     let(:other_account) { Fabricate(:account, username: 'bob', locked: locked) }
 
     context 'when posting to an other account' do
       subject do
         post "/api/v1/accounts/#{other_account.id}/follow", headers: headers
-      end
-
-      before do
-        other_account.user.settings['lock_follow_from_bot'] = lock_follow_from_bot
-        other_account.user.save!
-        user.account.update!(actor_type: my_actor_type)
       end
 
       context 'with unlocked account' do
@@ -145,35 +121,6 @@ describe '/api/v1/accounts' do
 
           expect(json[:following]).to be false
           expect(json[:requested]).to be true
-
-          expect(user.account.requested?(other_account)).to be true
-        end
-
-        it_behaves_like 'forbidden for wrong scope', 'read:accounts'
-      end
-
-      context 'with unlocked account from bot' do
-        let(:locked) { false }
-        let(:lock_follow_from_bot) { true }
-        let(:my_actor_type) { 'Service' }
-
-        it 'returns http success' do
-          subject
-
-          expect(response).to have_http_status(200)
-        end
-
-        it 'returns JSON with following=false and requested=true' do
-          subject
-
-          json = body_as_json
-
-          expect(json[:following]).to be false
-          expect(json[:requested]).to be true
-        end
-
-        it 'creates a follow request relation between user and target user' do
-          subject
 
           expect(user.account.requested?(other_account)).to be true
         end

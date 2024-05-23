@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-class RailsSettingsMigration < ActiveRecord::Migration[5.0]
+MIGRATION_BASE_CLASS = if ActiveRecord::VERSION::MAJOR >= 5
+                         ActiveRecord::Migration[5.0]
+                       else
+                         ActiveRecord::Migration[4.2]
+                       end
+
+class RailsSettingsMigration < MIGRATION_BASE_CLASS
   def self.up
     create_table :settings do |t|
       t.string     :var, null: false

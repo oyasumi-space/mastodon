@@ -5,9 +5,9 @@ module Webpacker::ManifestExtensions
     asset = super
 
     if pack_type[:with_integrity] && asset.respond_to?(:dig)
-      [asset['src'], asset['integrity']]
+      [asset.dig('src'), asset.dig('integrity')]
     elsif asset.respond_to?(:dig)
-      asset['src']
+      asset.dig('src')
     else
       asset
     end

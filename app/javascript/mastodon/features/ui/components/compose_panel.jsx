@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { changeComposing, mountCompose, unmountCompose } from 'mastodon/actions/compose';
 import ServerBanner from 'mastodon/components/server_banner';
 import ComposeFormContainer from 'mastodon/features/compose/containers/compose_form_container';
+import NavigationContainer from 'mastodon/features/compose/containers/navigation_container';
 import SearchContainer from 'mastodon/features/compose/containers/search_container';
 
 import LinkFooter from './link_footer';
@@ -55,7 +56,10 @@ class ComposePanel extends PureComponent {
         )}
 
         {signedIn && (
-          <ComposeFormContainer singleColumn />
+          <>
+            <NavigationContainer onClose={this.onBlur} />
+            <ComposeFormContainer singleColumn />
+          </>
         )}
 
         <LinkFooter />

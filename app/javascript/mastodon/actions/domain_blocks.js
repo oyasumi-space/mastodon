@@ -1,8 +1,6 @@
 import api, { getLinks } from '../api';
 
 import { blockDomainSuccess, unblockDomainSuccess } from "./domain_blocks_typed";
-import { openModal } from './modal';
-
 
 export * from "./domain_blocks_typed";
 
@@ -152,12 +150,3 @@ export function expandDomainBlocksFail(error) {
     error,
   };
 }
-
-export const initDomainBlockModal = account => dispatch => dispatch(openModal({
-  modalType: 'DOMAIN_BLOCK',
-  modalProps: {
-    domain: account.get('acct').split('@')[1],
-    acct: account.get('acct'),
-    accountId: account.get('id'),
-  },
-}));

@@ -55,29 +55,6 @@ class Sanitize
       current_node.replace(Nokogiri::XML::Text.new(current_node.text, current_node.document)) unless LINK_PROTOCOLS.include?(scheme)
     end
 
-    PHISHING_SCAM_HREF_TRANSFORMER = lambda do |env|
-      return unless env[:node_name] == 'a'
-
-      current_node = env[:node]
-      href = current_node['href'] || ''
-      text = current_node.text
-      cls = current_node['class'] || ''
-
-      dot_pos = text.index('.')
-      return unless dot_pos.present? && dot_pos.positive? && dot_pos < text.size - 1
-
-      scheme = if href =~ Sanitize::REGEX_PROTOCOL
-                 Regexp.last_match(1).downcase
-               else
-                 :relative
-               end
-
-      if LINK_PROTOCOLS.include?(scheme) && href != text && href != "https://#{text}" && !text.start_with?('#') && !text.start_with?('@')
-        current_node['class'] = "#{cls} kmy-dangerous-link"
-        current_node.before(Nokogiri::XML::Text.new('⚠', current_node.document))
-      end
-    end
-
     UNSUPPORTED_ELEMENTS_TRANSFORMER = lambda do |env|
       return unless %w(h1 h2 h3 h4 h5 h6).include?(env[:node_name])
 
@@ -111,7 +88,6 @@ class Sanitize
         TRANSLATE_TRANSFORMER,
         UNSUPPORTED_ELEMENTS_TRANSFORMER,
         UNSUPPORTED_HREF_TRANSFORMER,
-        PHISHING_SCAM_HREF_TRANSFORMER,
       ]
     )
 

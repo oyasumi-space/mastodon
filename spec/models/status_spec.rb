@@ -114,181 +114,6 @@ RSpec.describe Status do
     end
   end
 
-  describe '#compute_searchability' do
-    subject { Fabricate(:status, account: account, searchability: status_searchability) }
-
-    let(:account_searchability) { :public }
-    let(:status_searchability) { :public }
-    let(:account_domain) { 'example.com' }
-    let(:silenced_at) { nil }
-    let(:account) { Fabricate(:account, domain: account_domain, searchability: account_searchability, silenced_at: silenced_at) }
-
-    context 'when public-public' do
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-    end
-
-    context 'when public-public but silenced' do
-      let(:silenced_at) { Time.now.utc }
-
-      it 'returns private' do
-        expect(subject.compute_searchability).to eq 'private'
-      end
-    end
-
-    context 'when public-public_unlisted but silenced' do
-      let(:silenced_at) { Time.now.utc }
-      let(:status_searchability) { :public_unlisted }
-
-      it 'returns private' do
-        expect(subject.compute_searchability).to eq 'private'
-      end
-    end
-
-    context 'when public-public_unlisted' do
-      let(:status_searchability) { :public_unlisted }
-
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-
-      it 'returns public_unlisted for local' do
-        expect(subject.compute_searchability_local).to eq 'public_unlisted'
-      end
-    end
-
-    context 'when public-private' do
-      let(:status_searchability) { :private }
-
-      it 'returns private' do
-        expect(subject.compute_searchability).to eq 'private'
-      end
-    end
-
-    context 'when public-direct' do
-      let(:status_searchability) { :direct }
-
-      it 'returns direct' do
-        expect(subject.compute_searchability).to eq 'direct'
-      end
-    end
-
-    context 'when private-public' do
-      let(:account_searchability) { :private }
-
-      it 'returns private' do
-        expect(subject.compute_searchability).to eq 'private'
-      end
-    end
-
-    context 'when direct-public' do
-      let(:account_searchability) { :direct }
-
-      it 'returns direct' do
-        expect(subject.compute_searchability).to eq 'direct'
-      end
-    end
-
-    context 'when limited-public' do
-      let(:account_searchability) { :limited }
-
-      it 'returns limited' do
-        expect(subject.compute_searchability).to eq 'limited'
-      end
-    end
-
-    context 'when private-limited' do
-      let(:account_searchability) { :private }
-      let(:status_searchability) { :limited }
-
-      it 'returns limited' do
-        expect(subject.compute_searchability).to eq 'limited'
-      end
-    end
-
-    context 'when private-public of local account' do
-      let(:account_searchability) { :private }
-      let(:account_domain) { nil }
-      let(:status_searchability) { :public }
-
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-    end
-
-    context 'when direct-public of local account' do
-      let(:account_searchability) { :direct }
-      let(:account_domain) { nil }
-      let(:status_searchability) { :public }
-
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-    end
-
-    context 'when limited-public of local account' do
-      let(:account_searchability) { :limited }
-      let(:account_domain) { nil }
-      let(:status_searchability) { :public }
-
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-    end
-
-    context 'when public-public_unlisted of local account' do
-      let(:account_searchability) { :public }
-      let(:account_domain) { nil }
-      let(:status_searchability) { :public_unlisted }
-
-      it 'returns public' do
-        expect(subject.compute_searchability).to eq 'public'
-      end
-
-      it 'returns public_unlisted for local' do
-        expect(subject.compute_searchability_local).to eq 'public_unlisted'
-      end
-
-      it 'returns private for activitypub' do
-        expect(subject.compute_searchability_activitypub).to eq 'private'
-      end
-    end
-  end
-
-  describe '#quote' do
-    let(:target_status) { Fabricate(:status) }
-    let(:quote) { true }
-
-    before do
-      Fabricate(:status_reference, status: subject, target_status: target_status, quote: quote)
-    end
-
-    context 'when quoting single' do
-      it 'get quote' do
-        expect(subject.quote).to_not be_nil
-        expect(subject.quote.id).to eq target_status.id
-      end
-    end
-
-    context 'when multiple quotes' do
-      it 'get quote' do
-        target2 = Fabricate(:status)
-        Fabricate(:status_reference, status: subject, quote: quote)
-        expect(subject.quote).to_not be_nil
-        expect([target_status.id, target2.id].include?(subject.quote.id)).to be true
-      end
-    end
-
-    context 'when no quote but reference' do
-      let(:quote) { false }
-
-      it 'get quote' do
-        expect(subject.quote).to be_nil
-      end
-    end
-  end
-
   describe '#content' do
     it 'returns the text of the status if it is not a reblog' do
       expect(subject.content).to eql subject.text
@@ -380,48 +205,6 @@ RSpec.describe Status do
     end
   end
 
-  describe '#reported?' do
-    context 'when the status is not reported' do
-      it 'returns false' do
-        expect(subject.reported?).to be false
-      end
-    end
-
-    context 'when the status is part of an open report' do
-      before do
-        Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
-      end
-
-      it 'returns true' do
-        expect(subject.reported?).to be true
-      end
-    end
-
-    context 'when the status is part of a closed report with an account warning mentioning the account' do
-      before do
-        report = Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
-        report.resolve!(Fabricate(:account))
-        Fabricate(:account_warning, target_account: subject.account, status_ids: [subject.id], report: report)
-      end
-
-      it 'returns true' do
-        expect(subject.reported?).to be true
-      end
-    end
-
-    context 'when the status is part of a closed report with an account warning not mentioning the account' do
-      before do
-        report = Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
-        report.resolve!(Fabricate(:account))
-        Fabricate(:account_warning, target_account: subject.account, report: report)
-      end
-
-      it 'returns false' do
-        expect(subject.reported?).to be false
-      end
-    end
-  end
-
   describe '.mutes_map' do
     subject { described_class.mutes_map([status.conversation.id], account) }
 
@@ -435,38 +218,6 @@ RSpec.describe Status do
     it 'contains true value' do
       account.mute_conversation!(status.conversation)
       expect(subject[status.conversation.id]).to be true
-    end
-  end
-
-  describe '.blocks_map' do
-    subject { described_class.blocks_map([status.account.id], account) }
-
-    let(:status)  { Fabricate(:status) }
-    let(:account) { Fabricate(:account) }
-
-    it 'returns a hash' do
-      expect(subject).to be_a Hash
-    end
-
-    it 'contains true value' do
-      account.block!(status.account)
-      expect(subject[status.account.id]).to be true
-    end
-  end
-
-  describe '.domain_blocks_map' do
-    subject { described_class.domain_blocks_map([status.account.domain], account) }
-
-    let(:status)  { Fabricate(:status, account: Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/status')) }
-    let(:account) { Fabricate(:account) }
-
-    it 'returns a hash' do
-      expect(subject).to be_a Hash
-    end
-
-    it 'contains true value' do
-      account.block_domain!(status.account.domain)
-      expect(subject[status.account.domain]).to be true
     end
   end
 
@@ -499,30 +250,6 @@ RSpec.describe Status do
     it 'contains true value' do
       Fabricate(:status, account: account, reblog: status)
       expect(subject[status.id]).to be true
-    end
-  end
-
-  describe '.available_features_map' do
-    subject { described_class.available_features_map(domains) }
-
-    let(:domains) { %w(features_available.com mastodon.com misskey.com) }
-
-    before do
-      Fabricate(:instance_info, domain: 'features_available.com', software: 'mastodon', data: { metadata: { features: ['emoji_reaction'] } })
-      Fabricate(:instance_info, domain: 'mastodon.com', software: 'mastodon')
-      Fabricate(:instance_info, domain: 'misskey.com', software: 'misskey')
-    end
-
-    it 'availables if features contains emoji_reaction' do
-      expect(subject['features_available.com'][:emoji_reaction]).to be true
-    end
-
-    it 'unavailables if mastodon server' do
-      expect(subject['mastodon.com'][:emoji_reaction]).to be false
-    end
-
-    it 'availables if misskey server' do
-      expect(subject['misskey.com'][:emoji_reaction]).to be true
     end
   end
 
@@ -651,16 +378,6 @@ RSpec.describe Status do
 
     it 'creates new conversation for stand-alone status' do
       expect(described_class.create(account: alice, text: 'First').conversation_id).to_not be_nil
-    end
-
-    it 'creates new owned-conversation for stand-alone status' do
-      expect(described_class.create(account: alice, text: 'First').owned_conversation.id).to_not be_nil
-    end
-
-    it 'creates new owned-conversation and linked for stand-alone status' do
-      status = described_class.create(account: alice, text: 'First')
-      expect(status.owned_conversation.ancestor_status_id).to eq status.id
-      expect(status.conversation.ancestor_status_id).to eq status.id
     end
 
     it 'keeps conversation of parent node' do

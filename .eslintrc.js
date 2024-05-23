@@ -123,7 +123,7 @@ module.exports = defineConfig({
     'react/react-in-jsx-scope': 'off', // not needed with new JSX transform
     'react/self-closing-comp': 'error',
 
-    // recommended values found in https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/v6.8.0/src/index.js#L46
+    // recommended values found in https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/main/src/index.js
     'jsx-a11y/accessible-emoji': 'warn',
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/label-has-associated-control': 'off',
@@ -165,7 +165,7 @@ module.exports = defineConfig({
     //   },
     // ],
     'jsx-a11y/no-noninteractive-tabindex': 'off',
-    'jsx-a11y/no-onchange': 'off',
+    'jsx-a11y/no-onchange': 'warn',
     // recommended is full 'error'
     'jsx-a11y/no-static-element-interactions': [
       'warn',
@@ -176,7 +176,7 @@ module.exports = defineConfig({
       },
     ],
 
-    // See https://github.com/import-js/eslint-plugin-import/blob/v2.29.1/config/recommended.js
+    // See https://github.com/import-js/eslint-plugin-import/blob/main/config/recommended.js
     'import/extensions': [
       'error',
       'always',
@@ -338,6 +338,7 @@ module.exports = defineConfig({
         'plugin:import/typescript',
         'plugin:promise/recommended',
         'plugin:jsdoc/recommended-typescript',
+        'plugin:prettier/recommended',
       ],
 
       parserOptions: {
@@ -346,9 +347,6 @@ module.exports = defineConfig({
       },
 
       rules: {
-        // Disable formatting rules that have been enabled in the base config
-        'indent': 'off',
-
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
 
         '@typescript-eslint/consistent-type-definitions': ['warn', 'interface'],
@@ -363,7 +361,6 @@ module.exports = defineConfig({
             "message": "Use typed hooks `useAppDispatch` and `useAppSelector` instead."
           }
         ],
-        "@typescript-eslint/restrict-template-expressions": ['warn', { allowNumber: true }],
         'jsdoc/require-jsdoc': 'off',
 
         // Those rules set stricter rules for TS files

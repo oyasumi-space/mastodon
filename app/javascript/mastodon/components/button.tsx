@@ -1,26 +1,26 @@
-import type { PropsWithChildren } from 'react';
 import { useCallback } from 'react';
 
 import classNames from 'classnames';
 
-interface BaseProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+interface BaseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   block?: boolean;
   secondary?: boolean;
+  text?: JSX.Element;
 }
 
-interface PropsChildren extends PropsWithChildren<BaseProps> {
-  text?: undefined;
+interface PropsWithChildren extends BaseProps {
+  text?: never;
 }
 
 interface PropsWithText extends BaseProps {
-  text: JSX.Element | string;
-  children?: undefined;
+  text: JSX.Element;
+  children: never;
 }
 
-type Props = PropsWithText | PropsChildren;
+type Props = PropsWithText | PropsWithChildren;
 
 export const Button: React.FC<Props> = ({
+  text,
   type = 'button',
   onClick,
   disabled,
@@ -28,7 +28,6 @@ export const Button: React.FC<Props> = ({
   secondary,
   className,
   title,
-  text,
   children,
   ...props
 }) => {

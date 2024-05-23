@@ -10,9 +10,8 @@ import { connect } from 'react-redux';
 
 import { fetchSuggestions } from 'mastodon/actions/suggestions';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
+import AccountCard from 'mastodon/features/directory/components/account_card';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
-
-import { Card } from './components/card';
 
 const mapStateToProps = state => ({
   suggestions: state.getIn(['suggestions', 'items']),
@@ -55,11 +54,7 @@ class Suggestions extends PureComponent {
     return (
       <div className='explore__suggestions scrollable' data-nosnippet>
         {isLoading ? <LoadingIndicator /> : suggestions.map(suggestion => (
-          <Card
-            key={suggestion.get('account')}
-            id={suggestion.get('account')}
-            source={suggestion.getIn(['sources', 0])}
-          />
+          <AccountCard key={suggestion.get('account')} id={suggestion.get('account')} />
         ))}
       </div>
     );

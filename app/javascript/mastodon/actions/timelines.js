@@ -21,10 +21,6 @@ export const TIMELINE_DISCONNECT   = 'TIMELINE_DISCONNECT';
 export const TIMELINE_CONNECT      = 'TIMELINE_CONNECT';
 
 export const TIMELINE_MARK_AS_PARTIAL = 'TIMELINE_MARK_AS_PARTIAL';
-export const TIMELINE_INSERT          = 'TIMELINE_INSERT';
-
-export const TIMELINE_SUGGESTIONS = 'inline-follow-suggestions';
-export const TIMELINE_GAP = null;
 
 export const loadPending = timeline => ({
   type: TIMELINE_LOAD_PENDING,
@@ -116,18 +112,8 @@ export function expandTimeline(timelineId, path, params = {}, done = noOp) {
 
     api(getState).get(path, { params }).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
-
       dispatch(importFetchedStatuses(response.data));
       dispatch(expandTimelineSuccess(timelineId, response.data, next ? next.uri : null, response.status === 206, isLoadingRecent, isLoadingMore, isLoadingRecent && preferPendingItems));
-
-      if (timelineId === 'home' && !isLoadingMore && !isLoadingRecent) {
-        const now = new Date();
-        const fittingIndex = response.data.findIndex(status => now - (new Date(status.created_at)) > 4 * 3600 * 1000);
-
-        if (fittingIndex !== -1) {
-          dispatch(insertIntoTimeline(timelineId, TIMELINE_SUGGESTIONS, Math.max(1, fittingIndex)));
-        }
-      }
 
       if (timelineId === 'home') {
         dispatch(submitMarkers());
@@ -163,7 +149,6 @@ export const expandAccountTimeline         = (accountId, { maxId, withReplies, t
 export const expandAccountFeaturedTimeline = (accountId, { tagged } = {}) => expandTimeline(`account:${accountId}:pinned${tagged ? `:${tagged}` : ''}`, `/api/v1/accounts/${accountId}/statuses`, { pinned: true, tagged });
 export const expandAccountMediaTimeline    = (accountId, { maxId } = {}) => expandTimeline(`account:${accountId}:media`, `/api/v1/accounts/${accountId}/statuses`, { max_id: maxId, only_media: true, limit: 40 });
 export const expandListTimeline            = (id, { maxId } = {}, done = noOp) => expandTimeline(`list:${id}`, `/api/v1/timelines/list/${id}`, { max_id: maxId }, done);
-export const expandAntennaTimeline         = (id, { maxId } = {}, done = noOp) => expandTimeline(`antenna:${id}`, `/api/v1/timelines/antenna/${id}`, { max_id: maxId }, done);
 export const expandHashtagTimeline         = (hashtag, { maxId, tags, local } = {}, done = noOp) => {
   return expandTimeline(`hashtag:${hashtag}${local ? ':local' : ''}`, `/api/v1/timelines/tag/${hashtag}`, {
     max_id: maxId,
@@ -178,7 +163,6 @@ export const fillHomeTimelineGaps      = (done = noOp) => fillTimelineGaps('home
 export const fillPublicTimelineGaps    = ({ onlyMedia, onlyRemote } = {}, done = noOp) => fillTimelineGaps(`public${onlyRemote ? ':remote' : ''}${onlyMedia ? ':media' : ''}`, '/api/v1/timelines/public', { remote: !!onlyRemote, only_media: !!onlyMedia }, done);
 export const fillCommunityTimelineGaps = ({ onlyMedia } = {}, done = noOp) => fillTimelineGaps(`community${onlyMedia ? ':media' : ''}`, '/api/v1/timelines/public', { local: true, only_media: !!onlyMedia }, done);
 export const fillListTimelineGaps      = (id, done = noOp) => fillTimelineGaps(`list:${id}`, `/api/v1/timelines/list/${id}`, {}, done);
-export const fillAntennaTimelineGaps   = (id, done = noOp) => fillTimelineGaps(`antenna:${id}`, `/api/v1/timelines/antenna/${id}`, {}, done);
 
 export function expandTimelineRequest(timeline, isLoadingMore) {
   return {
@@ -236,11 +220,4 @@ export const disconnectTimeline = timeline => ({
 export const markAsPartial = timeline => ({
   type: TIMELINE_MARK_AS_PARTIAL,
   timeline,
-});
-
-export const insertIntoTimeline = (timeline, key, index) => ({
-  type: TIMELINE_INSERT,
-  timeline,
-  index,
-  key,
 });

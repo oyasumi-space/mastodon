@@ -59,7 +59,7 @@ class ActivityPub::DeliveryWorker
   end
 
   def perform_request
-    stoplight_wrapper.run do
+    light = Stoplight(@inbox_url) do
       request_pool.with(@host) do |http_client|
         build_request(http_client).perform do |response|
           raise Mastodon::UnexpectedResponseError, response unless response_successful?(response) || response_error_unsalvageable?(response)
@@ -68,12 +68,10 @@ class ActivityPub::DeliveryWorker
         end
       end
     end
-  end
 
-  def stoplight_wrapper
-    Stoplight(@inbox_url)
-      .with_threshold(STOPLIGHT_FAILURE_THRESHOLD)
-      .with_cool_off_time(STOPLIGHT_COOLDOWN)
+    light.with_threshold(STOPLIGHT_FAILURE_THRESHOLD)
+         .with_cool_off_time(STOPLIGHT_COOLDOWN)
+         .run
   end
 
   def failure_tracker

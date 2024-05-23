@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'ShareEntrypoint', :js, :streaming do
+describe 'ShareEntrypoint' do
   include ProfileStories
 
   subject { page }
@@ -19,13 +19,13 @@ describe 'ShareEntrypoint', :js, :streaming do
 
   it 'can be used to post a new status' do
     expect(subject).to have_css('div#mastodon-compose')
-    expect(subject).to have_css('.compose-form__submit')
+    expect(subject).to have_css('.compose-form__publish-button-wrapper > button')
 
     status_text = 'This is a new status!'
 
     within('.compose-form') do
       fill_in "What's on your mind?", with: status_text
-      click_on 'Post'
+      click_on 'Publish!'
     end
 
     expect(subject).to have_css('.notification-bar-message', text: 'Post published.')

@@ -5,15 +5,11 @@ class CopyStatusStats < ActiveRecord::Migration[5.2]
 
   def up
     safety_assured do
-      add_column :statuses, :searchability, :integer
-      add_column :statuses, :limited_scope, :integer
       if supports_upsert?
         up_fast
       else
         up_slow
       end
-      remove_column :statuses, :searchability
-      remove_column :statuses, :limited_scope
     end
   end
 
@@ -24,7 +20,8 @@ class CopyStatusStats < ActiveRecord::Migration[5.2]
   private
 
   def supports_upsert?
-    ActiveRecord::Base.connection.database_version >= 90_500
+    version = select_one("SELECT current_setting('server_version_num') AS v")['v'].to_i
+    version >= 90_500
   end
 
   def up_fast

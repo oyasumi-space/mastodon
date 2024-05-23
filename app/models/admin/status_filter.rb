@@ -16,7 +16,7 @@ class Admin::StatusFilter
   end
 
   def results
-    scope = @account.statuses.distributable_visibility
+    scope = @account.statuses.where(visibility: [:public, :unlisted])
 
     params.each do |key, value|
       next if IGNORED_PARAMS.include?(key.to_s)

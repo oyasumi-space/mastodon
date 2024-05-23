@@ -1,15 +1,8 @@
 # frozen_string_literal: true
 
 unless ENV.key?('RAILS_ENV')
-  abort <<~ERROR
-    The RAILS_ENV environment variable is not set.
-
-    Please set it correctly depending on context:
-
-      - Use "production" for a live deployment of the application
-      - Use "development" for local feature work
-      - Use "test" when running the automated spec suite
-  ERROR
+  warn 'ERROR: Missing RAILS_ENV environment variable, please set it to "production", "development", or "test".'
+  exit 1
 end
 
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)

@@ -362,7 +362,7 @@ class ScrollableList extends PureComponent {
                 trackScroll={trackScroll}
                 scrollKey={scrollKey}
               >
-                {cloneElement(child, child.type.name === 'ColumnLink' ? {} : {
+                {cloneElement(child, {
                   getScrollPosition: this.getScrollPosition,
                   updateScrollBottom: this.updateScrollBottom,
                   cachedMediaWidth: this.state.cachedMediaWidth,

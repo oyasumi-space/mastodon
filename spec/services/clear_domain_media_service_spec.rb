@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ClearDomainMediaService do
+RSpec.describe ClearDomainMediaService, type: :service do
   subject { described_class.new }
 
   let!(:bad_account) { Fabricate(:account, username: 'badguy666', domain: 'evil.org') }

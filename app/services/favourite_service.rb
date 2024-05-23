@@ -3,7 +3,6 @@
 class FavouriteService < BaseService
   include Authorization
   include Payloadable
-  include NgRuleHelper
 
   # Favourite a status and notify remote user
   # @param [Account] account
@@ -11,8 +10,6 @@ class FavouriteService < BaseService
   # @return [Favourite]
   def call(account, status)
     authorize_with account, status, :favourite?
-
-    raise Mastodon::ValidationError, I18n.t('statuses.violate_rules') unless check_invalid_reaction_for_ng_rule! account, reaction_type: 'favourite', recipient: status.account, target_status: status
 
     favourite = Favourite.find_by(account: account, status: status)
 

@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe BlacklistedEmailValidator do
   describe '#validate' do
-    subject { described_class.new.validate(user) }
+    subject { described_class.new.validate(user); errors }
 
     let(:user)   { instance_double(User, email: 'info@mail.com', sign_up_ip: '1.2.3.4', errors: errors) }
     let(:errors) { instance_double(ActiveModel::Errors, add: nil) }
@@ -18,8 +18,7 @@ RSpec.describe BlacklistedEmailValidator do
       let(:blocked_email) { true }
 
       it 'adds error' do
-        subject
-
+        described_class.new.validate(user)
         expect(errors).to have_received(:add).with(:email, :blocked).once
       end
     end
@@ -28,8 +27,7 @@ RSpec.describe BlacklistedEmailValidator do
       let(:blocked_email) { false }
 
       it 'does not add errors' do
-        subject
-
+        described_class.new.validate(user)
         expect(errors).to_not have_received(:add)
       end
 
@@ -41,8 +39,7 @@ RSpec.describe BlacklistedEmailValidator do
         end
 
         it 'adds error' do
-          subject
-
+          described_class.new.validate(user)
           expect(errors).to have_received(:add).with(:email, :taken).once
         end
       end

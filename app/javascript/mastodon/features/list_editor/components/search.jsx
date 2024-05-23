@@ -1,5 +1,3 @@
-// Kmyblue tracking marker: copied antenna_editor/search, circle_editor/search
-
 import PropTypes from 'prop-types';
 import { PureComponent } from 'react';
 
@@ -9,8 +7,8 @@ import classNames from 'classnames';
 
 import { connect } from 'react-redux';
 
-import CancelIcon from '@/material-icons/400-24px/cancel.svg?react';
-import SearchIcon from '@/material-icons/400-24px/search.svg?react';
+import CancelIcon from 'mastodon/../material-icons/400-24px/cancel.svg?react';
+import SearchIcon from 'mastodon/../material-icons/400-24px/search.svg?react';
 import { Icon }  from 'mastodon/components/icon';
 
 import { fetchListSuggestions, clearListSuggestions, changeListSuggestions } from '../../../actions/lists';

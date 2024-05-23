@@ -64,12 +64,4 @@ class AccountPolicy < ApplicationPolicy
   def review?
     role.can?(:manage_taxonomies)
   end
-
-  def approve_remote?
-    role.can?(:manage_users) && record.remote_pending
-  end
-
-  def reject_remote?
-    role.can?(:manage_users) && record.remote_pending
-  end
 end

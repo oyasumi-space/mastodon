@@ -14,6 +14,17 @@ describe ManifestsController do
       expect(response).to have_http_status(200)
     end
 
-    it_behaves_like 'cacheable response'
+    it 'returns public cache control header' do
+      expect(response.headers['Cache-Control']).to include('public')
+    end
+
+    it 'does not set cookies' do
+      expect(response.cookies).to be_empty
+      expect(response.headers['Set-Cookies']).to be_nil
+    end
+
+    it 'does not set sessions' do
+      expect(session).to be_empty
+    end
   end
 end

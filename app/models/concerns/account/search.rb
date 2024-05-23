@@ -87,29 +87,6 @@ module Account::Search
     LIMIT :limit OFFSET :offset
   SQL
 
-  ADVANCED_SEARCH_WITH_FOLLOWED = <<~SQL.squish
-    WITH first_degree AS (
-      SELECT account_id
-      FROM follows
-      WHERE target_account_id = :id
-      UNION ALL
-      SELECT :id
-    )
-    SELECT
-      accounts.*,
-      (count(f.id) + 1) * #{BOOST} * ts_rank_cd(#{TEXT_SEARCH_RANKS}, to_tsquery('simple', :tsquery), 32) AS rank
-    FROM accounts
-    LEFT OUTER JOIN follows AS f ON (accounts.id = f.target_account_id AND f.account_id = :id)
-    LEFT JOIN account_stats AS s ON accounts.id = s.account_id
-    WHERE accounts.id IN (SELECT * FROM first_degree)
-      AND to_tsquery('simple', :tsquery) @@ #{TEXT_SEARCH_RANKS}
-      AND accounts.suspended_at IS NULL
-      AND accounts.moved_to_account_id IS NULL
-    GROUP BY accounts.id, s.id
-    ORDER BY rank DESC
-    LIMIT :limit OFFSET :offset
-  SQL
-
   ADVANCED_SEARCH_WITHOUT_FOLLOWING = <<~SQL.squish
     SELECT
       accounts.*,
@@ -152,13 +129,9 @@ module Account::Search
       end
     end
 
-    def advanced_search_for(terms, account, limit: DEFAULT_LIMIT, following: false, follower: false, offset: 0)
+    def advanced_search_for(terms, account, limit: DEFAULT_LIMIT, following: false, offset: 0)
       tsquery = generate_query_for_search(terms)
-      sql_template = if following
-                       ADVANCED_SEARCH_WITH_FOLLOWING
-                     else
-                       follower ? ADVANCED_SEARCH_WITH_FOLLOWED : ADVANCED_SEARCH_WITHOUT_FOLLOWING
-                     end
+      sql_template = following ? ADVANCED_SEARCH_WITH_FOLLOWING : ADVANCED_SEARCH_WITHOUT_FOLLOWING
 
       find_by_sql([sql_template, { id: account.id, limit: limit, offset: offset, tsquery: tsquery }]).tap do |records|
         ActiveRecord::Associations::Preloader.new(records: records, associations: [:account_stat, { user: :role }]).call

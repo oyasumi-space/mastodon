@@ -6,13 +6,14 @@
 %hr.spacer/
 
 - if can? :create, :rule
-  = simple_form_for @rule, url: admin_rules_path do |form|
+  = simple_form_for @rule, url: admin_rules_path do |f|
     = render 'shared/error_messages', object: @rule
 
-    = render form
+    .fields-group
+      = f.input :text, wrapper: :with_block_label
 
     .actions
-      = form.button :button, t('admin.rules.add_new'), type: :submit
+      = f.button :button, t('admin.rules.add_new'), type: :submit
 
   %hr.spacer/
 

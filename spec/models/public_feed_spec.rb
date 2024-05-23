@@ -6,39 +6,14 @@ RSpec.describe PublicFeed do
   let(:account) { Fabricate(:account) }
 
   describe '#get' do
-    subject { described_class.new(viewer).get(20).map(&:id) }
+    subject { described_class.new(nil).get(20).map(&:id) }
 
-    let(:viewer) { nil }
+    it 'only includes statuses with public visibility' do
+      public_status = Fabricate(:status, visibility: :public)
+      private_status = Fabricate(:status, visibility: :private)
 
-    context 'with only includes statuses with public visibility' do
-      let!(:public_status)          { Fabricate(:status, visibility: :public) }
-      let!(:login_status)           { Fabricate(:status, visibility: :login) }
-      let!(:unlisted_status)        { Fabricate(:status, visibility: :unlisted) }
-      let!(:private_status)         { Fabricate(:status, visibility: :private) }
-      let!(:direct_status)          { Fabricate(:status, visibility: :direct) }
-      let!(:limited_status)         { Fabricate(:status, visibility: :limited) }
-
-      it 'without user' do
-        expect(subject).to include(public_status.id)
-        expect(subject).to_not include(login_status.id)
-        expect(subject).to_not include(unlisted_status.id)
-        expect(subject).to_not include(private_status.id)
-        expect(subject).to_not include(direct_status.id)
-        expect(subject).to_not include(limited_status.id)
-      end
-
-      context 'with user' do
-        let(:viewer) { account }
-
-        it 'on global timeline' do
-          expect(subject).to include(public_status.id)
-          expect(subject).to include(login_status.id)
-          expect(subject).to_not include(unlisted_status.id)
-          expect(subject).to_not include(private_status.id)
-          expect(subject).to_not include(direct_status.id)
-          expect(subject).to_not include(limited_status.id)
-        end
-      end
+      expect(subject).to include(public_status.id)
+      expect(subject).to_not include(private_status.id)
     end
 
     it 'does not include replies' do
@@ -75,7 +50,6 @@ RSpec.describe PublicFeed do
       let!(:remote_account) { Fabricate(:account, domain: 'test.com') }
       let!(:local_status)   { Fabricate(:status, account: local_account) }
       let!(:remote_status)  { Fabricate(:status, account: remote_account) }
-      let!(:public_unlisted_status) { Fabricate(:status, account: local_account, visibility: :public_unlisted) }
 
       context 'without a viewer' do
         let(:viewer) { nil }
@@ -86,22 +60,6 @@ RSpec.describe PublicFeed do
 
         it 'includes local statuses' do
           expect(subject).to include(local_status.id)
-        end
-
-        it 'includes public_unlisted statuses' do
-          expect(subject).to include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'includes statuses' do
-            expect(subject).to include(remote_status.id)
-            expect(subject).to include(local_status.id)
-            expect(subject).to include(public_unlisted_status.id)
-          end
         end
       end
 
@@ -115,22 +73,6 @@ RSpec.describe PublicFeed do
         it 'includes local statuses' do
           expect(subject).to include(local_status.id)
         end
-
-        it 'excludes public_unlisted statuses' do
-          expect(subject).to include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'includes statuses' do
-            expect(subject).to include(remote_status.id)
-            expect(subject).to include(local_status.id)
-            expect(subject).to include(public_unlisted_status.id)
-          end
-        end
       end
     end
 
@@ -141,7 +83,6 @@ RSpec.describe PublicFeed do
       let!(:remote_account) { Fabricate(:account, domain: 'test.com') }
       let!(:local_status)   { Fabricate(:status, account: local_account) }
       let!(:remote_status)  { Fabricate(:status, account: remote_account) }
-      let!(:public_unlisted_status) { Fabricate(:status, account: local_account, visibility: :public_unlisted) }
 
       context 'without a viewer' do
         let(:viewer) { nil }
@@ -149,20 +90,6 @@ RSpec.describe PublicFeed do
         it 'does not include remote instances statuses' do
           expect(subject).to include(local_status.id)
           expect(subject).to_not include(remote_status.id)
-        end
-
-        it 'includes public_unlisted statuses' do
-          expect(subject).to include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'does not include all statuses' do
-            expect(subject).to eq []
-          end
         end
       end
 
@@ -179,20 +106,6 @@ RSpec.describe PublicFeed do
           expect(subject).to include(local_status.id)
           expect(subject).to_not include(remote_status.id)
         end
-
-        it 'includes public_unlisted statuses' do
-          expect(subject).to include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'does not include all statuses' do
-            expect(subject).to eq []
-          end
-        end
       end
     end
 
@@ -203,7 +116,6 @@ RSpec.describe PublicFeed do
       let!(:remote_account) { Fabricate(:account, domain: 'test.com') }
       let!(:local_status)   { Fabricate(:status, account: local_account) }
       let!(:remote_status)  { Fabricate(:status, account: remote_account) }
-      let!(:public_unlisted_status) { Fabricate(:status, account: local_account, visibility: :public_unlisted) }
 
       context 'without a viewer' do
         let(:viewer) { nil }
@@ -211,22 +123,6 @@ RSpec.describe PublicFeed do
         it 'does not include local instances statuses' do
           expect(subject).to_not include(local_status.id)
           expect(subject).to include(remote_status.id)
-        end
-
-        it 'excludes public_unlisted statuses' do
-          expect(subject).to_not include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'includes statuses with local' do
-            expect(subject).to include(remote_status.id)
-            expect(subject).to include(local_status.id)
-            expect(subject).to include(public_unlisted_status.id)
-          end
         end
       end
 
@@ -236,22 +132,6 @@ RSpec.describe PublicFeed do
         it 'does not include local instances statuses' do
           expect(subject).to_not include(local_status.id)
           expect(subject).to include(remote_status.id)
-        end
-
-        it 'excludes public_unlisted statuses' do
-          expect(subject).to_not include(public_unlisted_status.id)
-        end
-
-        context 'when local timeline is disabled' do
-          before do
-            Form::AdminSettings.new(enable_local_timeline: '0').save
-          end
-
-          it 'includes statuses with local' do
-            expect(subject).to include(remote_status.id)
-            expect(subject).to include(local_status.id)
-            expect(subject).to include(public_unlisted_status.id)
-          end
         end
       end
     end

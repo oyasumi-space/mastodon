@@ -29,11 +29,10 @@ class Api::V1::Admin::DomainBlocksController < Api::BaseController
   def create
     authorize :domain_block, :create?
 
-    @domain_block = DomainBlock.new(resource_params)
     existing_domain_block = resource_params[:domain].present? ? DomainBlock.rule_for(resource_params[:domain]) : nil
-    return render json: existing_domain_block, serializer: REST::Admin::ExistingDomainBlockErrorSerializer, status: 422 if conflicts_with_existing_block?(@domain_block, existing_domain_block)
+    return render json: existing_domain_block, serializer: REST::Admin::ExistingDomainBlockErrorSerializer, status: 422 if existing_domain_block.present?
 
-    @domain_block.save!
+    @domain_block = DomainBlock.create!(resource_params)
     DomainBlockWorker.perform_async(@domain_block.id)
     log_action :create, @domain_block
     render json: @domain_block, serializer: REST::Admin::DomainBlockSerializer
@@ -56,10 +55,6 @@ class Api::V1::Admin::DomainBlocksController < Api::BaseController
 
   private
 
-  def conflicts_with_existing_block?(domain_block, existing_domain_block)
-    existing_domain_block.present? && (existing_domain_block.domain == TagManager.instance.normalize_domain(domain_block.domain) || !domain_block.stricter_than?(existing_domain_block))
-  end
-
   def set_domain_blocks
     @domain_blocks = filtered_domain_blocks.order(id: :desc).to_a_paginated_by_id(limit_param(LIMIT), params_slice(:max_id, :since_id, :min_id))
   end
@@ -74,8 +69,11 @@ class Api::V1::Admin::DomainBlocksController < Api::BaseController
   end
 
   def domain_block_params
-    params.permit(:severity, :reject_media, :reject_favourite, :reject_reply_exclude_followers, :reject_reports, :reject_send_sensitive, :reject_hashtag, :reject_straight_follow,
-                  :reject_new_follow, :reject_friend, :block_trends, :detect_invalid_subscription, :private_comment, :public_comment, :obfuscate, :hidden)
+    params.permit(:severity, :reject_media, :reject_reports, :private_comment, :public_comment, :obfuscate)
+  end
+
+  def insert_pagination_headers
+    set_pagination_headers(next_path, prev_path)
   end
 
   def next_path
@@ -86,8 +84,12 @@ class Api::V1::Admin::DomainBlocksController < Api::BaseController
     api_v1_admin_domain_blocks_url(pagination_params(min_id: pagination_since_id)) unless @domain_blocks.empty?
   end
 
-  def pagination_collection
-    @domain_blocks
+  def pagination_max_id
+    @domain_blocks.last.id
+  end
+
+  def pagination_since_id
+    @domain_blocks.first.id
   end
 
   def records_continue?
@@ -99,7 +101,6 @@ class Api::V1::Admin::DomainBlocksController < Api::BaseController
   end
 
   def resource_params
-    params.permit(:domain, :severity, :reject_media, :reject_favourite, :reject_reply_exclude_followers, :reject_send_sensitive, :reject_hashtag, :reject_straight_follow,
-                  :reject_new_follow, :reject_friend, :block_trends, :detect_invalid_subscription, :reject_reports, :private_comment, :public_comment, :obfuscate, :hidden)
+    params.permit(:domain, :severity, :reject_media, :reject_reports, :private_comment, :public_comment, :obfuscate)
   end
 end

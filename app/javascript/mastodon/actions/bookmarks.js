@@ -1,5 +1,3 @@
-// Kmyblue tracking marker: copied bookmark_categories.js
-
 import api, { getLinks } from '../api';
 
 import { importFetchedStatuses } from './importer';

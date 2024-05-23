@@ -6,8 +6,6 @@ describe Account::Counters do
   let!(:account) { Fabricate(:account) }
 
   describe '#increment_count!' do
-    let(:increment_by) { 15 }
-
     it 'increments the count' do
       expect(account.followers_count).to eq 0
       account.increment_count!(:followers_count)
@@ -15,17 +13,24 @@ describe Account::Counters do
     end
 
     it 'increments the count in multi-threaded an environment' do
-      multi_threaded_execution(increment_by) do
-        account.increment_count!(:statuses_count)
+      increment_by   = 15
+      wait_for_start = true
+
+      threads = Array.new(increment_by) do
+        Thread.new do
+          true while wait_for_start
+          account.increment_count!(:statuses_count)
+        end
       end
+
+      wait_for_start = false
+      threads.each(&:join)
 
       expect(account.statuses_count).to eq increment_by
     end
   end
 
   describe '#decrement_count!' do
-    let(:decrement_by) { 10 }
-
     it 'decrements the count' do
       account.followers_count = 15
       account.save!
@@ -35,27 +40,23 @@ describe Account::Counters do
     end
 
     it 'decrements the count in multi-threaded an environment' do
+      decrement_by   = 10
+      wait_for_start = true
+
       account.statuses_count = 15
       account.save!
 
-      multi_threaded_execution(decrement_by) do
-        account.decrement_count!(:statuses_count)
+      threads = Array.new(decrement_by) do
+        Thread.new do
+          true while wait_for_start
+          account.decrement_count!(:statuses_count)
+        end
       end
 
+      wait_for_start = false
+      threads.each(&:join)
+
       expect(account.statuses_count).to eq 5
-    end
-
-    it 'preserves last_status_at when decrementing statuses_count' do
-      account_stat = Fabricate(
-        :account_stat,
-        account: account,
-        last_status_at: 3.days.ago,
-        statuses_count: 10
-      )
-
-      expect { account.decrement_count!(:statuses_count) }
-        .to change(account_stat.reload, :statuses_count).by(-1)
-        .and not_change(account_stat.reload, :last_status_at)
     end
   end
 end

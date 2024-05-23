@@ -59,19 +59,25 @@ export const accountsReducer: Reducer<typeof initialState> = (
     return normalizeAccounts(state, action.payload.accounts);
   else if (followAccountSuccess.match(action)) {
     return state
-      .update(action.payload.relationship.id, (account) =>
-        account?.update('followers_count', (n) => n + 1),
+      .update(
+        action.payload.relationship.id,
+        (account) => account?.update('followers_count', (n) => n + 1),
       )
-      .update(getCurrentUser(), (account) =>
-        account?.update('following_count', (n) => n + 1),
+      .update(
+        getCurrentUser(),
+        (account) => account?.update('following_count', (n) => n + 1),
       );
   } else if (unfollowAccountSuccess.match(action))
     return state
-      .update(action.payload.relationship.id, (account) =>
-        account?.update('followers_count', (n) => Math.max(0, n - 1)),
+      .update(
+        action.payload.relationship.id,
+        (account) =>
+          account?.update('followers_count', (n) => Math.max(0, n - 1)),
       )
-      .update(getCurrentUser(), (account) =>
-        account?.update('following_count', (n) => Math.max(0, n - 1)),
+      .update(
+        getCurrentUser(),
+        (account) =>
+          account?.update('following_count', (n) => Math.max(0, n - 1)),
       );
   else return state;
 };

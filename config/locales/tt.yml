@@ -6,7 +6,7 @@ tt:
   accounts:
     follow: Языл
     followers:
-      other: язылучы
+      other: Язылучы
     following: Язылгансыз
     posts:
       other: Язма
@@ -137,14 +137,14 @@ tt:
       new_users: яңа кулланучылар
       software: Программа тәэминаты
       title: Идарә аслыгы
-      website: Веб-сайт
+      website: Вебсайт
     domain_allows:
-      export: Экспорт
-      import: Импорт
+      export: Экспортлау
+      import: Импортлау
     domain_blocks:
       domain: Домен
-      export: Экспорт
-      import: Импорт
+      export: Экспортлау
+      import: Импортлау
       new:
         severity:
           noop: Бернинди дә
@@ -438,8 +438,8 @@ tt:
       decimal_units:
         format: "%n %u"
         units:
-          billion: млрд
-          million: млн
+          billion: Млрд
+          million: Млн
           quadrillion: Квадрлн
           thousand: Мең
           trillion: Трлн
@@ -455,7 +455,7 @@ tt:
   preferences:
     other: Башка
   privacy_policy:
-    title: Хосусыйлык сәясәте
+    title: Хосусыйлык Сәясәте
   relationships:
     dormant: Актив түгел
     followers: Язылучылар
@@ -511,6 +511,7 @@ tt:
     development: Ясаучылар өчен
     edit_profile: Профильне үзгәртү
     import: Импортлау
+    notifications: Искәртүләр
     preferences: Caylaw
     profile: Профиль
     two_factor_authentication: Ике-факторлы авторизация

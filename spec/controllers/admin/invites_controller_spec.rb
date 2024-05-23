@@ -44,13 +44,14 @@ describe Admin::InvitesController do
   end
 
   describe 'POST #deactivate_all' do
-    before { Fabricate(:invite, expires_at: nil) }
-
     it 'expires all invites, then redirects to admin_invites_path' do
-      expect { post :deactivate_all }
-        .to change { Invite.exists?(expires_at: nil) }
-        .from(true)
-        .to(false)
+      invites = Fabricate.times(1, :invite, expires_at: nil)
+
+      post :deactivate_all
+
+      invites.each do |invite|
+        expect(invite.reload).to be_expired
+      end
 
       expect(response).to redirect_to admin_invites_path
     end

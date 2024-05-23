@@ -809,6 +809,7 @@ co:
   notifications:
     email_events: Avvenimenti da nutificà cù l'e-mail
     email_events_hint: 'Selezziunate l''avvenimenti per quelli vulete riceve nutificazione:'
+    other_settings: Altri parametri di nutificazione
   number:
     human:
       decimal_units:
@@ -926,6 +927,7 @@ co:
     import: Impurtazione
     import_and_export: Impurtazione è spurtazione
     migrate: Migrazione di u contu
+    notifications: Nutificazione
     preferences: Priferenze
     profile: Prufile
     relationships: Abbunamenti è abbunati
@@ -965,6 +967,8 @@ co:
         other: "%{count} voti"
       vote: Vutà
     show_more: Vede di più
+    show_newer: Vede i più ricenti
+    show_older: Vede i più anziani
     show_thread: Vede u filu
     title: '%{name}: "%{quote}"'
     visibilities:
@@ -1030,6 +1034,7 @@ co:
     webauthn: Chjave di sicurità
   user_mailer:
     backup_ready:
+      explanation: Avete dumandatu un’archiviu cumpletu di u vostru contu Mastodon. Avà hè prontu per scaricà!
       subject: U vostru archiviu hè prontu à scaricà
       title: Archiviu prontu
     warning:
@@ -1044,7 +1049,11 @@ co:
         silence: Contu limitatu
         suspend: Contu suspesu
     welcome:
+      edit_profile_action: Cunfigurazione di u prufile
       explanation: Eccu alcune idee per principià
+      final_action: Principià à pustà
+      full_handle: U vostru identificatore cumplettu
+      full_handle_hint: Quessu ghjè cio chì direte à i vostri amichi per circavi, abbunassi à u vostru contu da altrò, o mandà missaghji.
       subject: Benvenutu·a nant’à Mastodon
       title: Benvenutu·a, %{name}!
   users:
