@@ -1,5 +1,3 @@
-// Kmyblue tracking marker: copied antennas, circles, bookmark_categories
-
 import { Map as ImmutableMap, fromJS } from 'immutable';
 
 import {

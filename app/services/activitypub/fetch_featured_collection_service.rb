@@ -23,9 +23,9 @@ class ActivityPub::FetchFeaturedCollectionService < BaseService
 
     case collection['type']
     when 'Collection', 'CollectionPage'
-      as_array(collection['items'])
+      collection['items']
     when 'OrderedCollection', 'OrderedCollectionPage'
-      as_array(collection['orderedItems'])
+      collection['orderedItems']
     end
   end
 

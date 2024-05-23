@@ -35,7 +35,7 @@ export default class AutosuggestEmoji extends PureComponent {
           alt={emoji.native || emoji.colons}
         />
 
-        <div className='autosuggest-emoji__name'>{emoji.colons}</div>
+        {emoji.colons}
       </div>
     );
   }

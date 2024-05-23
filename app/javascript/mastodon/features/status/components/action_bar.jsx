@@ -9,27 +9,22 @@ import { withRouter } from 'react-router-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg?react';
-import BookmarkBorderIcon from '@/material-icons/400-24px/bookmark.svg?react';
-import EmojiReactionIcon from '@/material-icons/400-24px/mood.svg?react';
-import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
-import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
-import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
-import ReplyAllIcon from '@/material-icons/400-24px/reply_all.svg?react';
-import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
-import StarBorderIcon from '@/material-icons/400-24px/star.svg?react';
-import RepeatActiveIcon from '@/svg-icons/repeat_active.svg?react';
-import RepeatDisabledIcon from '@/svg-icons/repeat_disabled.svg?react';
-import RepeatPrivateIcon from '@/svg-icons/repeat_private.svg?react';
-import RepeatPrivateActiveIcon from '@/svg-icons/repeat_private_active.svg?react';
+import BookmarkIcon from 'mastodon/../material-icons/400-24px/bookmark-fill.svg?react';
+import BookmarkBorderIcon from 'mastodon/../material-icons/400-24px/bookmark.svg?react';
+import MoreHorizIcon from 'mastodon/../material-icons/400-24px/more_horiz.svg?react';
+import RepeatIcon from 'mastodon/../material-icons/400-24px/repeat.svg?react';
+import ReplyIcon from 'mastodon/../material-icons/400-24px/reply.svg?react';
+import ReplyAllIcon from 'mastodon/../material-icons/400-24px/reply_all.svg?react';
+import StarIcon from 'mastodon/../material-icons/400-24px/star-fill.svg?react';
+import StarBorderIcon from 'mastodon/../material-icons/400-24px/star.svg?react';
+import RepeatDisabledIcon from 'mastodon/../svg-icons/repeat_disabled.svg?react';
+import RepeatPrivateIcon from 'mastodon/../svg-icons/repeat_private.svg?react';
 import { PERMISSION_MANAGE_USERS, PERMISSION_MANAGE_FEDERATION } from 'mastodon/permissions';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
-
 import { IconButton } from '../../../components/icon_button';
 import DropdownMenuContainer from '../../../containers/dropdown_menu_container';
-import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem, boostMenu, boostModal } from '../../../initial_state';
-import EmojiPickerDropdown from '../../compose/containers/emoji_picker_dropdown_container';
+import { me } from '../../../initial_state';
 
 const messages = defineMessages({
   delete: { id: 'status.delete', defaultMessage: 'Delete' },
@@ -37,17 +32,13 @@ const messages = defineMessages({
   edit: { id: 'status.edit', defaultMessage: 'Edit' },
   direct: { id: 'status.direct', defaultMessage: 'Privately mention @{name}' },
   mention: { id: 'status.mention', defaultMessage: 'Mention @{name}' },
-  mentions: { id: 'status.mentions', defaultMessage: 'Mentioned users' },
   reply: { id: 'status.reply', defaultMessage: 'Reply' },
   reblog: { id: 'status.reblog', defaultMessage: 'Boost' },
-  reblog_with_detail: { id: 'status.reblog_with_detail', defaultMessage: 'Boost with visibility' },
-  cancel_reblog: { id: 'status.cancel_reblog_private', defaultMessage: 'Unboost' },
   reblog_private: { id: 'status.reblog_private', defaultMessage: 'Boost with original visibility' },
   cancel_reblog_private: { id: 'status.cancel_reblog_private', defaultMessage: 'Unboost' },
   cannot_reblog: { id: 'status.cannot_reblog', defaultMessage: 'This post cannot be boosted' },
   favourite: { id: 'status.favourite', defaultMessage: 'Favorite' },
   bookmark: { id: 'status.bookmark', defaultMessage: 'Bookmark' },
-  bookmark_category: { id: 'status.bookmark_category', defaultMessage: 'Bookmark category' },
   more: { id: 'status.more', defaultMessage: 'More' },
   mute: { id: 'status.mute', defaultMessage: 'Mute @{name}' },
   muteConversation: { id: 'status.mute_conversation', defaultMessage: 'Mute conversation' },
@@ -62,14 +53,11 @@ const messages = defineMessages({
   admin_status: { id: 'status.admin_status', defaultMessage: 'Open this post in the moderation interface' },
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   copy: { id: 'status.copy', defaultMessage: 'Copy link to post' },
-  reference: { id: 'status.reference', defaultMessage: 'Quiet quote' },
-  quote: { id: 'status.quote', defaultMessage: 'Quote' },
   blockDomain: { id: 'account.block_domain', defaultMessage: 'Block domain {domain}' },
   unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
   unblock: { id: 'account.unblock', defaultMessage: 'Unblock @{name}' },
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
-  pickEmoji: { id: 'status.emoji_reaction.pick', defaultMessage: 'Pick emoji' },
 });
 
 const mapStateToProps = (state, { status }) => ({
@@ -84,16 +72,11 @@ class ActionBar extends PureComponent {
 
   static propTypes = {
     status: ImmutablePropTypes.map.isRequired,
-    relationship: ImmutablePropTypes.record,
+    relationship: ImmutablePropTypes.map,
     onReply: PropTypes.func.isRequired,
     onReblog: PropTypes.func.isRequired,
-    onReblogForceModal: PropTypes.func.isRequired,
     onFavourite: PropTypes.func.isRequired,
-    onEmojiReact: PropTypes.func.isRequired,
-    onReference: PropTypes.func.isRequired,
-    onQuote: PropTypes.func.isRequired,
     onBookmark: PropTypes.func.isRequired,
-    onBookmarkCategoryAdder: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
     onEdit: PropTypes.func.isRequired,
     onDirect: PropTypes.func.isRequired,
@@ -112,10 +95,6 @@ class ActionBar extends PureComponent {
     ...WithRouterPropTypes,
   };
 
-  handleOpenMentions = () => {
-    this.props.history.push(`/@${this.props.status.getIn(['account', 'acct'])}/${this.props.status.get('id')}/mentioned_users`);
-  };
-
   handleReplyClick = () => {
     this.props.onReply(this.props.status);
   };
@@ -124,24 +103,12 @@ class ActionBar extends PureComponent {
     this.props.onReblog(this.props.status, e);
   };
 
-  handleReblogForceModalClick = (e) => {
-    this.props.onReblogForceModal(this.props.status, e);
-  };
-
   handleFavouriteClick = () => {
     this.props.onFavourite(this.props.status);
   };
 
   handleBookmarkClick = (e) => {
-    if (bookmarkCategoryNeeded) {
-      this.props.onBookmarkCategoryAdder(this.props.status);
-    } else {
-      this.props.onBookmark(this.props.status, e);
-    }
-  };
-
-  handleBookmarkCategoryAdderClick = () => {
-    this.props.onBookmarkCategoryAdder(this.props.status);
+    this.props.onBookmark(this.props.status, e);
   };
 
   handleDeleteClick = () => {
@@ -190,7 +157,7 @@ class ActionBar extends PureComponent {
     const { status, onBlockDomain } = this.props;
     const account = status.get('account');
 
-    onBlockDomain(account);
+    onBlockDomain(account.get('acct').split('@')[1]);
   };
 
   handleUnblockDomain = () => {
@@ -227,32 +194,16 @@ class ActionBar extends PureComponent {
     navigator.clipboard.writeText(url);
   };
 
-  handleReference = () => {
-    this.props.onReference(this.props.status);
-  };
-
-  handleQuote = () => {
-    this.props.onQuote(this.props.status);
-  };
-
-  handleEmojiPick = (data) => {
-    this.props.onEmojiReact(this.props.status, data);
-  };
-
-  handleEmojiPickInnerButton = () => {};
-
   render () {
     const { status, relationship, intl } = this.props;
     const { signedIn, permissions } = this.context.identity;
 
-    const publicStatus       = ['public', 'unlisted', 'public_unlisted', 'login'].includes(status.get('visibility_ex'));
-    const anonymousStatus    = ['public', 'unlisted', 'public_unlisted'].includes(status.get('visibility_ex'));
-    const pinnableStatus     = ['public', 'unlisted', 'public_unlisted', 'login', 'private'].includes(status.get('visibility_ex'));
+    const publicStatus       = ['public', 'unlisted'].includes(status.get('visibility'));
+    const pinnableStatus     = ['public', 'unlisted', 'private'].includes(status.get('visibility'));
     const mutingConversation = status.get('muted');
     const account            = status.get('account');
     const writtenByMe        = status.getIn(['account', 'id']) === me;
     const isRemote           = status.getIn(['account', 'username']) !== status.getIn(['account', 'acct']);
-    const allowQuote         = status.getIn(['account', 'other_settings', 'allow_quote']);
 
     let menu = [];
 
@@ -266,28 +217,12 @@ class ActionBar extends PureComponent {
       menu.push({ text: intl.formatMessage(messages.share), action: this.handleShare });
     }
 
-    if (anonymousStatus && (signedIn || !isRemote)) {
+    if (publicStatus && (signedIn || !isRemote)) {
       menu.push({ text: intl.formatMessage(messages.embed), action: this.handleEmbed });
     }
 
     if (signedIn) {
       menu.push(null);
-
-      if (!boostMenu) {
-        menu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogForceModalClick, tag: 'reblog' });
-
-        if (publicStatus) {
-          if (allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-            menu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote, tag: 'reblog' });
-          }
-  
-          if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-            menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
-          }
-        }
-      }
-
-      menu.push({ text: intl.formatMessage(messages.bookmark_category), action: this.handleBookmarkCategoryAdderClick });
 
       if (writtenByMe) {
         if (pinnableStatus) {
@@ -295,10 +230,6 @@ class ActionBar extends PureComponent {
           menu.push(null);
         }
 
-        if (status.get('limited_scope') !== 'reply') {
-          menu.push({ text: intl.formatMessage(messages.mentions), action: this.handleOpenMentions });
-        }
-        
         menu.push({ text: intl.formatMessage(mutingConversation ? messages.unmuteConversation : messages.muteConversation), action: this.handleConversationMuteClick });
         menu.push(null);
         menu.push({ text: intl.formatMessage(messages.edit), action: this.handleEditClick });
@@ -348,26 +279,6 @@ class ActionBar extends PureComponent {
       }
     }
 
-    let reblogMenu = [];
-
-    if (boostMenu) {
-      reblogMenu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogClick });
-
-      if (!status.get('reblogged') && !boostModal) {
-        reblogMenu.push({ text: intl.formatMessage(messages.reblog_with_detail), action: this.handleReblogForceModalClick });
-      }
-  
-      if (publicStatus) {
-        if (allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-          reblogMenu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote });
-        }
-  
-        if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-          reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
-        }
-      }
-    }
-
     let replyIcon;
     let replyIconComponent;
 
@@ -379,13 +290,13 @@ class ActionBar extends PureComponent {
       replyIconComponent = ReplyAllIcon;
     }
 
-    const reblogPrivate = status.getIn(['account', 'id']) === me && status.get('visibility_ex') === 'private';
+    const reblogPrivate = status.getIn(['account', 'id']) === me && status.get('visibility') === 'private';
 
     let reblogTitle, reblogIconComponent;
 
     if (status.get('reblogged')) {
       reblogTitle = intl.formatMessage(messages.cancel_reblog_private);
-      reblogIconComponent = publicStatus ? RepeatActiveIcon : RepeatPrivateActiveIcon;
+      reblogIconComponent = publicStatus ? RepeatIcon : RepeatPrivateIcon;
     } else if (publicStatus) {
       reblogTitle = intl.formatMessage(messages.reblog);
       reblogIconComponent = RepeatIcon;
@@ -395,50 +306,14 @@ class ActionBar extends PureComponent {
     } else {
       reblogTitle = intl.formatMessage(messages.cannot_reblog);
       reblogIconComponent = RepeatDisabledIcon;
-      menu = menu.filter((item) => !item?.tag || item.tag !== 'reblog');
-      reblogMenu = [];
     }
-
-    const emojiReactionAvailableServer = !isHideItem('emoji_reaction_unavailable_server') || account.getIn(['server_features', 'emoji_reaction']);
-    const emojiReactionPolicy = account.getIn(['other_settings', 'emoji_reaction_policy']) || 'allow';
-    const following = emojiReactionPolicy !== 'following_only' || (relationship && relationship.get('following'));
-    const followed = emojiReactionPolicy !== 'followers_only' || (relationship && relationship.get('followed_by'));
-    const mutual = emojiReactionPolicy !== 'mutuals_only' || (relationship && relationship.get('following') && relationship.get('followed_by'));
-    const outside = emojiReactionPolicy !== 'outside_only' || (relationship && (relationship.get('following') || relationship.get('followed_by')));
-    const denyFromAll = emojiReactionPolicy !== 'block' && emojiReactionPolicy !== 'block';
-    const emojiPickerDropdown = (enableEmojiReaction && emojiReactionAvailableServer && denyFromAll && (writtenByMe || (following && followed && mutual && outside)) && (
-      <div className='detailed-status__button'>
-        <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} button={(
-          <IconButton title={intl.formatMessage(messages.pickEmoji)} icon='smile-o' iconComponent={EmojiReactionIcon} onClick={this.handleEmojiPickInnerButton} />
-        )} />
-      </div>
-    )) || (enableEmojiReaction && (
-      <div className='detailed-status__button__blank' />
-    )) || null;
 
     return (
       <div className='detailed-status__action-bar'>
         <div className='detailed-status__button'><IconButton title={intl.formatMessage(messages.reply)} icon={status.get('in_reply_to_account_id') === status.getIn(['account', 'id']) ? 'reply' : replyIcon} iconComponent={status.get('in_reply_to_account_id') === status.getIn(['account', 'id']) ? ReplyIcon : replyIconComponent}  onClick={this.handleReplyClick} /></div>
-        {reblogMenu.length === 0 ? (
-          <div className='detailed-status__button'><IconButton className={classNames({ reblogPrivate })} disabled={!publicStatus && !reblogPrivate} active={status.get('reblogged')} title={reblogTitle} icon='retweet' iconComponent={reblogIconComponent} onClick={this.handleReblogClick} /></div>
-        ) : (
-          <div className='detailed-status__button'>
-            <DropdownMenuContainer
-              className={classNames({ reblogPrivate })}
-              icon='retweet'
-              iconComponent={reblogIconComponent}
-              status={status}
-              items={reblogMenu}
-              direction='left'
-              title={reblogTitle}
-              active={status.get('reblogged')}
-              disabled={!publicStatus && !reblogPrivate}
-            />
-          </div>
-        )}
+        <div className='detailed-status__button'><IconButton className={classNames({ reblogPrivate })} disabled={!publicStatus && !reblogPrivate} active={status.get('reblogged')} title={reblogTitle} icon='retweet' iconComponent={reblogIconComponent} onClick={this.handleReblogClick} /></div>
         <div className='detailed-status__button'><IconButton className='star-icon' animate active={status.get('favourited')} title={intl.formatMessage(messages.favourite)} icon='star' iconComponent={status.get('favourited') ? StarIcon : StarBorderIcon} onClick={this.handleFavouriteClick} /></div>
         <div className='detailed-status__button'><IconButton className='bookmark-icon' disabled={!signedIn} active={status.get('bookmarked')} title={intl.formatMessage(messages.bookmark)} icon='bookmark' iconComponent={status.get('bookmarked') ? BookmarkIcon : BookmarkBorderIcon} onClick={this.handleBookmarkClick} /></div>
-        {emojiPickerDropdown}
 
         <div className='detailed-status__action-bar-dropdown'>
           <DropdownMenuContainer icon='ellipsis-h' iconComponent={MoreHorizIcon} status={status} items={menu} direction='left' title={intl.formatMessage(messages.more)} />

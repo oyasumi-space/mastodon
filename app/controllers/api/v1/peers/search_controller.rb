@@ -27,7 +27,7 @@ class Api::V1::Peers::SearchController < Api::BaseController
       @domains = InstancesIndex.query(function_score: {
         query: {
           prefix: {
-            domain: normalized_domain,
+            domain: TagManager.instance.normalize_domain(params[:q].strip),
           },
         },
 
@@ -37,18 +37,11 @@ class Api::V1::Peers::SearchController < Api::BaseController
         },
       }).limit(10).pluck(:domain)
     else
-      domain = normalized_domain
-      @domains = Instance.searchable.domain_starts_with(domain).limit(10).pluck(:domain)
+      domain = params[:q].strip
+      domain = TagManager.instance.normalize_domain(domain)
+      @domains = Instance.searchable.where(Instance.arel_table[:domain].matches("#{Instance.sanitize_sql_like(domain)}%", false, true)).limit(10).pluck(:domain)
     end
   rescue Addressable::URI::InvalidURIError
     @domains = []
-  end
-
-  def normalized_domain
-    TagManager.instance.normalize_domain(query_value)
-  end
-
-  def query_value
-    params[:q].strip
   end
 end

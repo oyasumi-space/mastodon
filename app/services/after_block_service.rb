@@ -7,7 +7,6 @@ class AfterBlockService < BaseService
 
     clear_home_feed!
     clear_list_feeds!
-    clear_antenna_feeds!
     clear_notifications!
     clear_conversations!
   end
@@ -20,10 +19,6 @@ class AfterBlockService < BaseService
 
   def clear_list_feeds!
     FeedManager.instance.clear_from_lists(@account, @target_account)
-  end
-
-  def clear_antenna_feeds!
-    FeedManager.instance.clear_from_antennas(@account, @target_account)
   end
 
   def clear_conversations!

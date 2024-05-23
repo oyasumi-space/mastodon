@@ -179,11 +179,6 @@ export const openURL = (value, history, onFailure) => (dispatch, getState) => {
 
 export const clickSearchResult = (q, type) => (dispatch, getState) => {
   const previous = getState().getIn(['search', 'recent']);
-
-  if (previous.some(x => x.get('q') === q && x.get('type') === type)) {
-    return;
-  }
-
   const me = getState().getIn(['meta', 'me']);
   const current = previous.add(fromJS({ type, q })).takeLast(4);
 

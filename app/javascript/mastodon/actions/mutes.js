@@ -12,6 +12,10 @@ export const MUTES_EXPAND_REQUEST = 'MUTES_EXPAND_REQUEST';
 export const MUTES_EXPAND_SUCCESS = 'MUTES_EXPAND_SUCCESS';
 export const MUTES_EXPAND_FAIL    = 'MUTES_EXPAND_FAIL';
 
+export const MUTES_INIT_MODAL = 'MUTES_INIT_MODAL';
+export const MUTES_TOGGLE_HIDE_NOTIFICATIONS = 'MUTES_TOGGLE_HIDE_NOTIFICATIONS';
+export const MUTES_CHANGE_DURATION = 'MUTES_CHANGE_DURATION';
+
 export function fetchMutes() {
   return (dispatch, getState) => {
     dispatch(fetchMutesRequest());
@@ -88,12 +92,26 @@ export function expandMutesFail(error) {
 
 export function initMuteModal(account) {
   return dispatch => {
-    dispatch(openModal({
-      modalType: 'MUTE',
-      modalProps: {
-        accountId: account.get('id'),
-        acct: account.get('acct'),
-      },
-    }));
+    dispatch({
+      type: MUTES_INIT_MODAL,
+      account,
+    });
+
+    dispatch(openModal({ modalType: 'MUTE' }));
+  };
+}
+
+export function toggleHideNotifications() {
+  return dispatch => {
+    dispatch({ type: MUTES_TOGGLE_HIDE_NOTIFICATIONS });
+  };
+}
+
+export function changeMuteDuration(duration) {
+  return dispatch => {
+    dispatch({
+      type: MUTES_CHANGE_DURATION,
+      duration,
+    });
   };
 }

@@ -24,7 +24,7 @@ export type StatusLike = Record<{
 
 function normalizeHashtag(hashtag: string) {
   return (
-    !!hashtag && hashtag.startsWith('#') ? hashtag.slice(1) : hashtag
+    hashtag && hashtag.startsWith('#') ? hashtag.slice(1) : hashtag
   ).normalize('NFKC');
 }
 
@@ -196,15 +196,9 @@ export function getHashtagBarForStatus(status: StatusLike) {
   };
 }
 
-export function getFeaturedHashtagBar(acct: string, tags: string[]) {
-  return <HashtagBar acct={acct} hashtags={tags} defaultExpanded />;
-}
-
 const HashtagBar: React.FC<{
   hashtags: string[];
-  acct?: string;
-  defaultExpanded?: boolean;
-}> = ({ hashtags, acct, defaultExpanded }) => {
+}> = ({ hashtags }) => {
   const [expanded, setExpanded] = useState(false);
   const handleClick = useCallback(() => {
     setExpanded(true);
@@ -214,23 +208,19 @@ const HashtagBar: React.FC<{
     return null;
   }
 
-  const revealedHashtags =
-    expanded || defaultExpanded
-      ? hashtags
-      : hashtags.slice(0, VISIBLE_HASHTAGS);
+  const revealedHashtags = expanded
+    ? hashtags
+    : hashtags.slice(0, VISIBLE_HASHTAGS);
 
   return (
     <div className='hashtag-bar'>
       {revealedHashtags.map((hashtag) => (
-        <Link
-          key={hashtag}
-          to={acct ? `/@${acct}/tagged/${hashtag}` : `/tags/${hashtag}`}
-        >
+        <Link key={hashtag} to={`/tags/${hashtag}`}>
           #<span>{hashtag}</span>
         </Link>
       ))}
 
-      {!expanded && !defaultExpanded && hashtags.length > VISIBLE_HASHTAGS && (
+      {!expanded && hashtags.length > VISIBLE_HASHTAGS && (
         <button className='link-button' onClick={handleClick}>
           <FormattedMessage
             id='hashtags.and_other'

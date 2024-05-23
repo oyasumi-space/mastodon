@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe BootstrapTimelineService do
+RSpec.describe BootstrapTimelineService, type: :service do
   subject { described_class.new }
 
   context 'when the new user has registered from an invite' do

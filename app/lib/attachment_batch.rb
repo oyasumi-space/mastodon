@@ -37,7 +37,7 @@ class AttachmentBatch
 
   def clear
     remove_files
-    batch.update_all(nullified_attributes)
+    batch.update_all(nullified_attributes) # rubocop:disable Rails/SkipsModelValidations
   end
 
   private

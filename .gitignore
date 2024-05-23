@@ -24,11 +24,9 @@
 /public/packs-test
 .env
 .env.production
+.env.development
 /node_modules/
 /build/
-
-# Ignore elasticsearch config
-/.elasticsearch.yml
 
 # Ignore Vagrant files
 .vagrant/
@@ -71,6 +69,3 @@ yarn-debug.log
 
 # Ignore Docker option files
 docker-compose.override.yml
-
-# Ignore dotenv .local files
-.env*.local

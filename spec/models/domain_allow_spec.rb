@@ -3,18 +3,16 @@
 require 'rails_helper'
 
 describe DomainAllow do
-  describe 'Validations' do
-    it 'is invalid without a domain' do
-      domain_allow = Fabricate.build(:domain_allow, domain: nil)
-      domain_allow.valid?
-      expect(domain_allow).to model_have_error_on_field(:domain)
-    end
+  describe 'scopes' do
+    describe 'matches_domain' do
+      let(:domain) { Fabricate(:domain_allow, domain: 'example.com') }
+      let(:other_domain) { Fabricate(:domain_allow, domain: 'example.biz') }
 
-    it 'is invalid if the same normalized domain already exists' do
-      _domain_allow = Fabricate(:domain_allow, domain: 'にゃん')
-      domain_allow_with_normalized_value = Fabricate.build(:domain_allow, domain: 'xn--r9j5b5b')
-      domain_allow_with_normalized_value.valid?
-      expect(domain_allow_with_normalized_value).to model_have_error_on_field(:domain)
+      it 'returns the correct records' do
+        results = described_class.matches_domain('example.com')
+
+        expect(results).to eq([domain])
+      end
     end
   end
 end

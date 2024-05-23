@@ -20,12 +20,10 @@ class ColumnSettings extends PureComponent {
     const { settings, onChange } = this.props;
 
     return (
-      <div className='column-settings'>
-        <section>
-          <div className='column-settings__row'>
-            <SettingToggle settings={settings} settingPath={['other', 'onlyMedia']} onChange={onChange} label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />} />
-          </div>
-        </section>
+      <div>
+        <div className='column-settings__row'>
+          <SettingToggle settings={settings} settingPath={['other', 'onlyMedia']} onChange={onChange} label={<FormattedMessage id='community.column_settings.media_only' defaultMessage='Media only' />} />
+        </div>
       </div>
     );
   }

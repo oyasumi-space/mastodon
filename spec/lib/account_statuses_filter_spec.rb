@@ -42,18 +42,13 @@ RSpec.describe AccountStatusesFilter do
 
     before do
       status!(:public)
-      status!(:public_unlisted)
       status!(:unlisted)
-      status!(:login)
       status!(:private)
-      status!(:direct)
-      status!(:limited)
       status_with_parent!(:public)
       status_with_reblog!(:public)
       status_with_tag!(:public, tag)
       status_with_mention!(:direct)
       status_with_media_attachment!(:public)
-      status_with_mention!(:limited)
     end
 
     shared_examples 'filter params' do
@@ -95,7 +90,7 @@ RSpec.describe AccountStatusesFilter do
       let(:direct_status) { nil }
 
       it 'returns only public statuses, public replies, and public reblogs' do
-        expect(results_unique_visibilities).to match_array %w(unlisted public_unlisted public)
+        expect(results_unique_visibilities).to match_array %w(unlisted public)
 
         expect(results_in_reply_to_ids).to_not be_empty
 
@@ -121,7 +116,7 @@ RSpec.describe AccountStatusesFilter do
       let(:current_account) { account }
 
       it 'returns all statuses, replies, and reblogs' do
-        expect(results_unique_visibilities).to match_array %w(direct private login unlisted public_unlisted public limited)
+        expect(results_unique_visibilities).to match_array %w(direct private unlisted public)
 
         expect(results_in_reply_to_ids).to_not be_empty
 
@@ -139,7 +134,7 @@ RSpec.describe AccountStatusesFilter do
       end
 
       it 'returns private statuses, replies, and reblogs' do
-        expect(results_unique_visibilities).to match_array %w(private login unlisted public_unlisted public)
+        expect(results_unique_visibilities).to match_array %w(private unlisted public)
 
         expect(results_in_reply_to_ids).to_not be_empty
 
@@ -154,30 +149,6 @@ RSpec.describe AccountStatusesFilter do
         end
       end
 
-      context 'when there is a direct status mentioning other user' do
-        let!(:direct_status) { status_with_mention!(:direct) }
-
-        it 'not returns the direct status' do
-          expect(results_ids).to_not include(direct_status.id)
-        end
-      end
-
-      context 'when there is a limited status mentioning the non-follower' do
-        let!(:limited_status) { status_with_mention!(:limited, current_account) }
-
-        it 'returns the limited status' do
-          expect(results_ids).to include(limited_status.id)
-        end
-      end
-
-      context 'when there is a limited status mentioning other user' do
-        let!(:limited_status) { status_with_mention!(:limited) }
-
-        it 'not returns the limited status' do
-          expect(results_ids).to_not include(limited_status.id)
-        end
-      end
-
       it_behaves_like 'filter params'
     end
 
@@ -185,7 +156,7 @@ RSpec.describe AccountStatusesFilter do
       let(:current_account) { Fabricate(:account) }
 
       it 'returns only public statuses, replies, and reblogs' do
-        expect(results_unique_visibilities).to match_array %w(login unlisted public_unlisted public)
+        expect(results_unique_visibilities).to match_array %w(unlisted public)
 
         expect(results_in_reply_to_ids).to_not be_empty
 
@@ -265,80 +236,6 @@ RSpec.describe AccountStatusesFilter do
       end
 
       it_behaves_like 'filter params'
-    end
-
-    context 'when accessed by a remote account' do
-      let(:current_account) { Fabricate(:account, uri: 'https://example.com/', domain: 'example.com') }
-      let!(:sensitive_status_with_cw) { Fabricate(:status, account: account, visibility: :public, spoiler_text: 'CW', sensitive: true) }
-      let!(:sensitive_status_with_media) do
-        Fabricate(:status, account: account, visibility: :public, sensitive: true).tap do |status|
-          Fabricate(:media_attachment, account: account, status: status)
-        end
-      end
-
-      shared_examples 'as_like_public_visibility' do
-        it 'returns private statuses, replies, and reblogs' do
-          expect(results_unique_visibilities).to match_array %w(login unlisted public_unlisted public)
-
-          expect(results_in_reply_to_ids).to_not be_empty
-
-          expect(results_reblog_of_ids).to_not be_empty
-        end
-
-        context 'when there is a direct status mentioning the non-follower' do
-          let!(:direct_status) { status_with_mention!(:direct, current_account) }
-
-          it 'returns the direct status' do
-            expect(results_ids).to include(direct_status.id)
-          end
-        end
-
-        context 'when there is a direct status mentioning other user' do
-          let!(:direct_status) { status_with_mention!(:direct) }
-
-          it 'not returns the direct status' do
-            expect(results_ids).to_not include(direct_status.id)
-          end
-        end
-
-        context 'when there is a limited status mentioning the non-follower' do
-          let!(:limited_status) { status_with_mention!(:limited, current_account) }
-
-          it 'returns the limited status' do
-            expect(results_ids).to include(limited_status.id)
-          end
-        end
-
-        context 'when there is a limited status mentioning other user' do
-          let!(:limited_status) { status_with_mention!(:limited) }
-
-          it 'not returns the limited status' do
-            expect(results_ids).to_not include(limited_status.id)
-          end
-        end
-      end
-
-      it_behaves_like 'as_like_public_visibility'
-      it_behaves_like 'filter params'
-
-      it 'returns the sensitive status' do
-        expect(results_ids).to include(sensitive_status_with_cw.id)
-        expect(results_ids).to include(sensitive_status_with_media.id)
-      end
-
-      context 'when domain-blocked reject_media' do
-        before do
-          Fabricate(:domain_block, domain: 'example.com', severity: :noop, reject_send_sensitive: true)
-        end
-
-        it_behaves_like 'as_like_public_visibility'
-        it_behaves_like 'filter params'
-
-        it 'does not return the sensitive status' do
-          expect(results_ids).to_not include(sensitive_status_with_cw.id)
-          expect(results_ids).to_not include(sensitive_status_with_media.id)
-        end
-      end
     end
 
     private

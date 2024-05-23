@@ -2,16 +2,14 @@
 
 require 'rails_helper'
 
-RSpec.describe FetchLinkCardService do
+RSpec.describe FetchLinkCardService, type: :service do
   subject { described_class.new }
 
   let(:html) { '<!doctype html><title>Hello world</title>' }
   let(:oembed_cache) { nil }
-  let(:custom_before) { false }
 
   before do
     stub_request(:get, 'http://example.com/html').to_return(headers: { 'Content-Type' => 'text/html' }, body: html)
-    stub_request(:get, 'http://example.com/html_sub').to_return(headers: { 'Content-Type' => 'text/html' }, body: html)
     stub_request(:get, 'http://example.com/not-found').to_return(status: 404, headers: { 'Content-Type' => 'text/html' }, body: html)
     stub_request(:get, 'http://example.com/text').to_return(status: 404, headers: { 'Content-Type' => 'text/plain' }, body: 'Hello')
     stub_request(:get, 'http://example.com/redirect').to_return(status: 302, headers: { 'Location' => 'http://example.com/html' })
@@ -31,7 +29,7 @@ RSpec.describe FetchLinkCardService do
 
     Rails.cache.write('oembed_endpoint:example.com', oembed_cache) if oembed_cache
 
-    subject.call(status) unless custom_before
+    subject.call(status)
   end
 
   context 'with a local status' do
@@ -236,74 +234,11 @@ RSpec.describe FetchLinkCardService do
         end
       end
     end
-
-    context 'with URI of reference and normal page' do
-      let(:status) { Fabricate(:status, text: 'RT http://example.com/text http://example.com/html') }
-      let(:custom_before) { true }
-
-      before { Fabricate(:status, uri: 'http://example.com/text') }
-
-      it 'creates preview card' do
-        subject.call(status)
-        expect(status.preview_card).to_not be_nil
-        expect(status.preview_card.url).to eq 'http://example.com/html'
-        expect(status.preview_card.title).to eq 'Hello world'
-      end
-    end
-
-    context 'with URI of reference' do
-      let(:status) { Fabricate(:status, text: 'RT http://example.com/text') }
-      let(:custom_before) { true }
-
-      before { Fabricate(:status, uri: 'http://example.com/text') }
-
-      it 'does not create preview card' do
-        subject.call(status)
-        expect(status.preview_card).to be_nil
-      end
-    end
-
-    context 'with URL of reference' do
-      let(:status) { Fabricate(:status, text: 'RT http://example.com/text') }
-      let(:custom_before) { true }
-
-      before { Fabricate(:status, uri: 'http://example.com/text/activity', url: 'http://example.com/text') }
-
-      it 'does not create preview card' do
-        subject.call(status)
-        expect(status.preview_card).to be_nil
-      end
-    end
-
-    context 'with reference normal URL' do
-      let(:status) { Fabricate(:status, text: 'RT http://example.com/html') }
-
-      it 'creates preview card' do
-        expect(status.preview_card).to_not be_nil
-        expect(status.preview_card.url).to eq 'http://example.com/html'
-        expect(status.preview_card.title).to eq 'Hello world'
-      end
-    end
-
-    context 'when URL domain is blocked by admin' do
-      let(:status) { Fabricate(:status, text: 'http://example.com/html') }
-      let(:custom_before) { true }
-
-      before do
-        Setting.stop_link_preview_domains = ['example.com']
-      end
-
-      it 'creates preview card' do
-        subject.call(status)
-        expect(status.preview_card).to be_nil
-      end
-    end
   end
 
   context 'with a remote status' do
-    let(:account) { Fabricate(:account, domain: 'example.com') }
     let(:status) do
-      Fabricate(:status, account: account, text: <<-TEXT)
+      Fabricate(:status, account: Fabricate(:account, domain: 'example.com'), text: <<-TEXT)
       Habt ihr ein paar gute Links zu <a>foo</a>
       #<span class="tag"><a href="https://quitter.se/tag/wannacry" target="_blank" rel="tag noopener noreferrer" title="https://quitter.se/tag/wannacry">Wannacry</a></span> herumfliegen?
       Ich will mal unter <br> <a href="http://example.com/not-found" target="_blank" rel="noopener noreferrer" title="http://example.com/not-found">http://example.com/not-found</a> was sammeln. !
@@ -317,41 +252,6 @@ RSpec.describe FetchLinkCardService do
 
     it 'ignores URLs to hashtags' do
       expect(a_request(:get, 'https://quitter.se/tag/wannacry')).to_not have_been_made
-    end
-  end
-
-  context 'with a remote status of reference' do
-    let(:status) do
-      Fabricate(:status, account: Fabricate(:account, domain: 'example.com'), text: <<-TEXT)
-      RT <a href="http://example.com/html" target="_blank" rel="noopener noreferrer" title="http://example.com/html">Hello</a>&nbsp;
-      TEXT
-    end
-    let(:custom_before) { true }
-
-    before { Fabricate(:status, uri: 'http://example.com/html') }
-
-    it 'creates preview card' do
-      subject.call(status)
-      expect(status.preview_card).to be_nil
-    end
-  end
-
-  context 'with a remote status of reference and normal link' do
-    let(:status) do
-      Fabricate(:status, account: Fabricate(:account, domain: 'example.com'), text: <<-TEXT)
-      RT <a href="http://example.com/html" target="_blank" rel="noopener noreferrer" title="http://example.com/html">Hello</a>&nbsp;
-      <a href="http://example.com/html_sub" target="_blank" rel="noopener noreferrer" title="http://example.com/html_sub">Hello</a>&nbsp;
-      TEXT
-    end
-    let(:custom_before) { true }
-
-    before { Fabricate(:status, uri: 'http://example.com/html') }
-
-    it 'creates preview card' do
-      subject.call(status)
-      expect(status.preview_card).to_not be_nil
-      expect(status.preview_card.url).to eq 'http://example.com/html_sub'
-      expect(status.preview_card.title).to eq 'Hello world'
     end
   end
 end

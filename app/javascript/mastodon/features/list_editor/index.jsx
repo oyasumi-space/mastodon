@@ -1,5 +1,3 @@
-// Kmyblue tracking marker: copied antenna_editor, circle_editor, bookmark_category_statuses
-
 import PropTypes from 'prop-types';
 
 import { injectIntl } from 'react-intl';

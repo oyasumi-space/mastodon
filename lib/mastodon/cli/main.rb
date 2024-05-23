@@ -13,7 +13,6 @@ require_relative 'feeds'
 require_relative 'ip_blocks'
 require_relative 'maintenance'
 require_relative 'media'
-require_relative 'ohagi'
 require_relative 'preview_cards'
 require_relative 'search'
 require_relative 'settings'
@@ -66,9 +65,6 @@ module Mastodon::CLI
 
     desc 'maintenance SUBCOMMAND ...ARGS', 'Various maintenance utilities'
     subcommand 'maintenance', Maintenance
-
-    desc 'ohagi SUBCOMMAND ...ARGS', 'Ohagis'
-    subcommand 'ohagi', Ohagi
 
     include Federation
 

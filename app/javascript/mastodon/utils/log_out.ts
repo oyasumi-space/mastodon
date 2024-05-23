@@ -1,3 +1,5 @@
+import Rails from '@rails/ujs';
+
 export const logOut = () => {
   const form = document.createElement('form');
 
@@ -7,18 +9,13 @@ export const logOut = () => {
   methodInput.setAttribute('type', 'hidden');
   form.appendChild(methodInput);
 
-  const csrfToken = document.querySelector<HTMLMetaElement>(
-    'meta[name=csrf-token]',
-  );
-
-  const csrfParam = document.querySelector<HTMLMetaElement>(
-    'meta[name=csrf-param]',
-  );
+  const csrfToken = Rails.csrfToken();
+  const csrfParam = Rails.csrfParam();
 
   if (csrfParam && csrfToken) {
     const csrfInput = document.createElement('input');
-    csrfInput.setAttribute('name', csrfParam.content);
-    csrfInput.setAttribute('value', csrfToken.content);
+    csrfInput.setAttribute('name', csrfParam);
+    csrfInput.setAttribute('value', csrfToken);
     csrfInput.setAttribute('type', 'hidden');
     form.appendChild(csrfInput);
   }

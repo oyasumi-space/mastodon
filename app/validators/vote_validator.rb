@@ -35,7 +35,7 @@ class VoteValidator < ActiveModel::Validator
     if vote.persisted?
       account_votes_on_same_poll(vote).where(choice: vote.choice).where.not(poll_votes: { id: vote }).exists?
     else
-      account_votes_on_same_poll(vote).exists?(choice: vote.choice)
+      account_votes_on_same_poll(vote).where(choice: vote.choice).exists?
     end
   end
 

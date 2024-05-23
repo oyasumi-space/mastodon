@@ -16,8 +16,6 @@
 #
 
 class SessionActivation < ApplicationRecord
-  include BrowserDetection
-
   belongs_to :user, inverse_of: :session_activations
   belongs_to :access_token, class_name: 'Doorkeeper::AccessToken', dependent: :destroy, optional: true
   belongs_to :web_push_subscription, class_name: 'Web::PushSubscription', dependent: :destroy, optional: true
@@ -26,11 +24,24 @@ class SessionActivation < ApplicationRecord
            to: :access_token,
            allow_nil: true
 
+  def detection
+    @detection ||= Browser.new(user_agent)
+  end
+
+  def browser
+    detection.id
+  end
+
+  def platform
+    detection.platform.id
+  end
+
+  before_save   :assign_user_agent
   before_create :assign_access_token
 
   class << self
     def active?(id)
-      id && exists?(session_id: id)
+      id && where(session_id: id).exists?
     end
 
     def activate(**options)
@@ -55,6 +66,10 @@ class SessionActivation < ApplicationRecord
   end
 
   private
+
+  def assign_user_agent
+    self.user_agent = '' if user_agent.nil?
+  end
 
   def assign_access_token
     self.access_token = Doorkeeper::AccessToken.create!(access_token_attributes)

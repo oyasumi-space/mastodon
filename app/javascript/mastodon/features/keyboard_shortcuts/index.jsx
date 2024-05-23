@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet';
 
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import InfoIcon from '@/material-icons/400-24px/info.svg?react';
+import InfoIcon from 'mastodon/../material-icons/400-24px/info.svg?react';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 
@@ -107,7 +107,7 @@ class KeyboardShortcuts extends ImmutablePureComponent {
                 <td><FormattedMessage id='keyboard_shortcuts.back' defaultMessage='to navigate back' /></td>
               </tr>
               <tr>
-                <td><kbd>s</kbd>, <kbd>/</kbd></td>
+                <td><kbd>s</kbd></td>
                 <td><FormattedMessage id='keyboard_shortcuts.search' defaultMessage='to focus search' /></td>
               </tr>
               <tr>
@@ -141,10 +141,6 @@ class KeyboardShortcuts extends ImmutablePureComponent {
               <tr>
                 <td><kbd>g</kbd>+<kbd>f</kbd></td>
                 <td><FormattedMessage id='keyboard_shortcuts.favourites' defaultMessage='to open favorites list' /></td>
-              </tr>
-              <tr>
-                <td><kbd>g</kbd>+<kbd>e</kbd></td>
-                <td><FormattedMessage id='keyboard_shortcuts.emoji_reactions' defaultMessage='to open stamps list' /></td>
               </tr>
               <tr>
                 <td><kbd>g</kbd>+<kbd>p</kbd></td>

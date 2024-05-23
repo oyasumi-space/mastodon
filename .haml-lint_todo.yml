@@ -10,27 +10,4 @@ linters:
   # Offense count: 1
   LineLength:
     exclude:
-      - 'app/views/admin/ng_rules/_ng_rule_fields.html.haml'
       - 'app/views/admin/roles/_form.html.haml'
-
-  # Offense count: 9
-  RuboCop:
-    exclude:
-      - 'app/views/home/index.html.haml'
-
-  ViewLength:
-    exclude:
-      - 'app/views/admin/accounts/index.html.haml'
-      - 'app/views/admin/instances/show.html.haml'
-      - 'app/views/admin/ng_rules/_ng_rule_fields.html.haml'
-      - 'app/views/admin/settings/discovery/show.html.haml'
-      - 'app/views/settings/preferences/appearance/show.html.haml'
-      - 'app/views/settings/preferences/other/show.html.haml'
-
-  InstanceVariables:
-    exclude:
-      - 'app/views/application/_sidebar.html.haml'
-      - 'app/views/admin/ng_rules/_ng_rule_fields.html.haml'
-      - 'app/views/admin/ng_words/keywords/_ng_word.html.haml'
-      - 'app/views/admin/ng_words/white_list/_specified_domain.html.haml'
-      - 'app/views/admin/sensitive_words/_sensitive_word.html.haml'

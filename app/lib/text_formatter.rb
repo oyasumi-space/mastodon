@@ -11,7 +11,6 @@ class TextFormatter
 
   DEFAULT_OPTIONS = {
     multiline: true,
-    markdown: false,
   }.freeze
 
   attr_reader :text, :options
@@ -44,18 +43,13 @@ class TextFormatter
       end
     end
 
-    # line first letter for blockquote
-    html = markdownify(html.gsub(/^&gt;/, '>')) if markdown?
-
-    html = simple_format(html, {}, sanitize: false).delete("\n") if !markdown? && multiline?
-    html = html.delete("\n")
+    html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
 
     html.html_safe # rubocop:disable Rails/OutputSafety
   end
 
   class << self
     include ERB::Util
-    include ActionView::Helpers::TagHelper
 
     def shortened_link(url, rel_me: false)
       url = Addressable::URI.parse(url).to_s
@@ -66,11 +60,9 @@ class TextFormatter
       suffix      = url[prefix.length + 30..]
       cutoff      = url[prefix.length..].length > 30
 
-      tag.a href: url, target: '_blank', rel: rel.join(' '), translate: 'no' do
-        tag.span(prefix, class: 'invisible') +
-          tag.span(display_url, class: (cutoff ? 'ellipsis' : '')) +
-          tag.span(suffix, class: 'invisible')
-      end
+      <<~HTML.squish.html_safe # rubocop:disable Rails/OutputSafety
+        <a href="#{h(url)}" target="_blank" rel="#{rel.join(' ')}" translate="no"><span class="invisible">#{h(prefix)}</span><span class="#{cutoff ? 'ellipsis' : ''}">#{h(display_url)}</span><span class="invisible">#{h(suffix)}</span></a>
+      HTML
     rescue Addressable::URI::InvalidURIError, IDN::Idna::IdnaError
       h(url)
     end
@@ -164,65 +156,11 @@ class TextFormatter
     options[:with_rel_me]
   end
 
-  def markdown?
-    options[:markdown]
-  end
-
   def preloaded_accounts
     options[:preloaded_accounts]
   end
 
   def preloaded_accounts?
     preloaded_accounts.present?
-  end
-
-  def markdownify(html)
-    # not need filter_html because escape is already done
-    @htmlobj ||= MyMarkdownHTML.new(
-      filter_html: false,
-      hard_wrap: true
-    )
-    @markdown ||= Redcarpet::Markdown.new(@htmlobj,
-                                          autolink: false,
-                                          tables: false,
-                                          disable_indented_code_blocks: false,
-                                          fenced_code_blocks: true,
-                                          strikethrough: true,
-                                          superscript: true,
-                                          underline: true,
-                                          highlight: false)
-    @markdown.render(html)
-  end
-
-  class MyMarkdownHTML < Redcarpet::Render::HTML
-    def link(_link, _title, _content)
-      nil
-    end
-
-    def block_code(code, _language)
-      "<pre>#{process_program_code(code)}</pre>"
-    end
-
-    def codespan(code)
-      "<code>#{process_program_code(code)}</code>"
-    end
-
-    def header(text, _header_level)
-      "<p>#{text}</p>"
-    end
-
-    def underline(text)
-      text.include?(':') ? nil : "<u>#{text}</u>"
-    end
-
-    def image(_link, _title, _alt_text)
-      nil
-    end
-
-    private
-
-    def process_program_code(code)
-      code.gsub("\n", '<br>')
-    end
   end
 end

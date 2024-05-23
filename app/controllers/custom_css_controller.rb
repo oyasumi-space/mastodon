@@ -16,6 +16,6 @@ class CustomCssController < ActionController::Base # rubocop:disable Rails/Appli
   helper_method :custom_css_styles
 
   def set_user_roles
-    @user_roles = UserRole.providing_styles
+    @user_roles = UserRole.where(highlighted: true).where.not(color: [nil, ''])
   end
 end

@@ -82,7 +82,7 @@ class ReportService < BaseService
     # If the account making reports is remote, it is likely anonymized so we have to relax the requirements for attaching statuses.
     domain = @source_account.domain.to_s.downcase
     has_followers = @target_account.followers.where(Account.arel_table[:domain].lower.eq(domain)).exists?
-    visibility = has_followers ? %i(public unlisted public_unlisted login private) : %i(public unlisted public_unlisted)
+    visibility = has_followers ? %i(public unlisted private) : %i(public unlisted)
     scope = @target_account.statuses.with_discarded
     scope.merge!(scope.where(visibility: visibility).or(scope.where('EXISTS (SELECT 1 FROM mentions m JOIN accounts a ON m.account_id = a.id WHERE lower(a.domain) = ?)', domain)))
     # Allow missing posts to not drop reports that include e.g. a deleted post

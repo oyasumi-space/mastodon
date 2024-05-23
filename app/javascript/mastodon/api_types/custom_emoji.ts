@@ -5,9 +5,4 @@ export interface ApiCustomEmojiJSON {
   url: string;
   category?: string;
   visible_in_picker: boolean;
-  width?: number;
-  height?: number;
-  sensitive?: boolean;
-  aliases?: string[];
-  license?: string;
 }

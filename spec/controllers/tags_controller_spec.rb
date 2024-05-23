@@ -20,7 +20,13 @@ RSpec.describe TagsController do
           expect(response).to have_http_status(200)
         end
 
-        it_behaves_like 'cacheable response', expects_vary: 'Accept, Accept-Language, Cookie'
+        it 'returns Vary header' do
+          expect(response.headers['Vary']).to eq 'Accept, Accept-Language, Cookie'
+        end
+
+        it 'returns public Cache-Control header' do
+          expect(response.headers['Cache-Control']).to include 'public'
+        end
       end
 
       context 'when requested as JSON' do
@@ -30,7 +36,13 @@ RSpec.describe TagsController do
           expect(response).to have_http_status(200)
         end
 
-        it_behaves_like 'cacheable response', expects_vary: 'Accept, Accept-Language, Cookie'
+        it 'returns Vary header' do
+          expect(response.headers['Vary']).to eq 'Accept, Accept-Language, Cookie'
+        end
+
+        it 'returns public Cache-Control header' do
+          expect(response.headers['Cache-Control']).to include 'public'
+        end
       end
     end
 

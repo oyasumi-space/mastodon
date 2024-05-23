@@ -64,7 +64,8 @@ describe Mastodon::CLI::Cache do
 
       it 'Exits with an error message' do
         expect { subject }
-          .to raise_error(Thor::Error, /Unknown/)
+          .to output_results('Unknown')
+          .and raise_error(SystemExit)
       end
     end
   end

@@ -24,7 +24,7 @@ RSpec.describe UserSettings do
 
     context 'when setting was not defined' do
       it 'raises error' do
-        expect { subject[:foo] }.to raise_error described_class::KeyError
+        expect { subject[:foo] }.to raise_error UserSettings::KeyError
       end
     end
   end
@@ -93,7 +93,7 @@ RSpec.describe UserSettings do
   describe '.definition_for' do
     context 'when key is defined' do
       it 'returns a setting' do
-        expect(described_class.definition_for(:always_send_emails)).to be_a described_class::Setting
+        expect(described_class.definition_for(:always_send_emails)).to be_a UserSettings::Setting
       end
     end
 

@@ -20,7 +20,7 @@ import { Avatar } from 'mastodon/components/avatar';
 import { Button } from 'mastodon/components/button';
 import { DisplayName } from 'mastodon/components/display_name';
 import { ShortNumber } from 'mastodon/components/short_number';
-import { autoPlayGif, me } from 'mastodon/initial_state';
+import { autoPlayGif, me, unfollowModal } from 'mastodon/initial_state';
 import { makeGetAccount } from 'mastodon/selectors';
 
 const messages = defineMessages({
@@ -48,30 +48,38 @@ const makeMapStateToProps = () => {
 const mapDispatchToProps = (dispatch, { intl }) => ({
   onFollow(account) {
     if (account.getIn(['relationship', 'following'])) {
-      dispatch(
-        openModal({
+      if (unfollowModal) {
+        dispatch(
+          openModal({
+            modalType: 'CONFIRM',
+            modalProps: {
+              message: (
+                <FormattedMessage
+                  id='confirmations.unfollow.message'
+                  defaultMessage='Are you sure you want to unfollow {name}?'
+                  values={{ name: <strong>@{account.get('acct')}</strong> }}
+                />
+              ),
+              confirm: intl.formatMessage(messages.unfollowConfirm),
+              onConfirm: () => dispatch(unfollowAccount(account.get('id'))),
+            } }),
+        );
+      } else {
+        dispatch(unfollowAccount(account.get('id')));
+      }
+    } else if (account.getIn(['relationship', 'requested'])) {
+      if (unfollowModal) {
+        dispatch(openModal({
           modalType: 'CONFIRM',
           modalProps: {
-            message: (
-              <FormattedMessage
-                id='confirmations.unfollow.message'
-                defaultMessage='Are you sure you want to unfollow {name}?'
-                values={{ name: <strong>@{account.get('acct')}</strong> }}
-              />
-            ),
-            confirm: intl.formatMessage(messages.unfollowConfirm),
+            message: <FormattedMessage id='confirmations.cancel_follow_request.message' defaultMessage='Are you sure you want to withdraw your request to follow {name}?' values={{ name: <strong>@{account.get('acct')}</strong> }} />,
+            confirm: intl.formatMessage(messages.cancelFollowRequestConfirm),
             onConfirm: () => dispatch(unfollowAccount(account.get('id'))),
-          } }),
-      );
-    } else if (account.getIn(['relationship', 'requested'])) {
-      dispatch(openModal({
-        modalType: 'CONFIRM',
-        modalProps: {
-          message: <FormattedMessage id='confirmations.cancel_follow_request.message' defaultMessage='Are you sure you want to withdraw your request to follow {name}?' values={{ name: <strong>@{account.get('acct')}</strong> }} />,
-          confirm: intl.formatMessage(messages.cancelFollowRequestConfirm),
-          onConfirm: () => dispatch(unfollowAccount(account.get('id'))),
-        },
-      }));
+          },
+        }));
+      } else {
+        dispatch(unfollowAccount(account.get('id')));
+      }
     } else {
       dispatch(followAccount(account.get('id')));
     }
@@ -194,14 +202,14 @@ class AccountCard extends ImmutablePureComponent {
         <div className='account-card__actions'>
           <div className='account-card__counters'>
             <div className='account-card__counters__item'>
-              <ShortNumber value={account.get('statuses_count')} isHide={account.getIn(['other_settings', 'hide_statuses_count']) || false} />
+              <ShortNumber value={account.get('statuses_count')} />
               <small>
                 <FormattedMessage id='account.posts' defaultMessage='Posts' />
               </small>
             </div>
 
             <div className='account-card__counters__item'>
-              <ShortNumber value={account.get('followers_count')} isHide={account.getIn(['other_settings', 'hide_followers_count']) || false} />{' '}
+              <ShortNumber value={account.get('followers_count')} />{' '}
               <small>
                 <FormattedMessage
                   id='account.followers'
@@ -211,7 +219,7 @@ class AccountCard extends ImmutablePureComponent {
             </div>
 
             <div className='account-card__counters__item'>
-              <ShortNumber value={account.get('following_count')} isHide={account.getIn(['other_settings', 'hide_following_count']) || false} />{' '}
+              <ShortNumber value={account.get('following_count')} />{' '}
               <small>
                 <FormattedMessage
                   id='account.following'

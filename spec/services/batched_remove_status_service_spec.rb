@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe BatchedRemoveStatusService, :sidekiq_inline do
+RSpec.describe BatchedRemoveStatusService, :sidekiq_inline, type: :service do
   subject { described_class.new }
 
   let!(:alice)  { Fabricate(:account) }

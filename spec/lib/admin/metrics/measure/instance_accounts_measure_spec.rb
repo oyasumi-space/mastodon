@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 describe Admin::Metrics::Measure::InstanceAccountsMeasure do
-  subject { described_class.new(start_at, end_at, params) }
+  subject(:measure) { described_class.new(start_at, end_at, params) }
 
   let(:domain) { 'example.com' }
 
@@ -20,13 +20,12 @@ describe Admin::Metrics::Measure::InstanceAccountsMeasure do
     Fabricate(:account, domain: "foo.#{domain}", created_at: 1.year.ago)
     Fabricate(:account, domain: "foo.#{domain}")
     Fabricate(:account, domain: "bar.#{domain}")
-    Fabricate(:account, domain: 'other-host.example')
   end
 
-  describe '#total' do
+  describe 'total' do
     context 'without include_subdomains' do
       it 'returns the expected number of accounts' do
-        expect(subject.total).to eq 3
+        expect(measure.total).to eq 3
       end
     end
 
@@ -34,21 +33,14 @@ describe Admin::Metrics::Measure::InstanceAccountsMeasure do
       let(:params) { ActionController::Parameters.new(domain: domain, include_subdomains: 'true') }
 
       it 'returns the expected number of accounts' do
-        expect(subject.total).to eq 6
+        expect(measure.total).to eq 6
       end
     end
   end
 
   describe '#data' do
-    it 'returns correct instance_accounts counts' do
-      expect(subject.data.size)
-        .to eq(3)
-      expect(subject.data.map(&:symbolize_keys))
-        .to contain_exactly(
-          include(date: 2.days.ago.midnight.to_time, value: '0'),
-          include(date: 1.day.ago.midnight.to_time, value: '0'),
-          include(date: 0.days.ago.midnight.to_time, value: '1')
-        )
+    it 'runs data query without error' do
+      expect { measure.data }.to_not raise_error
     end
   end
 end

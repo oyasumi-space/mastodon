@@ -35,14 +35,6 @@ class AdminMailer < ApplicationMailer
     end
   end
 
-  def new_pending_friend_server(friend_server)
-    @friend = friend_server
-
-    locale_for_account(@me) do
-      mail subject: default_i18n_subject(instance: @instance, domain: @friend.domain)
-    end
-  end
-
   def new_trends(links, tags, statuses)
     @links                  = links
     @tags                   = tags
@@ -54,26 +46,16 @@ class AdminMailer < ApplicationMailer
   end
 
   def new_software_updates
-    @software_updates = SoftwareUpdate.all.to_a.sort_by(&:gem_version)
-
     locale_for_account(@me) do
       mail subject: default_i18n_subject(instance: @instance)
     end
   end
 
   def new_critical_software_updates
-    @software_updates = SoftwareUpdate.where(urgent: true).to_a.sort_by(&:gem_version)
-
     headers['Priority'] = 'urgent'
     headers['X-Priority'] = '1'
     headers['Importance'] = 'high'
 
-    locale_for_account(@me) do
-      mail subject: default_i18n_subject(instance: @instance)
-    end
-  end
-
-  def auto_close_registrations
     locale_for_account(@me) do
       mail subject: default_i18n_subject(instance: @instance)
     end

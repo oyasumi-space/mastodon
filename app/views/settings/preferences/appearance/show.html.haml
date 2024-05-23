@@ -44,7 +44,6 @@
                  hint: false,
                  label: I18n.t('simple_form.labels.defaults.setting_advanced_layout'),
                  wrapper: :with_label
-
     %h4= t 'appearance.animations_and_accessibility'
 
     .fields-group
@@ -59,60 +58,15 @@
       = ff.input :'web.disable_swiping', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_disable_swiping')
       = ff.input :'web.use_system_font', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_system_font_ui')
 
-    %h4= t 'appearance.custom_emoji_and_emoji_reactions'
-
-    .fields-group
-      = ff.input :'web.hide_recent_emojis', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_recent_emojis'), hint: false
-      - if Setting.enable_emoji_reaction
-        = ff.input :'web.enable_emoji_reaction', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_enable_emoji_reaction'), hint: I18n.t('simple_form.hints.defaults.setting_enable_emoji_reaction')
-        = ff.input :'web.show_emoji_reaction_on_timeline', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_emoji_reaction_on_timeline')
-        = ff.input :'web.show_emoji_reaction_count', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_emoji_reaction_count')
-
-    %h4= t 'appearance.remote_server_features'
-
-    .fields-group
-      - if Setting.enable_emoji_reaction
-        = ff.input :'web.hide_emoji_reaction_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_emoji_reaction_unavailable_server')
-      = ff.input :'web.hide_quote_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_quote_unavailable_server')
-      = ff.input :'web.hide_status_reference_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_status_reference_unavailable_server')
-
-    %h4= t 'appearance.saved_posts'
-
-    .fields-group
-      = ff.input :'web.bookmark_category_needed', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_bookmark_category_needed'), hint: I18n.t('simple_form.hints.defaults.setting_bookmark_category_needed')
-      = ff.input :'web.show_favourite_menu', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_favourite_menu')
-
-    %h4= t 'appearance.quotes'
-
-    .fields-group
-      = ff.input :'web.show_quote_in_home', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_quote_in_home'), hint: false
-      = ff.input :'web.show_quote_in_public', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_quote_in_public'), hint: false
-      = ff.input :'web.show_blocking_quote', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_blocking_quote'), hint: false
-
-    %h4= t 'appearance.status_action_bar'
-
-    .fields-group
-      = ff.input :'web.simple_timeline_menu', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_simple_timeline_menu')
-      = ff.input :'web.boost_menu', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_boost_menu')
-
     %h4= t 'appearance.discovery'
 
     .fields-group
       = ff.input :'web.trends', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_trends')
-      = ff.input :'web.show_relationships', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_relationships')
-
-    %h4= t 'appearance.media'
-
-    .fields-group
-      = ff.input :'web.display_media_expand',
-                 kmyblue: true,
-                 hint: I18n.t('simple_form.hints.defaults.setting_display_media_expand'),
-                 label: I18n.t('simple_form.labels.defaults.setting_display_media_expand'),
-                 wrapper: :with_label
 
     %h4= t 'appearance.confirmation_dialogs'
 
     .fields-group
+      = ff.input :'web.unfollow_modal', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_unfollow_modal')
       = ff.input :'web.reblog_modal', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_boost_modal')
       = ff.input :'web.delete_modal', wrapper: :with_label, label: I18n.t('simple_form.labels.defaults.setting_delete_modal')
 

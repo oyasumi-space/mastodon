@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::FetchRemoteKeyService do
+RSpec.describe ActivityPub::FetchRemoteKeyService, type: :service do
   subject { described_class.new }
 
   let(:webfinger) { { subject: 'acct:alice@example.com', links: [{ rel: 'self', href: 'https://example.com/alice' }] } }
@@ -50,17 +50,16 @@ RSpec.describe ActivityPub::FetchRemoteKeyService do
   end
 
   before do
-    stub_request(:get, 'https://example.com/alice').to_return(body: Oj.dump(actor), headers: { 'Content-Type': 'application/activity+json' })
+    stub_request(:get, 'https://example.com/alice').to_return(body: Oj.dump(actor))
     stub_request(:get, 'https://example.com/.well-known/webfinger?resource=acct:alice@example.com').to_return(body: Oj.dump(webfinger), headers: { 'Content-Type': 'application/jrd+json' })
-    stub_request(:get, 'https://example.com/.well-known/nodeinfo').to_return(body: '{}')
   end
 
   describe '#call' do
-    let(:account) { subject.call(public_key_id) }
+    let(:account) { subject.call(public_key_id, id: false) }
 
     context 'when the key is a sub-object from the actor' do
       before do
-        stub_request(:get, public_key_id).to_return(body: Oj.dump(actor), headers: { 'Content-Type': 'application/activity+json' })
+        stub_request(:get, public_key_id).to_return(body: Oj.dump(actor))
       end
 
       it 'returns the expected account' do
@@ -72,7 +71,7 @@ RSpec.describe ActivityPub::FetchRemoteKeyService do
       let(:public_key_id) { 'https://example.com/alice-public-key.json' }
 
       before do
-        stub_request(:get, public_key_id).to_return(body: Oj.dump(key_json.merge({ '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'] })), headers: { 'Content-Type': 'application/activity+json' })
+        stub_request(:get, public_key_id).to_return(body: Oj.dump(key_json.merge({ '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'] })))
       end
 
       it 'returns the expected account' do
@@ -85,7 +84,7 @@ RSpec.describe ActivityPub::FetchRemoteKeyService do
       let(:actor_public_key) { 'https://example.com/alice-public-key.json' }
 
       before do
-        stub_request(:get, public_key_id).to_return(body: Oj.dump(key_json.merge({ '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'] })), headers: { 'Content-Type': 'application/activity+json' })
+        stub_request(:get, public_key_id).to_return(body: Oj.dump(key_json.merge({ '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'] })))
       end
 
       it 'returns the nil' do

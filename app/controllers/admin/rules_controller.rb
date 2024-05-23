@@ -53,7 +53,7 @@ module Admin
     end
 
     def resource_params
-      params.require(:rule).permit(:text, :hint, :priority)
+      params.require(:rule).permit(:text, :priority)
     end
   end
 end

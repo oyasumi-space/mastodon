@@ -1,19 +1,17 @@
 import PropTypes from 'prop-types';
-import { useCallback } from 'react';
 
-import { defineMessages, useIntl, FormattedMessage } from 'react-intl';
+import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import ImmutablePureComponent from 'react-immutable-pure-component';
 
-import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
 import { EmptyAccount } from 'mastodon/components/empty_account';
 import { ShortNumber } from 'mastodon/components/short_number';
 import { VerifiedBadge } from 'mastodon/components/verified_badge';
 
-import DropdownMenuContainer from '../containers/dropdown_menu_container';
 import { me } from '../initial_state';
 
 import { Avatar } from './avatar';
@@ -32,162 +30,151 @@ const messages = defineMessages({
   unmute_notifications: { id: 'account.unmute_notifications_short', defaultMessage: 'Unmute notifications' },
   mute: { id: 'account.mute_short', defaultMessage: 'Mute' },
   block: { id: 'account.block_short', defaultMessage: 'Block' },
-  more: { id: 'status.more', defaultMessage: 'More' },
 });
 
-const Account = ({ size = 46, account, onFollow, onBlock, onMute, onMuteNotifications, hidden, hideButtons, minimal, defaultAction, children, withBio }) => {
-  const intl = useIntl();
+class Account extends ImmutablePureComponent {
 
-  const handleFollow = useCallback(() => {
-    onFollow(account);
-  }, [onFollow, account]);
+  static propTypes = {
+    size: PropTypes.number,
+    account: ImmutablePropTypes.record,
+    onFollow: PropTypes.func.isRequired,
+    onBlock: PropTypes.func.isRequired,
+    onMute: PropTypes.func.isRequired,
+    onMuteNotifications: PropTypes.func.isRequired,
+    intl: PropTypes.object.isRequired,
+    hidden: PropTypes.bool,
+    minimal: PropTypes.bool,
+    defaultAction: PropTypes.string,
+    withBio: PropTypes.bool,
+  };
 
-  const handleBlock = useCallback(() => {
-    onBlock(account);
-  }, [onBlock, account]);
+  static defaultProps = {
+    size: 46,
+  };
 
-  const handleMute = useCallback(() => {
-    onMute(account);
-  }, [onMute, account]);
+  handleFollow = () => {
+    this.props.onFollow(this.props.account);
+  };
 
-  const handleMuteNotifications = useCallback(() => {
-    onMuteNotifications(account, true);
-  }, [onMuteNotifications, account]);
+  handleBlock = () => {
+    this.props.onBlock(this.props.account);
+  };
 
-  const handleUnmuteNotifications = useCallback(() => {
-    onMuteNotifications(account, false);
-  }, [onMuteNotifications, account]);
+  handleMute = () => {
+    this.props.onMute(this.props.account);
+  };
 
-  if (!account) {
-    return <EmptyAccount size={size} minimal={minimal} />;
-  }
+  handleMuteNotifications = () => {
+    this.props.onMuteNotifications(this.props.account, true);
+  };
 
-  if (hidden) {
-    return (
-      <>
-        {account.get('display_name')}
-        {account.get('username')}
-      </>
-    );
-  }
+  handleUnmuteNotifications = () => {
+    this.props.onMuteNotifications(this.props.account, false);
+  };
 
-  let buttons;
+  render () {
+    const { account, intl, hidden, withBio, defaultAction, size, minimal } = this.props;
 
-  if (!hideButtons && account.get('id') !== me && account.get('relationship', null) !== null) {
-    const following = account.getIn(['relationship', 'following']);
-    const requested = account.getIn(['relationship', 'requested']);
-    const blocking  = account.getIn(['relationship', 'blocking']);
-    const muting  = account.getIn(['relationship', 'muting']);
+    if (!account) {
+      return <EmptyAccount size={size} minimal={minimal} />;
+    }
 
-    if (requested) {
-      buttons = <Button text={intl.formatMessage(messages.cancel_follow_request)} onClick={handleFollow} />;
-    } else if (blocking) {
-      buttons = <Button text={intl.formatMessage(messages.unblock)} onClick={handleBlock} />;
-    } else if (muting) {
-      let menu;
-
-      if (account.getIn(['relationship', 'muting_notifications'])) {
-        menu = [{ text: intl.formatMessage(messages.unmute_notifications), action: handleUnmuteNotifications }];
-      } else {
-        menu = [{ text: intl.formatMessage(messages.mute_notifications), action: handleMuteNotifications }];
-      }
-
-      buttons = (
+    if (hidden) {
+      return (
         <>
-          <DropdownMenuContainer
-            items={menu}
-            icon='ellipsis-h'
-            iconComponent={MoreHorizIcon}
-            direction='right'
-            title={intl.formatMessage(messages.more)}
-          />
-
-          <Button text={intl.formatMessage(messages.unmute)} onClick={handleMute} />
+          {account.get('display_name')}
+          {account.get('username')}
         </>
       );
-    } else if (defaultAction === 'mute') {
-      buttons = <Button title={intl.formatMessage(messages.mute)} onClick={handleMute} />;
-    } else if (defaultAction === 'block') {
-      buttons = <Button text={intl.formatMessage(messages.block)} onClick={handleBlock} />;
-    } else if (!account.get('suspended') && !account.get('moved') || following) {
-      buttons = <Button text={intl.formatMessage(following ? messages.unfollow : messages.follow)} onClick={handleFollow} />;
     }
-  }
 
-  let muteTimeRemaining;
+    let buttons;
 
-  if (account.get('mute_expires_at')) {
-    muteTimeRemaining = <>· <RelativeTimestamp timestamp={account.get('mute_expires_at')} futureDate /></>;
-  }
+    if (account.get('id') !== me && account.get('relationship', null) !== null) {
+      const following = account.getIn(['relationship', 'following']);
+      const requested = account.getIn(['relationship', 'requested']);
+      const blocking  = account.getIn(['relationship', 'blocking']);
+      const muting  = account.getIn(['relationship', 'muting']);
 
-  let verification;
+      if (requested) {
+        buttons = <Button text={intl.formatMessage(messages.cancel_follow_request)} onClick={this.handleFollow} />;
+      } else if (blocking) {
+        buttons = <Button text={intl.formatMessage(messages.unblock)} onClick={this.handleBlock} />;
+      } else if (muting) {
+        let hidingNotificationsButton;
 
-  const firstVerifiedField = account.get('fields').find(item => !!item.get('verified_at'));
+        if (account.getIn(['relationship', 'muting_notifications'])) {
+          hidingNotificationsButton = <Button text={intl.formatMessage(messages.unmute_notifications)} onClick={this.handleUnmuteNotifications} />;
+        } else {
+          hidingNotificationsButton = <Button text={intl.formatMessage(messages.mute_notifications)} onClick={this.handleMuteNotifications} />;
+        }
 
-  if (firstVerifiedField) {
-    verification = <VerifiedBadge link={firstVerifiedField.get('value')} />;
-  }
+        buttons = (
+          <>
+            <Button text={intl.formatMessage(messages.unmute)} onClick={this.handleMute} />
+            {hidingNotificationsButton}
+          </>
+        );
+      } else if (defaultAction === 'mute') {
+        buttons = <Button title={intl.formatMessage(messages.mute)} onClick={this.handleMute} />;
+      } else if (defaultAction === 'block') {
+        buttons = <Button text={intl.formatMessage(messages.block)} onClick={this.handleBlock} />;
+      } else if (!account.get('suspended') && !account.get('moved') || following) {
+        buttons = <Button text={intl.formatMessage(following ? messages.unfollow : messages.follow)} onClick={this.handleFollow} />;
+      }
+    }
 
-  return (
-    <div className={classNames('account', { 'account--minimal': minimal })}>
-      <div className='account__wrapper'>
-        <Link key={account.get('id')} className='account__display-name' title={account.get('acct')} to={`/@${account.get('acct')}`}>
-          <div className='account__avatar-wrapper'>
-            <Avatar account={account} size={size} />
-          </div>
+    let muteTimeRemaining;
 
-          <div className='account__contents'>
-            <DisplayName account={account} />
-            {!minimal && (
-              <div className='account__details'>
-                <ShortNumber value={account.get('followers_count')} renderer={FollowersCounter} /> {verification} {muteTimeRemaining}
-              </div>
-            )}
-          </div>
-        </Link>
+    if (account.get('mute_expires_at')) {
+      muteTimeRemaining = <>· <RelativeTimestamp timestamp={account.get('mute_expires_at')} futureDate /></>;
+    }
 
-        {!minimal && children && (
-          <div>
-            <div>
-              {children}
+    let verification;
+
+    const firstVerifiedField = account.get('fields').find(item => !!item.get('verified_at'));
+
+    if (firstVerifiedField) {
+      verification = <VerifiedBadge link={firstVerifiedField.get('value')} />;
+    }
+
+    return (
+      <div className={classNames('account', { 'account--minimal': minimal })}>
+        <div className='account__wrapper'>
+          <Link key={account.get('id')} className='account__display-name' title={account.get('acct')} to={`/@${account.get('acct')}`}>
+            <div className='account__avatar-wrapper'>
+              <Avatar account={account} size={size} />
             </div>
+
+            <div className='account__contents'>
+              <DisplayName account={account} />
+              {!minimal && (
+                <div className='account__details'>
+                  <ShortNumber value={account.get('followers_count')} renderer={FollowersCounter} /> {verification} {muteTimeRemaining}
+                </div>
+              )}
+            </div>
+          </Link>
+
+          {!minimal && (
             <div className='account__relationship'>
               {buttons}
             </div>
-          </div>
-        )}
-        {!minimal && !children && (
-          <div className='account__relationship'>
-            {buttons}
-          </div>
-        )}
+          )}
+        </div>
+
+        {withBio && (account.get('note').length > 0 ? (
+          <div
+            className='account__note translate'
+            dangerouslySetInnerHTML={{ __html: account.get('note_emojified') }}
+          />
+        ) : (
+          <div className='account__note account__note--missing'><FormattedMessage id='account.no_bio' defaultMessage='No description provided.' /></div>
+        ))}
       </div>
+    );
+  }
 
-      {withBio && (account.get('note').length > 0 ? (
-        <div
-          className='account__note translate'
-          dangerouslySetInnerHTML={{ __html: account.get('note_emojified') }}
-        />
-      ) : (
-        <div className='account__note account__note--missing'><FormattedMessage id='account.no_bio' defaultMessage='No description provided.' /></div>
-      ))}
-    </div>
-  );
-};
+}
 
-Account.propTypes = {
-  size: PropTypes.number,
-  account: ImmutablePropTypes.record,
-  onFollow: PropTypes.func,
-  onBlock: PropTypes.func,
-  onMute: PropTypes.func,
-  onMuteNotifications: PropTypes.func,
-  hidden: PropTypes.bool,
-  hideButtons: PropTypes.bool,
-  minimal: PropTypes.bool,
-  defaultAction: PropTypes.string,
-  withBio: PropTypes.bool,
-  children: PropTypes.any,
-};
-
-export default Account;
+export default injectIntl(Account);

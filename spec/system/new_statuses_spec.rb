@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'NewStatuses', :js, :sidekiq_inline, :streaming do
+describe 'NewStatuses', :sidekiq_inline do
   include ProfileStories
 
   subject { page }
@@ -15,7 +15,6 @@ describe 'NewStatuses', :js, :sidekiq_inline, :streaming do
   before do
     as_a_logged_in_user
     visit root_path
-    page.driver.browser.manage.window.resize_to(1600, 1050)
   end
 
   it 'can be posted' do
@@ -25,7 +24,7 @@ describe 'NewStatuses', :js, :sidekiq_inline, :streaming do
 
     within('.compose-form') do
       fill_in "What's on your mind?", with: status_text
-      click_on 'Post'
+      click_on 'Publish!'
     end
 
     expect(subject).to have_css('.status__content__text', text: status_text)
@@ -38,7 +37,7 @@ describe 'NewStatuses', :js, :sidekiq_inline, :streaming do
 
     within('.compose-form') do
       fill_in "What's on your mind?", with: status_text
-      click_on 'Post'
+      click_on 'Publish!'
     end
 
     expect(subject).to have_css('.status__content__text', text: status_text)

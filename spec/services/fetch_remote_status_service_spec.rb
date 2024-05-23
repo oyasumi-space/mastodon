@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe FetchRemoteStatusService do
+RSpec.describe FetchRemoteStatusService, type: :service do
   let(:account) { Fabricate(:account, domain: 'example.org', uri: 'https://example.org/foo') }
   let(:prefetched_body) { nil }
 

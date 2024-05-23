@@ -304,8 +304,7 @@ a.table-action-link {
         margin-inline-end: 10px;
 
         .emojione {
-          min-width: 32px;
-          max-width: min(10em, 100%);
+          width: 32px;
           height: 32px;
         }
       }

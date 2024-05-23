@@ -1,6 +1,5 @@
 - content_for :header_tags do
-  %meta{ name: 'robots', content: 'noindex, noai, noimageai' }/
-  %meta{ name: 'CCBot', content: 'nofollow' }
+  %meta{ name: 'robots', content: 'noindex' }/
 
   = render 'accounts/og', account: @account, url: account_followers_url(@account, only_path: false)
 

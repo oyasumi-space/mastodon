@@ -6,8 +6,8 @@ module Settings
       skip_before_action :check_self_destruct!
       skip_before_action :require_functional!
 
-      before_action :redirect_invalid_otp, unless: -> { current_user.otp_enabled? }
-      before_action :redirect_invalid_webauthn, only: [:index, :destroy], unless: -> { current_user.webauthn_enabled? }
+      before_action :require_otp_enabled
+      before_action :require_webauthn_enabled, only: [:index, :destroy]
 
       def index; end
       def new; end
@@ -85,14 +85,18 @@ module Settings
 
       private
 
-      def redirect_invalid_otp
-        flash[:error] = t('webauthn_credentials.otp_required')
-        redirect_to settings_two_factor_authentication_methods_path
+      def require_otp_enabled
+        unless current_user.otp_enabled?
+          flash[:error] = t('webauthn_credentials.otp_required')
+          redirect_to settings_two_factor_authentication_methods_path
+        end
       end
 
-      def redirect_invalid_webauthn
-        flash[:error] = t('webauthn_credentials.not_enabled')
-        redirect_to settings_two_factor_authentication_methods_path
+      def require_webauthn_enabled
+        unless current_user.webauthn_enabled?
+          flash[:error] = t('webauthn_credentials.not_enabled')
+          redirect_to settings_two_factor_authentication_methods_path
+        end
       end
     end
   end

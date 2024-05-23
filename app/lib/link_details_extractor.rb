@@ -156,7 +156,7 @@ class LinkDetailsExtractor
   end
 
   def title
-    html_entities.decode(structured_data&.headline || opengraph_tag('og:title') || document.xpath('//title').map(&:content).first).strip
+    html_entities.decode(structured_data&.headline || opengraph_tag('og:title') || document.xpath('//title').map(&:content).first)
   end
 
   def description
@@ -282,6 +282,6 @@ class LinkDetailsExtractor
   end
 
   def html_entities
-    @html_entities ||= HTMLEntities.new(:expanded)
+    @html_entities ||= HTMLEntities.new
   end
 end

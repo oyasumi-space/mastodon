@@ -7,7 +7,7 @@ describe REST::SuggestionSerializer do
   let(:record) do
     AccountSuggestions::Suggestion.new(
       account: account,
-      sources: ['SuggestionSource']
+      source: 'SuggestionSource'
     )
   end
   let(:account) { Fabricate(:account) }

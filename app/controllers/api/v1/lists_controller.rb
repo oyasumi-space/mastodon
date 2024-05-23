@@ -31,9 +31,6 @@ class Api::V1::ListsController < Api::BaseController
   end
 
   def destroy
-    antenna = Antenna.find_by(list_id: @list.id)
-    antenna.update!(list_id: 0) if antenna.present?
-
     @list.destroy!
     render_empty
   end
@@ -45,6 +42,6 @@ class Api::V1::ListsController < Api::BaseController
   end
 
   def list_params
-    params.permit(:title, :replies_policy, :exclusive, :notify)
+    params.permit(:title, :replies_policy, :exclusive)
   end
 end

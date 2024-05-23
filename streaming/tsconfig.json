@@ -2,11 +2,11 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "noUnusedParameters": false,
     "tsBuildInfoFile": "../tmp/cache/streaming/tsconfig.tsbuildinfo",
     "paths": {}
   },
-  "include": ["./*.js", "./.eslintrc.cjs"]
+  "include": ["./*.js", "./.eslintrc.js"]
 }

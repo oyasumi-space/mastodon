@@ -13,7 +13,7 @@ import {
   unfocusApp,
 } from '../actions/app';
 import {
-  fetchMarkers,
+  MARKERS_FETCH_SUCCESS,
 } from '../actions/markers';
 import {
   notificationsUpdate,
@@ -48,17 +48,13 @@ const initialState = ImmutableMap({
   browserPermission: 'default',
 });
 
-export const notificationToMap = notification => ImmutableMap({
+const notificationToMap = notification => ImmutableMap({
   id: notification.id,
   type: notification.type,
   account: notification.account.id,
   created_at: notification.created_at,
-  emoji_reaction: ImmutableMap(notification.emoji_reaction),
   status: notification.status ? notification.status.id : null,
-  list: notification.list ? ImmutableMap(notification.list) : null,
   report: notification.report ? fromJS(notification.report) : null,
-  event: notification.event ? fromJS(notification.event) : null,
-  moderation_warning: notification.moderation_warning ? fromJS(notification.moderation_warning) : null,
 });
 
 const normalizeNotification = (state, notification, usePendingItems) => {
@@ -258,8 +254,8 @@ const recountUnread = (state, last_read_id) => {
 
 export default function notifications(state = initialState, action) {
   switch(action.type) {
-  case fetchMarkers.fulfilled.type:
-    return action.payload.markers.notifications ? recountUnread(state, action.payload.markers.notifications.last_read_id) : state;
+  case MARKERS_FETCH_SUCCESS:
+    return action.markers.notifications ? recountUnread(state, action.markers.notifications.last_read_id) : state;
   case NOTIFICATIONS_MOUNT:
     return updateMounted(state);
   case NOTIFICATIONS_UNMOUNT:

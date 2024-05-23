@@ -5,9 +5,6 @@ import {
   muteAccountSuccess,
 } from '../actions/accounts';
 import {
-  BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS,
-} from '../actions/bookmark_categories';
-import {
   BOOKMARKED_STATUSES_FETCH_REQUEST,
   BOOKMARKED_STATUSES_FETCH_SUCCESS,
   BOOKMARKED_STATUSES_FETCH_FAIL,
@@ -15,14 +12,6 @@ import {
   BOOKMARKED_STATUSES_EXPAND_SUCCESS,
   BOOKMARKED_STATUSES_EXPAND_FAIL,
 } from '../actions/bookmarks';
-import {
-  EMOJI_REACTED_STATUSES_FETCH_REQUEST,
-  EMOJI_REACTED_STATUSES_FETCH_SUCCESS,
-  EMOJI_REACTED_STATUSES_FETCH_FAIL,
-  EMOJI_REACTED_STATUSES_EXPAND_REQUEST,
-  EMOJI_REACTED_STATUSES_EXPAND_SUCCESS,
-  EMOJI_REACTED_STATUSES_EXPAND_FAIL,
-} from '../actions/emoji_reactions';
 import {
   FAVOURITED_STATUSES_FETCH_REQUEST,
   FAVOURITED_STATUSES_FETCH_SUCCESS,
@@ -34,8 +23,6 @@ import {
 import {
   FAVOURITE_SUCCESS,
   UNFAVOURITE_SUCCESS,
-  EMOJIREACT_SUCCESS,
-  UNEMOJIREACT_SUCCESS,
   BOOKMARK_SUCCESS,
   UNBOOKMARK_SUCCESS,
   PIN_SUCCESS,
@@ -57,11 +44,6 @@ import {
 
 const initialState = ImmutableMap({
   favourites: ImmutableMap({
-    next: null,
-    loaded: false,
-    items: ImmutableOrderedSet(),
-  }),
-  emoji_reactions: ImmutableMap({
     next: null,
     loaded: false,
     items: ImmutableOrderedSet(),
@@ -101,15 +83,11 @@ const appendToList = (state, listType, statuses, next) => {
 };
 
 const prependOneToList = (state, listType, status) => {
-  return prependOneToListById(state, listType, status.get('id'));
-};
-
-const prependOneToListById = (state, listType, statusId) => {
   return state.updateIn([listType, 'items'], (list) => {
-    if (list.includes(statusId)) {
+    if (list.includes(status.get('id'))) {
       return list;
     } else {
-      return ImmutableOrderedSet([statusId]).union(list);
+      return ImmutableOrderedSet([status.get('id')]).union(list);
     }
   });
 };
@@ -130,16 +108,6 @@ export default function statusLists(state = initialState, action) {
     return normalizeList(state, 'favourites', action.statuses, action.next);
   case FAVOURITED_STATUSES_EXPAND_SUCCESS:
     return appendToList(state, 'favourites', action.statuses, action.next);
-  case EMOJI_REACTED_STATUSES_FETCH_REQUEST:
-  case EMOJI_REACTED_STATUSES_EXPAND_REQUEST:
-    return state.setIn(['emoji_reactions', 'isLoading'], true);
-  case EMOJI_REACTED_STATUSES_FETCH_FAIL:
-  case EMOJI_REACTED_STATUSES_EXPAND_FAIL:
-    return state.setIn(['emoji_reactions', 'isLoading'], false);
-  case EMOJI_REACTED_STATUSES_FETCH_SUCCESS:
-    return normalizeList(state, 'emoji_reactions', action.statuses, action.next);
-  case EMOJI_REACTED_STATUSES_EXPAND_SUCCESS:
-    return appendToList(state, 'emoji_reactions', action.statuses, action.next);
   case BOOKMARKED_STATUSES_FETCH_REQUEST:
   case BOOKMARKED_STATUSES_EXPAND_REQUEST:
     return state.setIn(['bookmarks', 'isLoading'], true);
@@ -164,14 +132,8 @@ export default function statusLists(state = initialState, action) {
     return prependOneToList(state, 'favourites', action.status);
   case UNFAVOURITE_SUCCESS:
     return removeOneFromList(state, 'favourites', action.status);
-  case EMOJIREACT_SUCCESS:
-    return prependOneToList(state, 'emoji_reactions', action.status);
-  case UNEMOJIREACT_SUCCESS:
-    return removeOneFromList(state, 'emoji_reactions', action.status);
   case BOOKMARK_SUCCESS:
     return prependOneToList(state, 'bookmarks', action.status);
-  case BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS:
-    return prependOneToListById(state, 'bookmarks', action.statusId);
   case UNBOOKMARK_SUCCESS:
     return removeOneFromList(state, 'bookmarks', action.status);
   case PINNED_STATUSES_FETCH_SUCCESS:

@@ -40,7 +40,7 @@ function render(
   ui: React.ReactElement,
   { locale = 'en', signedIn = true, ...renderOptions } = {},
 ) {
-  const Wrapper = (props: { children: React.ReactNode }) => {
+  const Wrapper = (props: { children: React.ReactElement }) => {
     return (
       <MemoryRouter>
         <IntlProvider locale={locale}>

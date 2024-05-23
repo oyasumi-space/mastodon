@@ -47,16 +47,7 @@ RSpec.describe 'Filters' do
     it_behaves_like 'unauthorized for invalid token'
 
     context 'with valid params' do
-      let(:params) do
-        {
-          title: 'magic',
-          context: %w(home),
-          filter_action: 'hide',
-          exclude_follows: true,
-          exclude_localusers: true,
-          keywords_attributes: [keyword: 'magic', whole_word: true],
-        }
-      end
+      let(:params) { { title: 'magic', context: %w(home), filter_action: 'hide', keywords_attributes: [keyword: 'magic'] } }
 
       it 'returns http success' do
         subject
@@ -73,8 +64,6 @@ RSpec.describe 'Filters' do
         expect(json[:filter_action]).to eq 'hide'
         expect(json[:context]).to eq ['home']
         expect(json[:keywords].map { |keyword| keyword.slice(:keyword, :whole_word) }).to eq [{ keyword: 'magic', whole_word: true }]
-        expect(json[:exclude_follows]).to be true
-        expect(json[:exclude_localusers]).to be true
       end
 
       it 'creates a filter', :aggregate_failures do
@@ -85,15 +74,13 @@ RSpec.describe 'Filters' do
         expect(filter).to be_present
         expect(filter.keywords.pluck(:keyword)).to eq ['magic']
         expect(filter.context).to eq %w(home)
-        expect(filter.exclude_follows).to be true
-        expect(filter.exclude_localusers).to be true
         expect(filter.irreversible?).to be true
         expect(filter.expires_at).to be_nil
       end
     end
 
     context 'when the required title param is missing' do
-      let(:params) { { context: %w(home), filter_action: 'hide', keywords_attributes: [keyword: 'magic'], exclude_follows: false, exclude_localusers: false } }
+      let(:params) { { context: %w(home), filter_action: 'hide', keywords_attributes: [keyword: 'magic'] } }
 
       it 'returns http unprocessable entity' do
         subject
@@ -103,7 +90,7 @@ RSpec.describe 'Filters' do
     end
 
     context 'when the required context param is missing' do
-      let(:params) { { title: 'magic', filter_action: 'hide', keywords_attributes: [keyword: 'magic'], exclude_follows: false, exclude_localusers: false } }
+      let(:params) { { title: 'magic', filter_action: 'hide', keywords_attributes: [keyword: 'magic'] } }
 
       it 'returns http unprocessable entity' do
         subject
@@ -112,18 +99,8 @@ RSpec.describe 'Filters' do
       end
     end
 
-    context 'when the required kmyblue original params are missing' do
-      let(:params) { { title: 'magic', context: %w(home), filter_action: 'hide', keywords_attributes: [keyword: 'magic'] } }
-
-      it 'returns http success' do
-        subject
-
-        expect(response).to have_http_status(200)
-      end
-    end
-
     context 'when the given context value is invalid' do
-      let(:params) { { title: 'magic', context: %w(shaolin), filter_action: 'hide', keywords_attributes: [keyword: 'magic'], exclude_follows: false, exclude_localusers: false } }
+      let(:params) { { title: 'magic', context: %w(shaolin), filter_action: 'hide', keywords_attributes: [keyword: 'magic'] } }
 
       it 'returns http unprocessable entity' do
         subject
@@ -175,7 +152,7 @@ RSpec.describe 'Filters' do
 
     context 'when updating filter parameters' do
       context 'with valid params' do
-        let(:params) { { title: 'updated', context: %w(home public), exclude_follows: true, exclude_localusers: true } }
+        let(:params) { { title: 'updated', context: %w(home public) } }
 
         it 'updates the filter successfully', :aggregate_failures do
           subject
@@ -185,8 +162,6 @@ RSpec.describe 'Filters' do
           expect(response).to have_http_status(200)
           expect(filter.title).to eq 'updated'
           expect(filter.reload.context).to eq %w(home public)
-          expect(filter.exclude_follows).to be true
-          expect(filter.exclude_localusers).to be true
         end
       end
 

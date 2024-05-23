@@ -9,9 +9,9 @@ import { List as ImmutableList } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import FindInPageIcon from '@/material-icons/400-24px/find_in_page.svg?react';
-import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
-import TagIcon from '@/material-icons/400-24px/tag.svg?react';
+import FindInPageIcon from 'mastodon/../material-icons/400-24px/find_in_page.svg?react';
+import PeopleIcon from 'mastodon/../material-icons/400-24px/group.svg?react';
+import TagIcon from 'mastodon/../material-icons/400-24px/tag.svg?react';
 import { submitSearch, expandSearch } from 'mastodon/actions/search';
 import { ImmutableHashtag as Hashtag } from 'mastodon/components/hashtag';
 import { Icon } from 'mastodon/components/icon';
@@ -52,7 +52,7 @@ const renderHashtags = hashtags => hidePeek(hashtags).map(hashtag => (
 ));
 
 const renderStatuses = statuses => hidePeek(statuses).map(id => (
-  <Status key={id} id={id} contextType='explore' />
+  <Status key={id} id={id} />
 ));
 
 class Results extends PureComponent {
@@ -181,7 +181,7 @@ class Results extends PureComponent {
 
           {statuses.size > 0 && (
             <SearchSection key='statuses' title={<><Icon id='quote-right' icon={FindInPageIcon} /><FormattedMessage id='search_results.statuses' defaultMessage='Posts' /></>} onClickMore={this.handleLoadMoreStatuses}>
-              {statuses.take(INITIAL_DISPLAY).map(id => <Status key={id} id={id} contextType='explore' />)}
+              {statuses.take(INITIAL_DISPLAY).map(id => <Status key={id} id={id} />)}
             </SearchSection>
           )}
         </>

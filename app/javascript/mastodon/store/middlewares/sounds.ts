@@ -51,8 +51,7 @@ const play = (audio: HTMLAudioElement) => {
 };
 
 export const soundsMiddleware = (): Middleware<
-  // eslint-disable-next-line @typescript-eslint/ban-types -- we need to use `{}` here to ensure the dispatch types can be merged
-  {},
+  Record<string, never>,
   RootState
 > => {
   const soundCache: Record<string, HTMLAudioElement> = {};

@@ -86,8 +86,14 @@ module Mastodon::CLI
       category         = CustomEmojiCategory.find_by(name: options[:category])
       export_file_name = File.join(path, 'export.tar.gz')
 
-      fail_with_message "Archive already exists! Use '--overwrite' to overwrite it!" if File.file?(export_file_name) && !options[:overwrite]
-      fail_with_message "Unable to find category '#{options[:category]}'!" if category.nil? && options[:category]
+      if File.file?(export_file_name) && !options[:overwrite]
+        say("Archive already exists! Use '--overwrite' to overwrite it!")
+        exit 1
+      end
+      if category.nil? && options[:category]
+        say("Unable to find category '#{options[:category]}'!")
+        exit 1
+      end
 
       File.open(export_file_name, 'wb') do |file|
         Zlib::GzipWriter.wrap(file) do |gzip|
@@ -117,22 +123,6 @@ module Mastodon::CLI
       scope = options[:remote_only] ? CustomEmoji.remote : CustomEmoji
       scope.in_batches.destroy_all
       say('OK', :green)
-    end
-
-    desc 'size', 'Set custom emojis width/height'
-    long_desc <<-LONG_DESC
-      Set custom emojis width/height if width/height is nil or zero.
-    LONG_DESC
-    def size
-      scope = CustomEmoji.where(image_width: nil).or(CustomEmoji.where(image_height: [0, nil]))
-      size = scope.size
-      count = 0
-      scope.find_each do |emoji|
-        emoji.update_size
-        emoji.save!
-        count += 1
-        say("(#{count}/#{size}) proceed #{emoji.shortcode}@#{emoji.domain}")
-      end
     end
 
     private

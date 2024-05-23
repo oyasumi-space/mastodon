@@ -6,14 +6,10 @@ namespace :api, format: false do
 
   # JSON / REST API
   namespace :v1 do
-    resources :statuses, only: [:index, :create, :show, :update, :destroy] do
+    resources :statuses, only: [:create, :show, :update, :destroy] do
       scope module: :statuses do
         resources :reblogged_by, controller: :reblogged_by_accounts, only: :index
         resources :favourited_by, controller: :favourited_by_accounts, only: :index
-        resources :emoji_reactioned_by, controller: :emoji_reactioned_by_accounts, only: :index
-        resources :referred_by, controller: :referred_by_statuses, only: :index
-        resources :mentioned_by, controller: :mentioned_accounts, only: :index
-        resources :bookmark_categories, only: :index
         resource :reblog, only: :create
         post :unreblog, to: 'reblogs#destroy'
 
@@ -33,11 +29,6 @@ namespace :api, format: false do
         resource :source, only: :show
 
         post :translate, to: 'translations#create'
-
-        resources :emoji_reactions, only: [:create, :update, :destroy], constraints: { id: %r{[^/]+} }
-        post :emoji_unreaction, to: 'emoji_reactions#destroy'
-        post '/react/:id', to: 'emoji_reactions#create', constraints: { id: %r{[^/]+} }
-        post '/unreact/:id', to: 'emoji_reactions#destroy', constraints: { id: %r{[^/]+} }
       end
 
       member do
@@ -50,23 +41,15 @@ namespace :api, format: false do
       resource :public, only: :show, controller: :public
       resources :tag, only: :show
       resources :list, only: :show
-      resources :antenna, only: :show
     end
 
     get '/streaming', to: 'streaming#index'
     get '/streaming/(*any)', to: 'streaming#index'
 
     resources :custom_emojis, only: [:index]
-    resources :reaction_deck, only: [:index, :create]
     resources :suggestions, only: [:index, :destroy]
     resources :scheduled_statuses, only: [:index, :show, :update, :destroy]
     resources :preferences, only: [:index]
-
-    resources :annual_reports, only: [:index] do
-      member do
-        post :read
-      end
-    end
 
     resources :announcements, only: [:index] do
       scope module: :announcements do
@@ -106,7 +89,6 @@ namespace :api, format: false do
     resources :blocks, only: [:index]
     resources :mutes, only: [:index]
     resources :favourites, only: [:index]
-    resources :emoji_reactions, only: [:index]
     resources :bookmarks, only: [:index]
     resources :reports, only: [:create]
     resources :trends, only: [:index], controller: 'trends/tags'
@@ -137,16 +119,14 @@ namespace :api, format: false do
     end
 
     resource :instance, only: [:show] do
-      scope module: :instances do
-        resources :peers, only: [:index]
-        resources :rules, only: [:index]
-        resources :domain_blocks, only: [:index]
-        resource :privacy_policy, only: [:show]
-        resource :extended_description, only: [:show]
-        resource :translation_languages, only: [:show]
-        resource :languages, only: [:show]
-        resource :activity, only: [:show], controller: :activity
-      end
+      resources :peers, only: [:index], controller: 'instances/peers'
+      resources :rules, only: [:index], controller: 'instances/rules'
+      resources :domain_blocks, only: [:index], controller: 'instances/domain_blocks'
+      resource :privacy_policy, only: [:show], controller: 'instances/privacy_policies'
+      resource :extended_description, only: [:show], controller: 'instances/extended_descriptions'
+      resource :translation_languages, only: [:show], controller: 'instances/translation_languages'
+      resource :languages, only: [:show], controller: 'instances/languages'
+      resource :activity, only: [:show], controller: 'instances/activity'
     end
 
     namespace :peers do
@@ -162,17 +142,6 @@ namespace :api, format: false do
         post :authorize
         post :reject
       end
-    end
-
-    namespace :notifications do
-      resources :requests, only: [:index, :show] do
-        member do
-          post :accept
-          post :dismiss
-        end
-      end
-
-      resource :policy, only: [:show, :update]
     end
 
     resources :notifications, only: [:index, :show] do
@@ -194,18 +163,13 @@ namespace :api, format: false do
       resources :familiar_followers, only: :index
     end
 
-    resources :accounts, only: [:index, :create, :show] do
-      scope module: :accounts do
-        resources :statuses, only: :index
-        resources :followers, only: :index, controller: :follower_accounts
-        resources :following, only: :index, controller: :following_accounts
-        resources :lists, only: :index
-        resources :antennas, only: :index
-        resources :exclude_antennas, only: :index
-        resources :circlues, only: :index
-        resources :identity_proofs, only: :index
-        resources :featured_tags, only: :index
-      end
+    resources :accounts, only: [:create, :show] do
+      resources :statuses, only: :index, controller: 'accounts/statuses'
+      resources :followers, only: :index, controller: 'accounts/follower_accounts'
+      resources :following, only: :index, controller: 'accounts/following_accounts'
+      resources :lists, only: :index, controller: 'accounts/lists'
+      resources :identity_proofs, only: :index, controller: 'accounts/identity_proofs'
+      resources :featured_tags, only: :index, controller: 'accounts/featured_tags'
 
       member do
         post :follow
@@ -233,26 +197,6 @@ namespace :api, format: false do
 
     resources :lists, only: [:index, :create, :show, :update, :destroy] do
       resource :accounts, only: [:show, :create, :destroy], controller: 'lists/accounts'
-    end
-
-    resources :antennas, only: [:index, :create, :show, :update, :destroy] do
-      resource :accounts, only: [:show, :create, :destroy], controller: 'antennas/accounts'
-      resource :domains, only: [:show, :create, :destroy], controller: 'antennas/domains'
-      resource :keywords, only: [:show, :create, :destroy], controller: 'antennas/keywords'
-      resource :tags, only: [:show, :create, :destroy], controller: 'antennas/tags'
-      resource :exclude_accounts, only: [:show, :create, :destroy], controller: 'antennas/exclude_accounts'
-      resource :exclude_domains, only: [:create, :destroy], controller: 'antennas/exclude_domains'
-      resource :exclude_keywords, only: [:create, :destroy], controller: 'antennas/exclude_keywords'
-      resource :exclude_tags, only: [:create, :destroy], controller: 'antennas/exclude_tags'
-    end
-
-    resources :circles, only: [:index, :create, :show, :update, :destroy] do
-      resource :accounts, only: [:show, :create, :destroy], controller: 'circles/accounts'
-      resource :statuses, only: [:show], controller: 'circles/statuses'
-    end
-
-    resources :bookmark_categories, only: [:index, :create, :show, :update, :destroy] do
-      resource :statuses, only: [:show, :create, :destroy], controller: 'bookmark_categories/statuses'
     end
 
     namespace :featured_tags do

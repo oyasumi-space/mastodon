@@ -11,7 +11,7 @@ lad:
         locale: Lingua
         password: Kod
       user/account:
-        username: Nombre de utilizador
+        username: Nombre de uzador
       user/invite_request:
         text: Razon
     errors:
