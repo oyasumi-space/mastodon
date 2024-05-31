@@ -35,7 +35,7 @@ class TagFeed < PublicFeed
     # scope.merge!(anonymous_scope) unless account?
     scope = to_anonymous_scope(scope) unless account?
 
-    scope.cache_ids.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
+    scope.to_a_paginated_by_id(limit, max_id: max_id, since_id: since_id, min_id: min_id)
   end
 
   private
