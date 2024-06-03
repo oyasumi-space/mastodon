@@ -7,7 +7,7 @@ describe Rack::Attack, type: :request do
     Rails.application
   end
 
-  shared_examples 'throttled endpoint' do
+  shared_context 'with throttled endpoint base' do
     before do
       # Rack::Attack periods are not rolling, so avoid flaky tests by setting the time in a way
       # to avoid crossing period boundaries.
@@ -18,6 +18,10 @@ describe Rack::Attack, type: :request do
 
       travel_to Time.zone.at((Time.now.to_i / period.seconds).to_i * period.seconds)
     end
+  end
+
+  shared_examples 'throttled endpoint' do
+    include_examples 'with throttled endpoint base'
 
     context 'when the number of requests is lower than the limit' do
       it 'does not change the request status' do
@@ -39,6 +43,28 @@ describe Rack::Attack, type: :request do
 
         request.call
         expect(response).to_not have_http_status(429)
+      end
+    end
+  end
+
+  shared_examples 'does not throttle endpoint' do
+    include_examples 'with throttled endpoint base'
+
+    context 'when the number of requests is lower than the limit' do
+      it 'does not change the request status' do
+        limit.times do
+          request.call
+          expect(response).to_not have_http_status(429)
+        end
+      end
+    end
+
+    context 'when the number of requests is higher than the limit' do
+      it 'returns http too many requests after limit and returns to normal status after period' do
+        (limit * 2).times do |_i|
+          request.call
+          expect(response).to_not have_http_status(429)
+        end
       end
     end
   end
@@ -144,5 +170,23 @@ describe Rack::Attack, type: :request do
     end
 
     it_behaves_like 'throttled endpoint'
+  end
+
+  describe 'throttle excessive emoji reaction requests by account' do
+    let(:user) { Fabricate(:user, email: 'user@host.example') }
+    let(:limit) { 10 }
+    let(:period) { 10.minutes }
+    let(:request) { -> { put path, headers: { 'REMOTE_ADDR' => remote_ip } } }
+    let(:status) { Fabricate(:status) }
+    let(:emoji) { Fabricate(:custom_emoji) }
+    let(:path) { "/api/v1/statuses/#{status.id}/emoji_reactions/#{emoji.shortcode}" }
+
+    before do
+      sign_in user, scope: :user
+
+      get '/'
+    end
+
+    it_behaves_like 'does not throttle endpoint'
   end
 end
