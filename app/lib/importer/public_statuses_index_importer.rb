@@ -28,8 +28,8 @@ class Importer::PublicStatusesIndexImporter < Importer::BaseImporter
 
   def scope
     to_index = Status.indexable.reorder(nil)
-    to_index = to_index.where('statuses.created_at >= ?', @from) if @from.present?
-    to_index = to_index.where('statuses.created_at < ?', @to) if @to.present?
+    to_index = to_index.where(statuses: { created_at: @from.. }) if @from.present?
+    to_index = to_index.where(statuses: { created_at: ...@to }) if @to.present?
     to_index
   end
 end

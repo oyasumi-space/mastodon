@@ -394,7 +394,7 @@ class Status < ApplicationRecord
   end
 
   def add_status_referred_by_count!(diff)
-    update_status_stat!(status_referred_by_count: [public_send(:status_referred_by_count) + diff, 0].max)
+    update_status_stat!(status_referred_by_count: [status_referred_by_count + diff, 0].max)
   end
 
   def emoji_reactions_grouped_by_name(account = nil, **options)
