@@ -34,7 +34,7 @@ class Vacuum::StatusesVacuum
   def statuses_scope
     scope = Status.unscoped.kept
                   .joins(:account).merge(Account.remote)
-                  .where('statuses.id < ?', retention_period_as_id)
+                  .where(statuses: { id: ...retention_period_as_id })
 
     if Setting.delete_content_cache_without_reaction
       scope = scope.where.not(id: favourited_statuses)

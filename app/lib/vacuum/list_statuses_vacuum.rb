@@ -12,6 +12,6 @@ class Vacuum::ListStatusesVacuum
   private
 
   def vacuum_list_statuses!
-    ListStatus.where('created_at < ?', LIST_STATUS_LIFE_DURATION.ago).in_batches.destroy_all
+    ListStatus.where(created_at: ...LIST_STATUS_LIFE_DURATION.ago).in_batches.destroy_all
   end
 end

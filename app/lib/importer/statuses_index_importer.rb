@@ -17,8 +17,8 @@ class Importer::StatusesIndexImporter < Importer::BaseImporter
 
           bulk = ActiveRecord::Base.connection_pool.with_connection do
             to_index = index.adapter.default_scope.where(id: status_ids)
-            to_index = to_index.where('created_at >= ?', @from) if @from.present?
-            to_index = to_index.where('created_at < ?', @to) if @to.present?
+            to_index = to_index.where(created_at: @from..) if @from.present?
+            to_index = to_index.where(created_at: ...@to) if @to.present?
             crutches = Chewy::Index::Crutch::Crutches.new index, to_index
             to_index.map do |object|
               # This is unlikely to happen, but the post may have been

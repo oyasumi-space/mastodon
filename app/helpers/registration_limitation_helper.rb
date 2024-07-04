@@ -26,7 +26,7 @@ module RegistrationLimitationHelper
   end
 
   def today_increase_user_count_value
-    User.confirmed.enabled.where('users.created_at >= ?', Time.now.utc.beginning_of_day).joins(:account).merge(Account.without_suspended).count
+    User.confirmed.enabled.where(users: { created_at: Time.now.utc.beginning_of_day.. }).joins(:account).merge(Account.without_suspended).count
   end
 
   def registrations_in_time?

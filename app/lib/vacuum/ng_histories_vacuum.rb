@@ -12,7 +12,7 @@ class Vacuum::NgHistoriesVacuum
   private
 
   def vacuum_histories!
-    NgwordHistory.where('created_at < ?', HISTORY_LIFE_DURATION.ago).in_batches.destroy_all
-    NgRuleHistory.where('created_at < ?', HISTORY_LIFE_DURATION.ago).in_batches.destroy_all
+    NgwordHistory.where(created_at: ...HISTORY_LIFE_DURATION.ago).in_batches.destroy_all
+    NgRuleHistory.where(created_at: ...HISTORY_LIFE_DURATION.ago).in_batches.destroy_all
   end
 end
