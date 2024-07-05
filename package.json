@@ -228,5 +228,6 @@
     "*.{haml}": "bundle exec haml-lint",
     "*.{js,jsx,ts,tsx}": "eslint --fix",
     "*.{css,scss}": "stylelint --fix"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
