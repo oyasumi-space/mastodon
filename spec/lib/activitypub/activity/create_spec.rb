@@ -1109,7 +1109,7 @@ RSpec.describe ActivityPub::Activity::Create do
               inbox: 'https://foo.test/inbox',
             }.with_indifferent_access
           end
-          let!(:webfinger) { { subject: 'acct:actor@foo.test', links: [{ rel: 'self', href: 'https://foo.test' }] } }
+          let!(:webfinger) { { subject: 'acct:actor@foo.test', links: [{ rel: 'self', href: 'https://foo.test', type: 'application/activity+json' }] } }
 
           let(:object_json) do
             {
