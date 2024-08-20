@@ -625,6 +625,7 @@
   "searchability.unlisted.short": "Followers and reactionners",
   "search_popout.domain": "domain",
   "search_popout.full_text_search_disabled_message": "Not available on {domain}.",
+  "search_popout.full_text_search_logged_out_message": "Only available when logged in.",
   "search_popout.language_code": "ISO language code",
   "search_popout.options": "Search options",
   "search_popout.quick_actions": "Quick actions",
