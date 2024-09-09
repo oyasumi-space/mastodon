@@ -81,6 +81,14 @@ describe ActivityPub::NoteSerializer do
     end
   end
 
+  context 'when direct searchability' do
+    let(:searchability) { :direct }
+
+    it 'send as direct searchability' do
+      expect(subject['searchableBy']).to include "https://cb6e6126.ngrok.io/users/#{account.username}"
+    end
+  end
+
   context 'when has a reference' do
     let(:referred) { Fabricate(:status) }
 
