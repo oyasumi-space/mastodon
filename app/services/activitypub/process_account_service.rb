@@ -282,7 +282,7 @@ class ActivityPub::ProcessAccountService < BaseService
   end
 
   def searchability_from_audience
-    if audience_searchable_by.nil?
+    if audience_searchable_by.blank?
       bio = searchability_from_bio
       return bio unless bio.nil?
 

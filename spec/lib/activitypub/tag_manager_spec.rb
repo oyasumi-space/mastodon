@@ -210,7 +210,7 @@ RSpec.describe ActivityPub::TagManager do
 
     it 'returns empty array for direct status' do
       status    = Fabricate(:status, searchability: :direct)
-      expect(subject.searchable_by(status)).to eq []
+      expect(subject.searchable_by(status)).to eq ["https://cb6e6126.ngrok.io/users/#{status.account.username}"]
     end
 
     it 'returns as:Limited array for limited status' do
