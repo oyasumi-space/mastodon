@@ -20,11 +20,11 @@
             %table.email-w-full.email-account-stats-table{ cellspacing: 0, cellpadding: 0, border: 0, role: 'presentation' }
               %tr
                 %td
-                  %b= account_formatted_stat(account.statuses_count)
-                  %span= t('accounts.posts', count: account.statuses_count)
+                  %b= account.hide_statuses_count? ? '-' : account_formatted_stat(account.public_statuses_count)
+                  %span= t('accounts.posts', count: account.public_statuses_count)
                 %td
-                  %b= account_formatted_stat(account.following_count)
+                  %b= account.hide_following_count? ? '-' : account_formatted_stat(account.public_following_count)
                   %span= t('accounts.following')
                 %td
-                  %b= account_formatted_stat(account.followers_count)
-                  %span= t('accounts.followers', count: account.followers_count)
+                  %b= account.hide_followers_count? ? '-' : account_formatted_stat(account.public_followers_count)
+                  %span= t('accounts.followers', count: account.public_followers_count)
