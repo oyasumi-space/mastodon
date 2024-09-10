@@ -252,7 +252,7 @@ class ActivityPub::TagManager
       when 'limited'
         ['as:Limited', 'kmyblue:Limited']
       else
-        []
+        [account_url(status.account)]
       end
 
     searchable_by.concat(mentions_uris(status)).compact
@@ -273,7 +273,7 @@ class ActivityPub::TagManager
     when 'limited'
       ['as:Limited', 'kmyblue:Limited']
     else
-      []
+      [account_url(account)]
     end
   end
 

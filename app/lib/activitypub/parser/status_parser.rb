@@ -203,9 +203,9 @@ class ActivityPub::Parser::StatusParser
   end
 
   def searchability_from_audience
-    if audience_searchable_by.nil?
-      nil
-    elsif audience_searchable_by.any? { |uri| ActivityPub::TagManager.instance.public_collection?(uri) }
+    return nil if audience_searchable_by.blank?
+
+    if audience_searchable_by.any? { |uri| ActivityPub::TagManager.instance.public_collection?(uri) }
       :public
     elsif audience_searchable_by.include?('kmyblue:Limited') || audience_searchable_by.include?('as:Limited')
       :limited
@@ -213,7 +213,7 @@ class ActivityPub::Parser::StatusParser
       :public_unlisted
     elsif audience_searchable_by.include?(@account.followers_url)
       :private
-    else
+    elsif audience_searchable_by.include?(@account.uri) || audience_searchable_by.include?(@account.url)
       :direct
     end
   end
