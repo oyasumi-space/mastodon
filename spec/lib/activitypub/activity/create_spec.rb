@@ -564,13 +564,24 @@ RSpec.describe ActivityPub::Activity::Create do
         end
 
         context 'with direct' do
-          let(:searchable_by) { '' }
+          let(:searchable_by) { 'https://example.com/actor' }
 
           it 'create status' do
             status = sender.statuses.first
 
             expect(status).to_not be_nil
             expect(status.searchability).to eq 'direct'
+          end
+        end
+
+        context 'with empty array' do
+          let(:searchable_by) { '' }
+
+          it 'create status' do
+            status = sender.statuses.first
+
+            expect(status).to_not be_nil
+            expect(status.searchability).to be_nil
           end
         end
 

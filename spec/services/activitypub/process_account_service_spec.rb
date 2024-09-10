@@ -49,7 +49,7 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
 
     context 'when direct' do
-      let(:searchable_by) { '' }
+      let(:searchable_by) { 'https://foo.test' }
 
       it 'searchability is direct' do
         expect(subject.searchability).to eq 'direct'
@@ -69,6 +69,14 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
 
       it 'searchability is limited' do
         expect(subject.searchability).to eq 'limited'
+      end
+    end
+
+    context 'when empty array' do
+      let(:searchable_by) { '' }
+
+      it 'searchability is direct' do
+        expect(subject.searchability).to eq 'direct'
       end
     end
 

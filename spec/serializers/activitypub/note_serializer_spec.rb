@@ -5,9 +5,9 @@ require 'rails_helper'
 describe ActivityPub::NoteSerializer do
   subject { JSON.parse(@serialization.to_json) }
 
-  let!(:account) { Fabricate(:account) }
+  let!(:account) { Fabricate(:account, searchability: :public) }
   let!(:other) { Fabricate(:account) }
-  let!(:parent) { Fabricate(:status, account: account, visibility: :public, language: 'zh-TW') }
+  let!(:parent) { Fabricate(:status, account: account, visibility: :public, searchability: searchability, language: 'zh-TW') }
   let!(:reply_by_account_first) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_account_next) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_other_first) { Fabricate(:status, account: other, thread: parent, visibility: :public) }
@@ -16,6 +16,7 @@ describe ActivityPub::NoteSerializer do
   let!(:referred) { nil }
   let!(:referred2) { nil }
   let(:convert_to_quote) { false }
+  let(:searchability) { :public }
 
   before(:each) do
     parent.references << referred if referred.present?
@@ -53,6 +54,14 @@ describe ActivityPub::NoteSerializer do
 
   it 'does not include replies with direct visibility in its replies collection' do
     expect(subject['replies']['first']['items']).to_not include(reply_by_account_visibility_direct.uri)
+  end
+
+  context 'when direct searchability' do
+    let(:searchability) { :direct }
+
+    it 'send as direct searchability' do
+      expect(subject['searchableBy']).to include "https://cb6e6126.ngrok.io/users/#{account.username}"
+    end
   end
 
   context 'when has quote but no_convert setting' do
