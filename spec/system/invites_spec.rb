@@ -9,7 +9,6 @@ RSpec.describe 'Invites' do
 
   before do
     UserRole.everyone.update(permissions: UserRole::FLAGS[:invite_users])
-    host! 'localhost:3000' # TODO: Move into before for all system specs?
     sign_in user
   end
 

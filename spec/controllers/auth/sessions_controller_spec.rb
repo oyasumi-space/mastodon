@@ -247,7 +247,7 @@ RSpec.describe Auth::SessionsController do
     context 'when using two-factor authentication' do
       context 'with OTP enabled as second factor' do
         let!(:user) do
-          Fabricate(:user, email: 'x@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret(32))
+          Fabricate(:user, email: 'x@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret)
         end
 
         let!(:recovery_codes) do
@@ -269,7 +269,7 @@ RSpec.describe Auth::SessionsController do
 
         context 'when using email and password after an unfinished log-in attempt to a 2FA-protected account' do
           let!(:other_user) do
-            Fabricate(:user, email: 'z@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret(32))
+            Fabricate(:user, email: 'z@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret)
           end
 
           before do
@@ -381,7 +381,7 @@ RSpec.describe Auth::SessionsController do
 
       context 'with WebAuthn and OTP enabled as second factor' do
         let!(:user) do
-          Fabricate(:user, email: 'x@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret(32))
+          Fabricate(:user, email: 'x@y.com', password: 'abcdefgh', otp_required_for_login: true, otp_secret: User.generate_otp_secret)
         end
 
         let!(:webauthn_credential) do

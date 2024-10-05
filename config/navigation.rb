@@ -30,18 +30,18 @@ SimpleNavigation::Configuration.run do |navigation|
     n.item :filters, safe_join([material_symbol('filter_alt'), t('filters.index.title')]), filters_path, highlights_on: %r{/filters}, if: -> { current_user.functional? && !self_destruct }
     n.item :statuses_cleanup, safe_join([material_symbol('history'), t('settings.statuses_cleanup')]), statuses_cleanup_path, if: -> { current_user.functional_or_moved? && !self_destruct }
 
-    n.item :security, safe_join([material_symbol('lock'), t('settings.account')]), edit_user_registration_path do |s|
-      s.item :password, safe_join([material_symbol('lock'), t('settings.account_settings')]), edit_user_registration_path, highlights_on: %r{/auth/edit|/settings/delete|/settings/migration|/settings/aliases|/settings/login_activities|^/disputes}
+    n.item :security, safe_join([material_symbol('account_circle'), t('settings.account')]), edit_user_registration_path do |s|
+      s.item :password, safe_join([material_symbol('lock'), t('settings.account_settings')]), edit_user_registration_path, highlights_on: %r{^/auth|/settings/delete|/settings/migration|/settings/aliases|/settings/login_activities|^/disputes}
       s.item :two_factor_authentication, safe_join([material_symbol('safety_check'), t('settings.two_factor_authentication')]), settings_two_factor_authentication_methods_path, highlights_on: %r{/settings/two_factor_authentication|/settings/otp_authentication|/settings/security_keys}
       s.item :authorized_apps, safe_join([material_symbol('list_alt'), t('settings.authorized_apps')]), oauth_authorized_applications_path, if: -> { !self_destruct }
     end
 
     n.item :data, safe_join([material_symbol('cloud_sync'), t('settings.import_and_export')]), settings_export_path do |s|
-      s.item :import, safe_join([material_symbol('cloud_upload'), t('settings.import')]), settings_imports_path, if: -> { current_user.functional? && !self_destruct }
+      s.item :import, safe_join([material_symbol('cloud_upload'), t('settings.import')]), settings_imports_path, highlights_on: %r{/settings/imports}, if: -> { current_user.functional? && !self_destruct }
       s.item :export, safe_join([material_symbol('cloud_download'), t('settings.export')]), settings_export_path
     end
 
-    n.item :invites, safe_join([material_symbol('person_add'), t('invites.title')]), invites_path, if: -> { current_user.can?(:invite_users) && current_user.functional? && !self_destruct }
+    n.item :user_invites, safe_join([material_symbol('person_add'), t('invites.title')]), invites_path, if: -> { current_user.can?(:invite_users) && current_user.functional? && !self_destruct }
     n.item :development, safe_join([material_symbol('code'), t('settings.development')]), settings_applications_path, highlights_on: %r{/settings/applications}, if: -> { current_user.functional? && !self_destruct }
 
     n.item :trends, safe_join([material_symbol('trending_up'), t('admin.trends.title')]), admin_trends_statuses_path, if: -> { current_user.can?(:manage_taxonomies) && !self_destruct } do |s|
@@ -62,7 +62,9 @@ SimpleNavigation::Configuration.run do |navigation|
       s.item :ng_rules, safe_join([material_symbol('edit'), t('admin.ng_rules.title')]), admin_ng_rules_path, highlights_on: %r{/admin/(ng_rules|ng_rule_histories)}, if: -> { current_user.can?(:manage_ng_words) }
       s.item :sensitive_words, safe_join([material_symbol('list'), t('admin.sensitive_words.title')]), admin_sensitive_words_path, highlights_on: %r{/admin/sensitive_words}, if: -> { current_user.can?(:manage_sensitive_words) }
       s.item :invites, safe_join([material_symbol('person_add'), t('admin.invites.title')]), admin_invites_path, if: -> { current_user.can?(:manage_invites) }
-      s.item :instances, safe_join([material_symbol('cloud'), t('admin.instances.title')]), admin_instances_path(limited: limited_federation_mode? ? nil : '1'), highlights_on: %r{/admin/instances|/admin/domain_blocks|/admin/domain_allows}, if: -> { current_user.can?(:manage_federation) }
+      s.item :instances, safe_join([material_symbol('cloud'), t('admin.instances.title')]), admin_instances_path(limited: limited_federation_mode? ? nil : '1'), highlights_on: %r{/admin/instances|/admin/domain_blocks|/admin/domain_allows|/admin/export_domain_blocks}, if: lambda {
+        current_user.can?(:manage_federation)
+      }
       s.item :special_instances, safe_join([material_symbol('list'), t('admin.special_instances.title')]), admin_special_instances_path, highlights_on: %r{/admin/special_instances}, if: -> { current_user.can?(:manage_federation) }
       s.item :special_domains, safe_join([material_symbol('link'), t('admin.special_domains.title')]), admin_special_domains_path, highlights_on: %r{/admin/special_domains}, if: -> { current_user.can?(:manage_federation) }
       s.item :email_domain_blocks, safe_join([material_symbol('mail'), t('admin.email_domain_blocks.title')]), admin_email_domain_blocks_path, highlights_on: %r{/admin/email_domain_blocks}, if: -> { current_user.can?(:manage_blocks) }
