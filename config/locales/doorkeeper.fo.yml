@@ -1,3 +1,4 @@
+---
 fo:
   activerecord:
     attributes:
@@ -59,7 +60,7 @@ fo:
       error:
         title: Ein feilur er íkomin
       new:
-        prompt_html: "%{client_name} kundi hugsa sær atgongd til tína kontu. Tað er ein triðjaparts-nýtsluskipan. <strong>Tú skal ikki geva henni hesa heimld, um tú ikki hevur álit á henni.</strong>"
+        prompt_html: "%{client_name} kundi hugsað sær atgongd til tína kontu. <strong>Góðtak einans hesa umbøn, um tú kennir hesa keldu aftur og hevur álit á henni.</strong>"
         review_permissions: Eftirkanna rættindi
         title: Váttan kravd
       show:
@@ -82,6 +83,7 @@ fo:
         access_denied: Tilfarseigarin ella váttanarambætarin noktaðu umbønina.
         credential_flow_not_configured: Resource Owner Password Credentials floymurin eydnaðist ikki. Orsøkin var, at Doorkeeper.configure.resource_owner_from_credentials var ikki sett upp.
         invalid_client: Viðskiftaraváttan miseydnaðist. Orsøkin var ein ókendur viðskiftari, at eingin viðskiftaraváttan var við ella at váttanarmannagongdin er ókend.
+        invalid_code_challenge_method: Koduavbjóðingarmetodan má vera S256, einfalt format riggar ikki.
         invalid_grant: Veitta váttanarheimildin er antin ógildug, útgingin, tikin aftur, samsvarar ikki við endursendingar-URI'ið, sum bleiv brúkt í váttanarumbønini ella var flýggjað øðrum viðskiftara.
         invalid_redirect_uri: Endursendingar-URI'ið, sum var viðheft, er ógyldugt.
         invalid_request:
@@ -134,6 +136,7 @@ fo:
         media: Viðfestir miðlar
         mutes: Doyvir
         notifications: Fráboðanir
+        profile: Tín Mastodon vangi
         push: Skumpifráboðanir
         reports: Meldingar
         search: Leita
@@ -146,24 +149,25 @@ fo:
       application:
         title: OAuth váttan kravd
     scopes:
-      "admin:read": les allar dátur á ambætaranum
-      "admin:read:accounts": les viðkvæmar upplýsingar úr øllum kontum
-      "admin:read:canonical_email_blocks": les viðkvæmar upplýsingar frá øllum fyrimyndarligum teldupostblokeringum
-      "admin:read:domain_allows": les viðkvæmar upplýsingar frá øllum loyvdum navnaøkjum
-      "admin:read:domain_blocks": les viðkvæmar upplýsingar frá øllum navnaøkjablokeringum
-      "admin:read:email_domain_blocks": les viðkvæmar upplýsingar frá øllum telduposta-navnaøkjablokeringum
-      "admin:read:ip_blocks": les viðkvæmar upplýsingar frá øllum IP blokeringum
-      "admin:read:reports": les viðkvæmar upplýsingar um allar meldingar og meldaðar kontur
-      "admin:write": broyta allar dátur á ambætaranum
-      "admin:write:accounts": útinna kjakleiðsluatgerðir á kontum
-      "admin:write:canonical_email_blocks": før umsjón við øllum fyrimyndarligum teldupostablokeringum
-      "admin:write:domain_allows": før umsjón á loyvdum navnaøkjum
-      "admin:write:domain_blocks": før umsjón á navnaøkjablokeringum
-      "admin:write:email_domain_blocks": før umsjón á telduposta-navnaøkjablokeringum
-      "admin:write:ip_blocks": før umsjón á IP blokeringum
-      "admin:write:reports": útinna kjakleiðsluatgerðir á meldingum
+      admin:read: les allar dátur á ambætaranum
+      admin:read:accounts: les viðkvæmar upplýsingar úr øllum kontum
+      admin:read:canonical_email_blocks: les viðkvæmar upplýsingar frá øllum fyrimyndarligum teldupostblokeringum
+      admin:read:domain_allows: les viðkvæmar upplýsingar frá øllum loyvdum navnaøkjum
+      admin:read:domain_blocks: les viðkvæmar upplýsingar frá øllum navnaøkjablokeringum
+      admin:read:email_domain_blocks: les viðkvæmar upplýsingar frá øllum telduposta-navnaøkjablokeringum
+      admin:read:ip_blocks: les viðkvæmar upplýsingar frá øllum IP blokeringum
+      admin:read:reports: les viðkvæmar upplýsingar um allar meldingar og meldaðar kontur
+      admin:write: broyta allar dátur á ambætaranum
+      admin:write:accounts: útinna kjakleiðsluatgerðir á kontum
+      admin:write:canonical_email_blocks: før umsjón við øllum fyrimyndarligum teldupostablokeringum
+      admin:write:domain_allows: før umsjón á loyvdum navnaøkjum
+      admin:write:domain_blocks: før umsjón á navnaøkjablokeringum
+      admin:write:email_domain_blocks: før umsjón á telduposta-navnaøkjablokeringum
+      admin:write:ip_blocks: før umsjón á IP blokeringum
+      admin:write:reports: útinna kjakleiðsluatgerðir á meldingum
       crypto: brúka enda-til-enda bronglan
       follow: broyta viðurskifti millum kontur
+      profile: les bara vangaupplýsingar av tíni kontu
       push: móttaka tínar skumpifráboðanir
       read: lesa allar dátur í tíni kontu
       read:accounts: vís kontuupplýsingar

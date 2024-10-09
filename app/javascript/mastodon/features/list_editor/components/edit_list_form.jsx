@@ -1,9 +1,13 @@
+// Kmyblue tracking marker: copied antenna_editor/edit_antenna_form, circle_editor/edit_circle_form, bookmark_category_editor/edit_bookmark_category_form
+
 import PropTypes from 'prop-types';
 import { PureComponent } from 'react';
 
 import { defineMessages, injectIntl } from 'react-intl';
 
 import { connect } from 'react-redux';
+
+import CheckIcon from '@/material-icons/400-24px/check.svg?react';
 
 import { changeListEditorTitle, submitListEditor } from '../../../actions/lists';
 import { IconButton } from '../../../components/icon_button';
@@ -61,6 +65,7 @@ class ListForm extends PureComponent {
         <IconButton
           disabled={disabled}
           icon='check'
+          iconComponent={CheckIcon}
           title={title}
           onClick={this.handleClick}
         />

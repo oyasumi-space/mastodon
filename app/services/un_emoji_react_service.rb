@@ -4,20 +4,23 @@ class UnEmojiReactService < BaseService
   include Redisable
   include Payloadable
 
-  def call(account_id, status_id, emoji_reaction = nil)
-    @status = Status.find(status_id)
+  def call(account, status, emoji_reaction = nil)
+    @account = account
+    @status = status
 
     if emoji_reaction
       emoji_reaction.destroy!
 
-      @status.touch # rubocop:disable Rails/SkipsModelValidations
+      status.touch
 
       create_notification(emoji_reaction) if !@status.account.local? && @status.account.activitypub?
-      notify_to_followers(emoji_reaction) if @status.account.local?
-      write_stream(emoji_reaction)
+      notify_to_followers(emoji_reaction)
+      write_stream(emoji_reaction) if Setting.streaming_local_emoji_reaction
+
+      relay_for_undo_emoji_reaction!(emoji_reaction)
+      relay_friend_for_undo_emoji_reaction!(emoji_reaction)
     else
-      account = Account.find(account_id)
-      bulk(account, @status)
+      bulk(account, status)
     end
     emoji_reaction
   end
@@ -25,8 +28,8 @@ class UnEmojiReactService < BaseService
   private
 
   def bulk(account, status)
-    EmojiReaction.where(account: account).where(status: status).each do |emoji_reaction|
-      call(account.id, status.id, emoji_reaction)
+    EmojiReaction.where(account: account, status: status).find_each do |emoji_reaction|
+      call(account, status, emoji_reaction)
     end
   end
 
@@ -35,7 +38,7 @@ class UnEmojiReactService < BaseService
   end
 
   def notify_to_followers(emoji_reaction)
-    ActivityPub::RawDistributionWorker.perform_async(build_json(emoji_reaction), @status.account_id)
+    ActivityPub::RawDistributionWorker.perform_async(build_json(emoji_reaction), @account.id)
   end
 
   def write_stream(emoji_reaction)
@@ -53,11 +56,27 @@ class UnEmojiReactService < BaseService
   end
 
   def build_json(emoji_reaction)
-    Oj.dump(serialize_payload(emoji_reaction, ActivityPub::UndoEmojiReactionSerializer))
+    @build_json = Oj.dump(serialize_payload(emoji_reaction, ActivityPub::UndoEmojiReactionSerializer, signer: emoji_reaction.account))
   end
 
   def render_emoji_reaction(emoji_group)
     # @rendered_emoji_reaction ||= InlineRenderer.render(emoji_group, nil, :emoji_reaction)
     Oj.dump(event: :emoji_reaction, payload: emoji_group.to_json)
+  end
+
+  def relay_for_undo_emoji_reaction!(emoji_reaction)
+    return unless @status.local? && @status.public_visibility?
+
+    ActivityPub::DeliveryWorker.push_bulk(Relay.enabled.pluck(:inbox_url)) do |inbox_url|
+      [build_json(emoji_reaction), @status.account.id, inbox_url]
+    end
+  end
+
+  def relay_friend_for_undo_emoji_reaction!(emoji_reaction)
+    return unless @status.local? && @status.distributable_friend?
+
+    ActivityPub::DeliveryWorker.push_bulk(FriendDomain.distributables.pluck(:inbox_url)) do |inbox_url|
+      [build_json(emoji_reaction), @status.account.id, inbox_url]
+    end
   end
 end

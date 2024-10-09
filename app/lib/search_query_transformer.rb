@@ -30,6 +30,8 @@ class SearchQueryTransformer < Parslet::Transform
     def request
       search = Chewy::Search::Request.new(*indexes).filter(default_filter)
 
+      search = search.filter(flag_following_only) if following_only?
+
       must_clauses.each { |clause| search = search.query.must(clause.to_query) }
       must_not_clauses.each { |clause| search = search.query.must_not(clause.to_query) }
       filter_clauses.each { |clause| search = search.filter(**clause.to_query) }
@@ -59,6 +61,10 @@ class SearchQueryTransformer < Parslet::Transform
       @flags = clauses_by_operator.fetch(:flag, []).to_h { |clause| [clause.prefix, clause.term] }
     end
 
+    def following_only?
+      @flags['following']
+    end
+
     def must_clauses
       clauses_by_operator.fetch(:must, [])
     end
@@ -79,6 +85,8 @@ class SearchQueryTransformer < Parslet::Transform
       case @flags['in']
       when 'library'
         [StatusesIndex]
+      when 'public'
+        [PublicStatusesIndex]
       else
         @options[:current_account].user&.setting_use_public_index ? [PublicStatusesIndex, StatusesIndex] : [StatusesIndex]
       end
@@ -89,10 +97,10 @@ class SearchQueryTransformer < Parslet::Transform
         public_index,
         searchability_limited,
       ]
-      definition_should << searchability_public if %i(public).include?(@searchability)
-      definition_should << searchability_private if %i(public unlisted private).include?(@searchability)
-      definition_should << searchable_by_me if %i(public unlisted private direct).include?(@searchability)
-      definition_should << self_posts if %i(public unlisted private direct).exclude?(@searchability)
+      definition_should << searchability_public if %i(public public_unlisted).include?(@searchability)
+      definition_should << searchability_private if %i(public public_unlisted unlisted private).include?(@searchability)
+      definition_should << searchable_by_me if %i(public public_unlisted unlisted private direct).include?(@searchability)
+      definition_should << self_posts if %i(public public_unlisted unlisted private direct).exclude?(@searchability)
 
       {
         bool: {
@@ -196,11 +204,21 @@ class SearchQueryTransformer < Parslet::Transform
       }
     end
 
+    def flag_following_only
+      {
+        bool: {
+          (@flags['following'] == 'following' ? :must : :must_not) => {
+            terms: { account_id: following_account_ids },
+          },
+        },
+      }
+    end
+
     def following_account_ids
       return @following_account_ids if defined?(@following_account_ids)
 
-      account_exists_sql     = Account.where('accounts.id = follows.target_account_id').where(searchability: %w(public private)).reorder(nil).select(1).to_sql
-      status_exists_sql      = Status.where('statuses.account_id = follows.target_account_id').where(reblog_of_id: nil).where(searchability: %w(public private)).reorder(nil).select(1).to_sql
+      account_exists_sql     = Account.where('accounts.id = follows.target_account_id').where(searchability: %w(public public_unlisted private)).reorder(nil).select(1).to_sql
+      status_exists_sql      = Status.where('statuses.account_id = follows.target_account_id').where(reblog_of_id: nil).where(searchability: %w(public public_unlisted private)).reorder(nil).select(1).to_sql
       following_accounts     = Follow.where(account_id: @options[:current_account].id).merge(Account.where("EXISTS (#{account_exists_sql})").or(Account.where("EXISTS (#{status_exists_sql})")))
       @following_account_ids = following_accounts.pluck(:target_account_id)
     end
@@ -224,18 +242,21 @@ class SearchQueryTransformer < Parslet::Transform
   class TermClause
     attr_reader :operator, :term
 
-    def initialize(operator, term)
+    def initialize(operator, term, current_account: nil)
       @operator = Operator.symbol(operator)
       @term = term
+      @account = current_account
     end
 
     def to_query
       if @term.start_with?('#')
         { match: { tags: { query: @term, operator: 'and' } } }
-      else
+      elsif @account&.user&.setting_reverse_search_quote
         # Memo for checking when manually merge
         # { multi_match: { type: 'most_fields', query: @term, fields: ['text', 'text.stemmed'], operator: 'and' } }
         { match_phrase: { text: { query: @term } } }
+      else
+        { multi_match: { type: 'most_fields', query: @term, fields: ['text', 'text.stemmed'], operator: 'and' } }
       end
     end
   end
@@ -243,13 +264,20 @@ class SearchQueryTransformer < Parslet::Transform
   class PhraseClause
     attr_reader :operator, :phrase
 
-    def initialize(operator, phrase)
+    def initialize(operator, phrase, current_account: nil)
       @operator = Operator.symbol(operator)
       @phrase = phrase
+      @account = current_account
     end
 
     def to_query
-      { match_phrase: { text: { query: @phrase } } }
+      # Memo for checking when manually merge
+      # { match_phrase: { text: { query: @phrase } } }
+      if @account&.user&.setting_reverse_search_quote
+        { multi_match: { type: 'most_fields', query: @phrase, fields: ['text', 'text.stemmed'], operator: 'and' } }
+      else
+        { match_phrase: { text: { query: @phrase } } }
+      end
     end
   end
 
@@ -283,18 +311,22 @@ class SearchQueryTransformer < Parslet::Transform
       when 'before'
         @filter = :created_at
         @type = :range
-        @term = { lt: term, time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
+        @term = { lt: TermValidator.validate_date!(term), time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
       when 'after'
         @filter = :created_at
         @type = :range
-        @term = { gt: term, time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
+        @term = { gt: TermValidator.validate_date!(term), time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
       when 'during'
         @filter = :created_at
         @type = :range
-        @term = { gte: term, lte: term, time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
+        @term = { gte: TermValidator.validate_date!(term), lte: TermValidator.validate_date!(term), time_zone: @options[:current_account]&.user_time_zone.presence || 'UTC' }
       when 'in'
         @operator = :flag
         @term = term
+        if term == 'following'
+          @prefix = 'following'
+          @term = @negated ? 'not_following' : 'following'
+        end
       when 'my'
         @type = :term
         @term = @options[:current_account]&.id
@@ -308,7 +340,7 @@ class SearchQueryTransformer < Parslet::Transform
           @filter = :mentioned_by
         when 'referenced', 'ref'
           @filter = :referenced_by
-        when 'emoji_reacted', 'stamped', 'stamp'
+        when 'emoji_reacted', 'stamped', 'stamp', 'emoji'
           @filter = :emoji_reacted_by
         when 'bookmarked', 'bm'
           @filter = :bookmarked_by
@@ -379,6 +411,17 @@ class SearchQueryTransformer < Parslet::Transform
     end
   end
 
+  class TermValidator
+    STRICT_DATE_REGEX = /\A\d{4}-\d{2}-\d{2}\z/ # yyyy-MM-dd
+    EPOCH_MILLIS_REGEX = /\A\d{1,19}\z/
+
+    def self.validate_date!(value)
+      return value if value.match?(STRICT_DATE_REGEX) || value.match?(EPOCH_MILLIS_REGEX)
+
+      raise Mastodon::FilterValidationError, "Invalid date #{value}"
+    end
+  end
+
   rule(clause: subtree(:clause)) do
     prefix   = clause[:prefix][:term].to_s.downcase if clause[:prefix]
     operator = clause[:operator]&.to_s
@@ -387,11 +430,11 @@ class SearchQueryTransformer < Parslet::Transform
     if clause[:prefix] && SUPPORTED_PREFIXES.include?(prefix)
       PrefixClause.new(prefix, operator, term, current_account: current_account)
     elsif clause[:prefix]
-      TermClause.new(operator, "#{prefix} #{term}")
+      TermClause.new(operator, "#{prefix} #{term}", current_account: current_account)
     elsif clause[:term]
-      TermClause.new(operator, term)
+      TermClause.new(operator, term, current_account: current_account)
     elsif clause[:phrase]
-      PhraseClause.new(operator, term)
+      PhraseClause.new(operator, term, current_account: current_account)
     else
       raise "Unexpected clause type: #{clause}"
     end

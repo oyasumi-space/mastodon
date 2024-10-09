@@ -1,3 +1,4 @@
+---
 de:
   activerecord:
     attributes:
@@ -59,7 +60,7 @@ de:
       error:
         title: Ein Fehler ist aufgetreten
       new:
-        prompt_html: "%{client_name} möchte auf dein Konto zugreifen. Es handelt sich um eine Software von Dritten. <strong>Wenn du der Anwendung nicht vertraust, solltest du ihr keinen Zugriff auf dein Konto geben.</strong>"
+        prompt_html: "%{client_name} möchte auf dein Konto zugreifen. <strong>Du solltest diese Anfrage nur genehmigen, wenn du diese Quelle kennst und ihr vertraust.</strong>"
         review_permissions: Berechtigungen überprüfen
         title: Autorisierung erforderlich
       show:
@@ -82,6 +83,7 @@ de:
         access_denied: Diese Anfrage wurde von den Inhaber*innen oder durch den Autorisierungsserver abgelehnt.
         credential_flow_not_configured: Das Konto konnte nicht gefunden werden, da Doorkeeper.configure.resource_owner_from_credentials nicht konfiguriert ist.
         invalid_client: 'Client-Authentisierung ist fehlgeschlagen: Client unbekannt, keine Authentisierung mitgeliefert oder Authentisierungsmethode wird nicht unterstützt.'
+        invalid_code_challenge_method: Die Code-Challenge-Methode muss „S256“ sein, „plain“ wird nicht unterstützt.
         invalid_grant: Die beigefügte Autorisierung ist ungültig, abgelaufen, wurde widerrufen oder einem anderen Client ausgestellt, oder der Weiterleitungs-URI stimmt nicht mit der Autorisierungs-Anfrage überein.
         invalid_redirect_uri: Der beigefügte Weiterleitungs-URI ist ungültig.
         invalid_request:
@@ -124,7 +126,7 @@ de:
         all: Voller Zugriff auf dein Mastodon-Konto
         blocks: Blockierungen
         bookmarks: Lesezeichen
-        conversations: Unterhaltungen
+        conversations: Private Erwähnungen
         crypto: Ende-zu-Ende-Verschlüsselung
         favourites: Favoriten
         filters: Filter
@@ -134,6 +136,7 @@ de:
         media: Medienanhänge
         mutes: Stummschaltungen
         notifications: Benachrichtigungen
+        profile: Dein Mastodon-Profil
         push: Push-Benachrichtigungen
         reports: Meldungen
         search: Suche
@@ -146,24 +149,25 @@ de:
       application:
         title: OAuth-Autorisierung erforderlich
     scopes:
-      "admin:read": alle Daten auf dem Server lesen
-      "admin:read:accounts": sensible Informationen aller Konten lesen
-      "admin:read:canonical_email_blocks": sensible Informationen aller kanonischen E-Mail-Sperren lesen
-      "admin:read:domain_allows": sensible Informationen aller zugelassenen Domains lesen
-      "admin:read:domain_blocks": sensible Informationen aller Domain-Sperren lesen
-      "admin:read:email_domain_blocks": sensible Informationen aller E-Mail-Domain-Sperren lesen
-      "admin:read:ip_blocks": sensible Informationen aller IP-Sperren lesen
-      "admin:read:reports": sensible Informationen aller Meldungen und gemeldeten Konten lesen
-      "admin:write": alle Daten auf dem Server ändern
-      "admin:write:accounts": Moderationsaktionen auf Konten ausführen
-      "admin:write:canonical_email_blocks": Moderationsaktionen auf kanonischen E-Mail-Sperren ausführen
-      "admin:write:domain_allows": Moderationsaktionen auf zugelassende Domains ausführen
-      "admin:write:domain_blocks": Moderationsaktionen auf Domain-Sperren ausführen
-      "admin:write:email_domain_blocks": Moderationsaktionen auf E-Mail-Domain-Sperren ausführen
-      "admin:write:ip_blocks": Moderationsaktionen auf IP-Sperren ausführen
-      "admin:write:reports": Moderationsaktionen auf Meldungen ausführen
+      admin:read: alle Daten auf dem Server lesen
+      admin:read:accounts: sensible Informationen aller Konten lesen
+      admin:read:canonical_email_blocks: sensible Informationen aller kanonischen E-Mail-Sperren lesen
+      admin:read:domain_allows: sensible Informationen aller zugelassenen Domains lesen
+      admin:read:domain_blocks: sensible Informationen aller Domain-Sperren lesen
+      admin:read:email_domain_blocks: sensible Informationen aller E-Mail-Domain-Sperren lesen
+      admin:read:ip_blocks: sensible Informationen aller IP-Sperren lesen
+      admin:read:reports: sensible Informationen aller Meldungen und gemeldeten Konten lesen
+      admin:write: alle Daten auf dem Server ändern
+      admin:write:accounts: Moderationsaktionen auf Konten ausführen
+      admin:write:canonical_email_blocks: Moderationsaktionen auf kanonischen E-Mail-Sperren ausführen
+      admin:write:domain_allows: Moderationsaktionen auf zugelassende Domains ausführen
+      admin:write:domain_blocks: Moderationsaktionen auf Domain-Sperren ausführen
+      admin:write:email_domain_blocks: Moderationsaktionen auf E-Mail-Domain-Sperren ausführen
+      admin:write:ip_blocks: Moderationsaktionen auf IP-Sperren ausführen
+      admin:write:reports: Moderationsaktionen auf Meldungen ausführen
       crypto: Ende-zu-Ende-Verschlüsselung verwenden
       follow: Kontenbeziehungen verändern
+      profile: nur die Profilinformationen deines Kontos lesen
       push: deine Push-Benachrichtigungen erhalten
       read: all deine Daten lesen
       read:accounts: deine Kontoinformationen einsehen

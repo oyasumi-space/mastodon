@@ -22,11 +22,8 @@ class FanOutOnWriteService < BaseService
     if broadcastable?
       fan_out_to_public_recipients!
       fan_out_to_public_streams!
-    elsif broadcastable_unlisted?
-      fan_out_to_public_recipients!
-      fan_out_to_public_unlisted_streams!
-    elsif broadcastable_unlisted2?
-      fan_out_to_unlisted_streams!
+    elsif broadcastable_unlisted_public?
+      fan_out_to_unlisted_public_streams!
     end
   end
 
@@ -49,6 +46,7 @@ class FanOutOnWriteService < BaseService
 
     unless @options[:skip_notifications]
       notify_mentioned_accounts!
+      notify_for_conversation! if @status.limited_visibility?
       notify_about_update! if update?
     end
 
@@ -56,13 +54,13 @@ class FanOutOnWriteService < BaseService
     when :public, :unlisted, :public_unlisted, :login, :private
       deliver_to_all_followers!
       deliver_to_lists!
-      deliver_to_antennas! if !@account.dissubscribable || (@status.dtl? && DTL_ENABLED && @account.user&.setting_dtl_force_subscribable && @status.tags.exists?(name: DTL_TAG))
-      deliver_to_stl_antennas!
-      deliver_to_ltl_antennas!
+      deliver_to_antennas!
+      deliver_to_stl_antennas! if Setting.enable_local_timeline
+      deliver_to_ltl_antennas! if Setting.enable_local_timeline
     when :limited
       deliver_to_lists_mentioned_accounts_only!
-      deliver_to_antennas! unless @account.dissubscribable
-      deliver_to_stl_antennas!
+      deliver_to_antennas!
+      deliver_to_stl_antennas! if Setting.enable_local_timeline
       deliver_to_mentioned_followers!
     else
       deliver_to_mentioned_followers!
@@ -79,13 +77,9 @@ class FanOutOnWriteService < BaseService
     broadcast_to_public_streams!
   end
 
-  def fan_out_to_public_unlisted_streams!
+  def fan_out_to_unlisted_public_streams!
     broadcast_to_hashtag_streams!
-    broadcast_to_public_unlisted_streams!
-  end
-
-  def fan_out_to_unlisted_streams!
-    broadcast_to_hashtag_streams!
+    deliver_to_hashtag_followers!
   end
 
   def deliver_to_self!
@@ -97,11 +91,31 @@ class FanOutOnWriteService < BaseService
       LocalNotificationWorker.push_bulk(mentions) do |mention|
         [mention.account_id, mention.id, 'Mention', 'mention']
       end
+
+      next unless update?
+
+      # This may result in duplicate update payloads, but this ensures clients
+      # are aware of edits to posts only appearing in mention notifications
+      # (e.g. private mentions or mentions by people they do not follow)
+      PushUpdateWorker.push_bulk(mentions.filter { |mention| subscribed_to_streaming_api?(mention.account_id) }) do |mention|
+        [mention.account_id, @status.id, "timeline:#{mention.account_id}:notifications", { 'update' => true }]
+      end
+    end
+  end
+
+  def notify_for_conversation!
+    return if @status.conversation.nil?
+
+    account_ids = @status.conversation.statuses.pluck(:account_id).uniq.reject { |account_id| account_id == @status.account_id }
+    @status.silent_mentions.where(account_id: account_ids).joins(:account).merge(Account.local).select(:id, :account_id).reorder(nil).find_in_batches do |mentions|
+      LocalNotificationWorker.push_bulk(mentions) do |mention|
+        [mention.account_id, mention.id, 'Mention', 'mention']
+      end
     end
   end
 
   def notify_about_update!
-    @status.reblogged_by_accounts.merge(Account.local).select(:id).reorder(nil).find_in_batches do |accounts|
+    @status.reblogged_by_accounts.or(@status.quoted_by_accounts).merge(Account.local).select(:id).reorder(nil).find_in_batches do |accounts|
       LocalNotificationWorker.push_bulk(accounts) do |account|
         [account.id, @status.id, 'Status', 'update']
       end
@@ -164,7 +178,7 @@ class FanOutOnWriteService < BaseService
   def broadcast_to_hashtag_streams!
     @status.tags.map(&:name).each do |hashtag|
       redis.publish("timeline:hashtag:#{hashtag.mb_chars.downcase}", anonymous_payload)
-      redis.publish("timeline:hashtag:#{hashtag.mb_chars.downcase}:local", anonymous_payload) if @status.local?
+      redis.publish("timeline:hashtag:#{hashtag.mb_chars.downcase}:local", anonymous_payload) if @status.local? && Setting.enable_local_timeline
     end
   end
 
@@ -172,21 +186,13 @@ class FanOutOnWriteService < BaseService
     return if @status.reply? && @status.in_reply_to_account_id != @account.id
 
     redis.publish('timeline:public', anonymous_payload)
-    redis.publish(@status.local? ? 'timeline:public:local' : 'timeline:public:remote', anonymous_payload)
+    redis.publish('timeline:public:remote', anonymous_payload) unless @status.local?
+    redis.publish('timeline:public:local', anonymous_payload) if @status.local? && Setting.enable_local_timeline
 
     if @status.with_media?
       redis.publish('timeline:public:media', anonymous_payload)
-      redis.publish(@status.local? ? 'timeline:public:local:media' : 'timeline:public:remote:media', anonymous_payload)
-    end
-  end
-
-  def broadcast_to_public_unlisted_streams!
-    return if @status.reply? && @status.in_reply_to_account_id != @account.id
-
-    redis.publish(@status.local? ? 'timeline:public:local' : 'timeline:public:remote', anonymous_payload)
-
-    if @status.with_media?
-      redis.publish(@status.local? ? 'timeline:public:local:media' : 'timeline:public:remote:media', anonymous_payload)
+      redis.publish('timeline:public:remote:media', anonymous_payload) unless @status.local?
+      redis.publish('timeline:public:local:media', anonymous_payload) if @status.local? && Setting.enable_local_timeline
     end
   end
 
@@ -214,14 +220,14 @@ class FanOutOnWriteService < BaseService
   end
 
   def broadcastable?
-    (@status.public_visibility? || @status.login_visibility?) && !@status.reblog? && !@account.silenced?
+    (@status.public_visibility? || @status.public_unlisted_visibility? || @status.login_visibility?) && !@status.reblog? && !@account.silenced?
   end
 
-  def broadcastable_unlisted?
-    @status.public_unlisted_visibility? && !@status.reblog? && !@account.silenced?
+  def broadcastable_unlisted_public?
+    @status.unlisted_visibility? && @status.compute_searchability == 'public' && !@status.reblog? && !@account.silenced?
   end
 
-  def broadcastable_unlisted2?
-    @status.unlisted_visibility? && @status.public_searchability? && !@status.reblog? && !@account.silenced?
+  def subscribed_to_streaming_api?(account_id)
+    redis.exists?("subscribed:timeline:#{account_id}") || redis.exists?("subscribed:timeline:#{account_id}:notifications")
   end
 end

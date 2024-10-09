@@ -3,6 +3,7 @@
 class FavouriteService < BaseService
   include Authorization
   include Payloadable
+  include NgRuleHelper
 
   # Favourite a status and notify remote user
   # @param [Account] account
@@ -10,6 +11,8 @@ class FavouriteService < BaseService
   # @return [Favourite]
   def call(account, status)
     authorize_with account, status, :favourite?
+
+    raise Mastodon::ValidationError, I18n.t('statuses.violate_rules') unless check_invalid_reaction_for_ng_rule! account, reaction_type: 'favourite', recipient: status.account, target_status: status
 
     favourite = Favourite.find_by(account: account, status: status)
 
@@ -20,7 +23,7 @@ class FavouriteService < BaseService
     Trends.statuses.register(status)
 
     create_notification(favourite)
-    bump_potential_friendship(account, status)
+    increment_statistics
 
     favourite
   end
@@ -37,11 +40,8 @@ class FavouriteService < BaseService
     end
   end
 
-  def bump_potential_friendship(account, status)
+  def increment_statistics
     ActivityTracker.increment('activity:interactions')
-    return if account.following?(status.account_id)
-
-    PotentialFriendshipTracker.record(account.id, status.account_id, :favourite)
   end
 
   def build_json(favourite)

@@ -8,7 +8,7 @@
 
 body {
   font-family: $font-sans-serif, sans-serif;
-  background: darken($ui-base-color, 7%);
+  background: var(--background-color);
   font-size: 13px;
   line-height: 18px;
   font-weight: 400;
@@ -46,6 +46,35 @@ body {
       sans-serif;
   }
 
+  &.content-font-size {
+    &__large {
+      --content-font-size: 18px;
+      --content-emoji-size: 24px;
+      --content-line-height: 27px;
+      --detail-content-font-size: 25px;
+      --detail-content-emoji-size: 32px;
+      --detail-content-line-height: 32px;
+    }
+
+    &__x_large {
+      --content-font-size: 22px;
+      --content-emoji-size: 32px;
+      --content-line-height: 30px;
+      --detail-content-font-size: 30px;
+      --detail-content-emoji-size: 42px;
+      --detail-content-line-height: 39px;
+    }
+
+    &__xx_large {
+      --content-font-size: 30px;
+      --content-emoji-size: 42px;
+      --content-line-height: 44px;
+      --detail-content-font-size: 40px;
+      --detail-content-emoji-size: 56px;
+      --detail-content-line-height: 52px;
+    }
+  }
+
   &.app-body {
     padding: 0;
 
@@ -64,10 +93,6 @@ body {
     &.with-modals--active {
       overflow-y: hidden;
     }
-  }
-
-  &.lighter {
-    background: $ui-base-color;
   }
 
   &.with-modals {
@@ -109,7 +134,6 @@ body {
   }
 
   &.embed {
-    background: lighten($ui-base-color, 4%);
     margin: 0;
     padding-bottom: 0;
 
@@ -122,15 +146,12 @@ body {
   }
 
   &.admin {
-    background: darken($ui-base-color, 4%);
     padding: 0;
   }
 
   &.error {
     position: absolute;
     text-align: center;
-    color: $darker-text-color;
-    background: $ui-base-color;
     width: 100%;
     height: 100%;
     padding: 0;

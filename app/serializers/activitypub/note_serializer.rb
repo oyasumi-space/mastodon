@@ -9,11 +9,12 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
              :in_reply_to, :published, :url,
              :attributed_to, :to, :cc, :sensitive,
              :atom_uri, :in_reply_to_atom_uri,
-             :conversation, :searchable_by, :limited_scope
+             :conversation, :searchable_by, :context
 
   attribute :content
   attribute :content_map, if: :language?
   attribute :updated, if: :edited?
+  attribute :limited_scope, if: :limited_visibility?
 
   attribute :quote_uri, if: :quote?
   attribute :misskey_quote, key: :_misskey_quote, if: :quote?
@@ -22,7 +23,9 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   has_many :virtual_tags, key: :tag
 
   has_one :replies, serializer: ActivityPub::CollectionSerializer, if: :local?
-  has_one :references, serializer: ActivityPub::CollectionSerializer
+  has_one :references, serializer: ActivityPub::CollectionSerializer, if: :local?
+  has_one :likes, serializer: ActivityPub::CollectionSerializer, if: :local?
+  has_one :shares, serializer: ActivityPub::CollectionSerializer, if: :local?
 
   has_many :poll_options, key: :one_of, if: :poll_and_not_multiple?
   has_many :poll_options, key: :any_of, if: :poll_and_multiple?
@@ -50,6 +53,10 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def content_map
     { object.language => content }
+  end
+
+  def context
+    ActivityPub::TagManager.instance.uri_for(object.conversation)
   end
 
   def replies
@@ -84,9 +91,27 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     )
   end
 
+  def likes
+    ActivityPub::CollectionPresenter.new(
+      id: ActivityPub::TagManager.instance.likes_uri_for(object),
+      type: :unordered,
+      size: object.favourites_count
+    )
+  end
+
+  def shares
+    ActivityPub::CollectionPresenter.new(
+      id: ActivityPub::TagManager.instance.shares_uri_for(object),
+      type: :unordered,
+      size: object.reblogs_count
+    )
+  end
+
   def language?
     object.language.present?
   end
+
+  delegate :limited_visibility?, to: :object
 
   delegate :edited?, to: :object
 
@@ -133,7 +158,19 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags
-    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis
+    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis + virtual_tags_of_quote
+  end
+
+  def virtual_tags_of_quote
+    return [] unless object.quote?
+
+    [
+      {
+        type: 'Link',
+        mediaType: 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+        href: quote_uri,
+      },
+    ]
   end
 
   def atom_uri
@@ -170,12 +207,10 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     object.account.local?
   end
 
-  def quote?
-    @quote ||= (object.reference_objects.count == 1 && object.account.user&.settings&.[]('single_ref_to_quote')) || object.reference_objects.where(attribute_type: 'QT').count == 1
-  end
+  delegate :quote?, to: :object
 
   def quote_post
-    @quote_post ||= object.quote || object.references.first
+    @quote_post ||= object.quote
   end
 
   def quote_uri

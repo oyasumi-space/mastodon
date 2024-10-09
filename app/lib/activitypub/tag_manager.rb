@@ -49,6 +49,8 @@ class ActivityPub::TagManager
       emoji_url(target)
     when :emoji_reaction
       emoji_reaction_url(target)
+    when :conversation
+      context_url(target)
     when :flag
       target.uri
     end
@@ -82,6 +84,18 @@ class ActivityPub::TagManager
     raise ArgumentError, 'target must be a local activity' unless %i(note comment activity).include?(target.object_type) && target.local?
 
     account_status_references_url(target.account, target, page_params)
+  end
+
+  def likes_uri_for(target)
+    raise ArgumentError, 'target must be a local activity' unless %i(note comment activity).include?(target.object_type) && target.local?
+
+    account_status_likes_url(target.account, target)
+  end
+
+  def shares_uri_for(target)
+    raise ArgumentError, 'target must be a local activity' unless %i(note comment activity).include?(target.object_type) && target.local?
+
+    account_status_shares_url(target.account, target)
   end
 
   def followers_uri_for(target)
@@ -119,8 +133,15 @@ class ActivityPub::TagManager
         end.compact
       end
     when 'limited'
-      ['kmyblue:Limited'] # to avoid Fedibird personal visibility
+      # do not empty array to avoid Fedibird personal visibility
+      status.conversation.nil? ? ['kmyblue:Limited'] : [context_url(status.conversation)]
     end
+  end
+
+  def to_for_friend(status)
+    to = to(status)
+    to << 'kmyblue:LocalPublic' if status.public_unlisted_visibility?
+    to
   end
 
   # Secondary audience of a status
@@ -144,7 +165,7 @@ class ActivityPub::TagManager
   end
 
   def cc_for_misskey(status)
-    if (status.account.user&.setting_reject_unlisted_subscription && status.visibility == 'unlisted') || (status.account.user&.setting_reject_public_unlisted_subscription && status.visibility == 'public_unlisted')
+    if status.sending_maybe_compromised_privacy?
       cc = cc_private_visibility(status)
       cc << uri_for(status.reblog.account) if status.reblog?
       return cc
@@ -199,7 +220,7 @@ class ActivityPub::TagManager
     uri_to_resource(uri, Account)
   end
 
-  def uri_to_resource(uri, klass)
+  def uri_to_resource(uri, klass, url: false)
     return if uri.nil?
 
     if local_uri?(uri)
@@ -212,22 +233,25 @@ class ActivityPub::TagManager
     elsif OStatus::TagManager.instance.local_id?(uri)
       klass.find_by(id: OStatus::TagManager.instance.unique_tag_to_local_id(uri, klass.to_s))
     else
-      klass.find_by(uri: uri.split('#').first)
+      resource   = klass.find_by(uri: uri.split('#').first)
+      resource ||= klass.where('uri != url').find_by(url: uri.split('#').first) if url
+      resource
     end
   rescue ActiveRecord::RecordNotFound
     nil
   end
 
   def limited_scope(status)
-    if status.mutual_limited?
+    case status.limited_scope
+    when 'mutual'
       'Mutual'
+    when 'circle'
+      'Circle'
+    when 'reply'
+      'Reply'
     else
-      status.circle_limited? ? 'Circle' : ''
+      ''
     end
-  end
-
-  def subscribable_by(account)
-    account.dissubscribable ? [] : [COLLECTIONS[:public]]
   end
 
   def searchable_by(status)
@@ -240,17 +264,23 @@ class ActivityPub::TagManager
       when 'limited'
         ['as:Limited', 'kmyblue:Limited']
       else
-        status.conversation_id.present? ? [uri_for(status.conversation), account_url(status.account)] : [account_url(status.account)]
+        [account_url(status.account)]
       end
 
     searchable_by.concat(mentions_uris(status)).compact
+  end
+
+  def searchable_by_for_friend(status)
+    searchable = searchable_by(status)
+    searchable << 'kmyblue:LocalPublic' if status.compute_searchability_local == 'public_unlisted'
+    searchable
   end
 
   def account_searchable_by(account)
     case account.compute_searchability_activitypub
     when 'public'
       [COLLECTIONS[:public]]
-    when 'private', 'direct'
+    when 'private'
       [account_followers_url(account)]
     when 'limited'
       ['as:Limited', 'kmyblue:Limited']

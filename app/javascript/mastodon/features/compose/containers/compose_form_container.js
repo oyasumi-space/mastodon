@@ -9,6 +9,7 @@ import {
   changeComposeSpoilerText,
   insertEmojiCompose,
   insertExpirationCompose,
+  insertFeaturedTagCompose,
   uploadCompose,
 } from '../../../actions/compose';
 import ComposeForm from '../components/compose_form';
@@ -31,6 +32,7 @@ const mapStateToProps = state => ({
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
   circleId: state.getIn(['compose', 'circle_id']),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -39,8 +41,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(changeCompose(text));
   },
 
-  onSubmit (router) {
-    dispatch(submitCompose(router));
+  onSubmit () {
+    dispatch(submitCompose());
   },
 
   onClearSuggestions () {
@@ -69,6 +71,10 @@ const mapDispatchToProps = (dispatch) => ({
 
   onPickExpiration (position, data) {
     dispatch(insertExpirationCompose(position, data));
+  },
+
+  onPickFeaturedTag (position, data) {
+    dispatch(insertFeaturedTagCompose(position, data));
   },
 
 });

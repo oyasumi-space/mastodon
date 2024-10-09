@@ -2,6 +2,7 @@
 
 class ActivityPub::ProcessCollectionService < BaseService
   include JsonLdHelper
+  include DomainControlHelper
 
   def call(body, actor, **options)
     @account = actor
@@ -48,11 +49,15 @@ class ActivityPub::ProcessCollectionService < BaseService
   end
 
   def suspended_actor?
-    @account.suspended? && !activity_allowed_while_suspended?
+    @account.suspended? && (@account.remote_pending ? !activity_allowed_while_remote_pending? : !activity_allowed_while_suspended?)
   end
 
   def activity_allowed_while_suspended?
     %w(Delete Reject Undo Update).include?(@json['type'])
+  end
+
+  def activity_allowed_while_remote_pending?
+    %w(Follow Create).include?(@json['type']) || activity_allowed_while_suspended?
   end
 
   def process_items(items)
@@ -69,6 +74,9 @@ class ActivityPub::ProcessCollectionService < BaseService
   end
 
   def verify_account!
+    return unless @json['signature'].is_a?(Hash)
+    return if domain_not_allowed?(@json['signature']['creator'])
+
     @options[:relayed_through_actor] = @account
     @account = ActivityPub::LinkedDataSignature.new(@json).verify_actor!
     @account = nil unless @account.is_a?(Account)

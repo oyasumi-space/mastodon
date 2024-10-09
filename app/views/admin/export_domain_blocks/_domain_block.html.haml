@@ -11,7 +11,6 @@
       = f.hidden_field :severity
       = f.hidden_field :reject_media
       = f.hidden_field :reject_favourite
-      = f.hidden_field :reject_reply
       = f.hidden_field :reject_reply_exclude_followers
       = f.hidden_field :reject_send_sensitive
       = f.hidden_field :reject_hashtag
@@ -31,5 +30,5 @@
         = f.object.public_comment
       - if existing_relationships
         ·
-        = fa_icon 'warning fw'
+        = material_symbol 'warning'
         = t('admin.export_domain_blocks.import.existing_relationships_warning')

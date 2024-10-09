@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe ActivityPub::FetchInstanceInfoWorker do
+RSpec.describe ActivityPub::FetchInstanceInfoWorker do
   subject { described_class.new }
 
   let(:wellknown_nodeinfo) do

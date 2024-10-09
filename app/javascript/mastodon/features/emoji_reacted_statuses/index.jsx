@@ -10,11 +10,12 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
+import EmojiReactionIcon from '@/material-icons/400-24px/mood.svg?react';
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { fetchEmojiReactedStatuses, expandEmojiReactedStatuses } from 'mastodon/actions/emoji_reactions';
+import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import StatusList from 'mastodon/components/status_list';
-import Column from 'mastodon/features/ui/components/column';
 
 const messages = defineMessages({
   heading: { id: 'column.emoji_reactions', defaultMessage: 'Stamps' },
@@ -79,6 +80,7 @@ class EmojiReactions extends ImmutablePureComponent {
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.heading)}>
         <ColumnHeader
           icon='smile-o'
+          iconComponent={EmojiReactionIcon}
           title={intl.formatMessage(messages.heading)}
           onPin={this.handlePin}
           onMove={this.handleMove}

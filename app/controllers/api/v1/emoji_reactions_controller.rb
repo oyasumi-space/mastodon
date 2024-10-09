@@ -19,7 +19,7 @@ class Api::V1::EmojiReactionsController < Api::BaseController
   end
 
   def cached_emoji_reactions
-    cache_collection(results.map(&:status), EmojiReaction)
+    preload_collection(results.map(&:status), EmojiReaction)
   end
 
   def results

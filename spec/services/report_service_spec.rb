@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ReportService, type: :service do
+RSpec.describe ReportService do
   subject { described_class.new }
 
   let(:source_account) { Fabricate(:account) }
@@ -23,17 +23,21 @@ RSpec.describe ReportService, type: :service do
       stub_request(:post, 'http://example.com/inbox').to_return(status: 200)
     end
 
-    context 'when forward is true' do
+    it 'does not have an application' do
+      report = subject.call(source_account, remote_account)
+      expect(report.application).to be_nil
+    end
+
+    context 'when forward is true', :inline_jobs do
       let(:forward) { true }
 
-      it 'sends ActivityPub payload when forward is true' do
-        subject.call(source_account, remote_account, forward: forward)
-        expect(a_request(:post, 'http://example.com/inbox')).to have_been_made
-      end
-
-      it 'has an uri' do
+      it 'has a URI and sends ActivityPub payload' do
         report = subject.call(source_account, remote_account, forward: forward)
-        expect(report.uri).to_not be_nil
+
+        expect(report.uri)
+          .to_not be_nil
+        expect(a_request(:post, 'http://example.com/inbox'))
+          .to have_been_made
       end
 
       context 'when reporting a reply on a different remote server' do
@@ -53,7 +57,7 @@ RSpec.describe ReportService, type: :service do
         end
 
         context 'when forward_to_domains includes only the replied-to domain' do
-          it 'sends ActivityPub payload only to the author of the replied-to post' do
+          it 'sends ActivityPub payload only to the author of the replied-to post', :inline_jobs do
             subject.call(source_account, remote_account, status_ids: [reported_status.id], forward: forward, forward_to_domains: [remote_thread_account.domain])
             expect(a_request(:post, 'http://foo.com/inbox')).to have_been_made
             expect(a_request(:post, 'http://example.com/inbox')).to_not have_been_made
@@ -61,7 +65,7 @@ RSpec.describe ReportService, type: :service do
         end
 
         context 'when forward_to_domains does not include the replied-to domain' do
-          it 'does not send ActivityPub payload to the author of the replied-to post' do
+          it 'does not send ActivityPub payload to the author of the replied-to post', :inline_jobs do
             subject.call(source_account, remote_account, status_ids: [reported_status.id], forward: forward)
             expect(a_request(:post, 'http://foo.com/inbox')).to_not have_been_made
           end
@@ -89,10 +93,19 @@ RSpec.describe ReportService, type: :service do
     end
 
     context 'when forward is false' do
-      it 'does not send anything' do
+      it 'does not send anything', :inline_jobs do
         subject.call(source_account, remote_account, forward: forward)
         expect(a_request(:post, 'http://example.com/inbox')).to_not have_been_made
       end
+    end
+  end
+
+  context 'when passed an application' do
+    let(:application) { Fabricate(:application) }
+
+    it 'has an application' do
+      report = subject.call(source_account, target_account, application: application)
+      expect(report.application).to eq application
     end
   end
 
@@ -108,13 +121,12 @@ RSpec.describe ReportService, type: :service do
         status.mentions.create(account: source_account)
       end
 
-      it 'creates a report' do
-        expect { subject.call }.to change { target_account.targeted_reports.count }.from(0).to(1)
-      end
+      it 'creates a report and attaches the DM to the report' do
+        expect { subject.call }
+          .to change { target_account.targeted_reports.count }.from(0).to(1)
 
-      it 'attaches the DM to the report' do
-        subject.call
-        expect(target_account.targeted_reports.pluck(:status_ids)).to eq [[status.id]]
+        expect(target_account.targeted_reports.pluck(:status_ids))
+          .to eq [[status.id]]
       end
     end
 
@@ -132,13 +144,12 @@ RSpec.describe ReportService, type: :service do
           status.mentions.create(account: source_account)
         end
 
-        it 'creates a report' do
-          expect { subject.call }.to change { target_account.targeted_reports.count }.from(0).to(1)
-        end
+        it 'creates a report and attaches DM to report' do
+          expect { subject.call }
+            .to change { target_account.targeted_reports.count }.from(0).to(1)
 
-        it 'attaches the DM to the report' do
-          subject.call
-          expect(target_account.targeted_reports.pluck(:status_ids)).to eq [[status.id]]
+          expect(target_account.targeted_reports.pluck(:status_ids))
+            .to eq [[status.id]]
         end
       end
 
@@ -156,16 +167,16 @@ RSpec.describe ReportService, type: :service do
       -> {  described_class.new.call(source_account, target_account) }
     end
 
-    let!(:other_report) { Fabricate(:report, target_account: target_account) }
-
     before do
-      ActionMailer::Base.deliveries.clear
+      Fabricate(:report, target_account: target_account)
       source_account.user.settings['notification_emails.report'] = true
       source_account.user.save
     end
 
     it 'does not send an e-mail' do
-      expect { subject.call }.to_not change(ActionMailer::Base.deliveries, :count).from(0)
+      emails = capture_emails { subject.call }
+
+      expect(emails).to be_empty
     end
   end
 end

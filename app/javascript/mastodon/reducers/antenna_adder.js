@@ -38,10 +38,10 @@ export default function antennaAdderReducer(state = initialState, action) {
     return state.setIn(['antennas', 'isLoading'], true);
   case ANTENNA_ADDER_ANTENNAS_FETCH_FAIL:
   case ANTENNA_ADDER_EXCLUDE_ANTENNAS_FETCH_FAIL:
-      return state.setIn(['antennas', 'isLoading'], false);
+    return state.setIn(['antennas', 'isLoading'], false);
   case ANTENNA_ADDER_ANTENNAS_FETCH_SUCCESS:
   case ANTENNA_ADDER_EXCLUDE_ANTENNAS_FETCH_SUCCESS:
-      return state.update('antennas', antennas => antennas.withMutations(map => {
+    return state.update('antennas', antennas => antennas.withMutations(map => {
       map.set('isLoading', false);
       map.set('loaded', true);
       map.set('items', ImmutableList(action.antennas.map(item => item.id)));

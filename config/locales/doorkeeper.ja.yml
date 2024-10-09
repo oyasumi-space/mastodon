@@ -1,3 +1,4 @@
+---
 ja:
   activerecord:
     attributes:
@@ -59,7 +60,6 @@ ja:
       error:
         title: エラーが発生しました
       new:
-        prompt_html: "%{client_name}があなたのアカウントにアクセスする許可を求めています。<strong>心当たりが無い場合はアクセス許可しないでください。</strong>"
         review_permissions: アクセス許可を確認
         title: 認証が必要です
       show:
@@ -70,7 +70,7 @@ ja:
       confirmations:
         revoke: 本当に取り消しますか？
       index:
-        authorized_at: '%{date}に承認されました'
+        authorized_at: "%{date}に承認されました"
         description_html: これらは、APIを使用してアカウントにアクセスできるアプリケーションです。ここに見覚えのないアプリケーションがある場合、またはアプリケーションの動作がおかしい場合、そのアクセスを取り消すことができます。
         last_used_at: 最終使用日 %{date}
         never_used: 使用されていない
@@ -82,6 +82,7 @@ ja:
         access_denied: リソースの所有者または認証サーバーが要求を拒否しました。
         credential_flow_not_configured: リソース所有者のパスワード Doorkeeper.configure.resource_owner_from_credentials が設定されていないためクレデンシャルフローに失敗しました。
         invalid_client: 不明なクライアントであるか、クライアント情報が含まれていない、またはサポートされていない認証方法のため、クライアントの認証に失敗しました。
+        invalid_code_challenge_method: code challenge methodはS256のみが利用可能です。plainはサポートされていません。
         invalid_grant: 指定された認証許可は無効であるか、期限切れ、取り消されている、リダイレクトURIの不一致、または別のクライアントに発行されています。
         invalid_redirect_uri: 無効なリダイレクトURIが含まれています。
         invalid_request:
@@ -134,6 +135,7 @@ ja:
         media: メディアの添付
         mutes: ミュート
         notifications: 通知
+        profile: Mastodonのプロフィール
         push: プッシュ通知
         reports: 通報
         search: 検索
@@ -146,38 +148,39 @@ ja:
       application:
         title: OAuth認証
     scopes:
-      "admin:read": サーバーのすべてのデータの読み取り
-      "admin:read:accounts": すべてのアカウントの機密情報の読み取り
-      "admin:read:canonical_email_blocks": すべてのブロックしたメールアドレスの読み取り
-      "admin:read:domain_allows": すべての許可したドメインの読み取り
-      "admin:read:domain_blocks": すべてのブロックしたドメインの読み取り
-      "admin:read:email_domain_blocks": すべてのブロックしたメールドメインの読み取り
-      "admin:read:ip_blocks": すべてのブロックしたIPアドレスの読み取り
-      "admin:read:reports": すべての通報と通報されたアカウントの機密情報の読み取り
-      "admin:write": サーバーのすべてのデータの変更
-      "admin:write:accounts": アカウントに対するアクションの実行
-      "admin:write:canonical_email_blocks": メールアドレスのブロックに関するアクションの実行
-      "admin:write:domain_allows": ドメイン許可に関するアクションの実行
-      "admin:write:domain_blocks": ドメインのブロックに関するアクションの実行
-      "admin:write:email_domain_blocks": メールドメインのブロックに関するアクションの実行
-      "admin:write:ip_blocks": IPアドレスのブロックに関するアクションの実行
-      "admin:write:reports": 通報に対するアクションの実行
+      admin:read: サーバーのすべてのデータの読み取り
+      admin:read:accounts: すべてのアカウントの機密情報の読み取り
+      admin:read:canonical_email_blocks: すべてのブロックしたメールアドレスの読み取り
+      admin:read:domain_allows: すべての許可したドメインの読み取り
+      admin:read:domain_blocks: すべてのブロックしたドメインの読み取り
+      admin:read:email_domain_blocks: すべてのブロックしたメールドメインの読み取り
+      admin:read:ip_blocks: すべてのブロックしたIPアドレスの読み取り
+      admin:read:reports: すべての通報と通報されたアカウントの機密情報の読み取り
+      admin:write: サーバーのすべてのデータの変更
+      admin:write:accounts: アカウントに対するアクションの実行
+      admin:write:canonical_email_blocks: メールアドレスのブロックに関するアクションの実行
+      admin:write:domain_allows: ドメイン許可に関するアクションの実行
+      admin:write:domain_blocks: ドメインのブロックに関するアクションの実行
+      admin:write:email_domain_blocks: メールドメインのブロックに関するアクションの実行
+      admin:write:ip_blocks: IPアドレスのブロックに関するアクションの実行
+      admin:write:reports: 通報に対するアクションの実行
       crypto: エンドツーエンド暗号化の使用
       follow: アカウントのつながりを変更
+      profile: アカウントのプロフィール情報の読み取りのみ
       push: プッシュ通知の受信
       read: アカウントのすべてのデータの読み取り
-      "read:accounts": アカウント情報の読み取り
-      "read:blocks": ブロックの読み取り
-      "read:bookmarks": ブックマークの読み取り
-      "read:favourites": お気に入りの読み取り
-      "read:filters": フィルターの読み取り
-      "read:follows": フォローの読み取り
-      "read:lists": リストの読み取り
-      "read:mutes": ミュートの読み取り
-      "read:notifications": 通知の読み取り
-      "read:reports": 通報の読み取り
-      "read:search": あなたの代わりに検索
-      "read:statuses": すべての投稿の読み取り
+      read:accounts: アカウント情報の読み取り
+      read:blocks: ブロックの読み取り
+      read:bookmarks: ブックマークの読み取り
+      read:favourites: お気に入りの読み取り
+      read:filters: フィルターの読み取り
+      read:follows: フォローの読み取り
+      read:lists: リストの読み取り
+      read:mutes: ミュートの読み取り
+      read:notifications: 通知の読み取り
+      read:reports: 通報の読み取り
+      read:search: あなたの代わりに検索
+      read:statuses: すべての投稿の読み取り
       write: アカウントのすべてのデータの変更
       write:accounts: プロフィールの変更
       write:blocks: ユーザーのブロックやドメインの非表示

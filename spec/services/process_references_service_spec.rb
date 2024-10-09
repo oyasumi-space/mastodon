@@ -10,6 +10,8 @@ RSpec.describe ProcessReferencesService, type: :service do
   let(:status) { Fabricate(:status, account: account, text: text, visibility: visibility) }
   let(:target_status) { Fabricate(:status, account: Fabricate(:user).account, visibility: target_status_visibility) }
   let(:target_status_uri) { ActivityPub::TagManager.instance.uri_for(target_status) }
+  let(:quote_urls) { nil }
+  let(:allow_quote) { true }
 
   def notify?(target_status_id = nil)
     target_status_id ||= target_status.id
@@ -18,7 +20,10 @@ RSpec.describe ProcessReferencesService, type: :service do
 
   describe 'posting new status' do
     subject do
-      described_class.new.call(status, reference_parameters, urls: urls, fetch_remote: fetch_remote)
+      target_status.account.user.settings['allow_quote'] = false unless allow_quote
+      target_status.account.user&.save
+
+      described_class.new.call(status, reference_parameters, urls: urls, fetch_remote: fetch_remote, quote_urls: quote_urls)
       status.reference_objects.pluck(:target_status_id, :attribute_type)
     end
 
@@ -29,11 +34,15 @@ RSpec.describe ProcessReferencesService, type: :service do
     context 'when a simple case' do
       let(:text) { "Hello RT #{target_status_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject.pluck(0)).to include target_status.id
         expect(subject.pluck(1)).to include 'RT'
         expect(notify?).to be true
+      end
+
+      it 'not quote', :inline_jobs do
+        expect(status.quote).to be_nil
       end
     end
 
@@ -42,7 +51,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:target_status2_uri) { ActivityPub::TagManager.instance.uri_for(target_status2) }
       let(:text) { "Hello RT #{target_status_uri}\nBT #{target_status2_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 2
         expect(subject).to include [target_status.id, 'RT']
         expect(subject).to include [target_status2.id, 'BT']
@@ -55,7 +64,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "Hello RT #{target_status_uri}" }
       let(:visibility) { :private }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject.pluck(0)).to include target_status.id
         expect(subject.pluck(1)).to include 'RT'
@@ -67,7 +76,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "Hello RT #{target_status_uri}" }
       let(:target_status_visibility) { :private }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 0
         expect(notify?).to be false
       end
@@ -76,7 +85,7 @@ RSpec.describe ProcessReferencesService, type: :service do
     context 'with quote' do
       let(:text) { "Hello QT #{target_status_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject.pluck(0)).to include target_status.id
         expect(subject.pluck(1)).to include 'QT'
@@ -86,12 +95,67 @@ RSpec.describe ProcessReferencesService, type: :service do
       end
     end
 
+    context 'with quote as parameter only' do
+      let(:text) { 'Hello' }
+      let(:quote_urls) { [ActivityPub::TagManager.instance.uri_for(target_status)] }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject.pluck(0)).to include target_status.id
+        expect(subject.pluck(1)).to include 'QT'
+        expect(status.quote).to_not be_nil
+        expect(status.quote.id).to eq target_status.id
+        expect(notify?).to be true
+      end
+    end
+
+    context 'with quote as parameter and embed' do
+      let(:text) { "Hello QT #{target_status_uri}" }
+      let(:quote_urls) { [ActivityPub::TagManager.instance.uri_for(target_status)] }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject.pluck(0)).to include target_status.id
+        expect(subject.pluck(1)).to include 'QT'
+        expect(status.quote).to_not be_nil
+        expect(status.quote.id).to eq target_status.id
+        expect(notify?).to be true
+      end
+    end
+
+    context 'with quote as parameter but embed is not quote' do
+      let(:text) { "Hello RE #{target_status_uri}" }
+      let(:quote_urls) { [ActivityPub::TagManager.instance.uri_for(target_status)] }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject.pluck(0)).to include target_status.id
+        expect(subject.pluck(1)).to include 'QT'
+        expect(status.quote).to_not be_nil
+        expect(status.quote.id).to eq target_status.id
+        expect(notify?).to be true
+      end
+    end
+
+    context 'when quote is rejected' do
+      let(:text) { "Hello QT #{target_status_uri}" }
+      let(:allow_quote) { false }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject.pluck(0)).to include target_status.id
+        expect(subject.pluck(1)).to include 'BT'
+        expect(status.quote).to be_nil
+        expect(notify?).to be true
+      end
+    end
+
     context 'with quote and reference' do
       let(:target_status2) { Fabricate(:status) }
       let(:target_status2_uri) { ActivityPub::TagManager.instance.uri_for(target_status2) }
       let(:text) { "Hello QT #{target_status_uri}\nBT #{target_status2_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 2
         expect(subject).to include [target_status.id, 'QT']
         expect(subject).to include [target_status2.id, 'BT']
@@ -105,9 +169,36 @@ RSpec.describe ProcessReferencesService, type: :service do
     context 'when url only' do
       let(:text) { "Hello #{target_status_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 0
         expect(notify?).to be false
+      end
+    end
+
+    context 'with fetch is blocked by admin' do
+      let(:text) { 'Hello RT https://web.example.com/note' }
+
+      before do
+        Setting.stop_fetch_activity_domains = ['web.example.com']
+        stub_request(:get, 'https://web.example.com/note').to_return(status: 404)
+      end
+
+      context 'when the post is known' do
+        let(:target_status) { Fabricate(:status, uri: 'https://example.com/note', url: 'https://web.example.com/note') }
+
+        it 'post status', :inline_jobs do
+          expect(subject.size).to eq 1
+          expect(subject.pluck(0)).to include target_status.id
+          expect(subject.pluck(1)).to include 'RT'
+          expect(notify?).to be true
+        end
+      end
+
+      context 'when the post is unknown' do
+        it 'post status', :inline_jobs do
+          expect(subject.size).to eq 0
+          expect(a_request(:get, 'https://web.example.com/note')).to_not have_been_made
+        end
       end
     end
 
@@ -133,7 +224,7 @@ RSpec.describe ProcessReferencesService, type: :service do
         stub_request(:get, 'https://example.com/not_found').to_return(status: 404)
       end
 
-      it 'reference it' do
+      it 'reference it', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject[0][1]).to eq 'BT'
 
@@ -145,7 +236,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       context 'with fetch_remote later' do
         let(:fetch_remote) { false }
 
-        it 'reference it' do
+        it 'reference it', :inline_jobs do
           ids = subject.pluck(0)
           expect(ids.size).to eq 1
 
@@ -159,7 +250,7 @@ RSpec.describe ProcessReferencesService, type: :service do
         let(:fetch_remote) { false }
         let(:text) { "RT #{ActivityPub::TagManager.instance.uri_for(target_status)} BT https://example.com/test_post" }
 
-        it 'reference it' do
+        it 'reference it', :inline_jobs do
           expect(subject.size).to eq 2
           expect(subject).to include [target_status.id, 'RT']
           expect(subject.pluck(1)).to include 'BT'
@@ -172,8 +263,78 @@ RSpec.describe ProcessReferencesService, type: :service do
       context 'with not exists reference' do
         let(:text) { 'BT https://example.com/not_found' }
 
-        it 'reference it' do
+        it 'reference it', :inline_jobs do
           expect(subject.size).to eq 0
+        end
+      end
+    end
+
+    context 'when already fetched remote post' do
+      let(:account) { Fabricate(:account, followers_url: 'http://example.com/followers', domain: 'example.com', uri: 'https://example.com/actor') }
+      let!(:remote_status) { Fabricate(:status, account: account, uri: 'https://example.com/test_post', url: 'https://example.com/test_post', text: 'Lorem ipsum') }
+      let(:object_json) do
+        {
+          id: 'https://example.com/test_post',
+          to: ActivityPub::TagManager::COLLECTIONS[:public],
+          '@context': ActivityPub::TagManager::CONTEXT,
+          type: 'Note',
+          actor: account.uri,
+          attributedTo: account.uri,
+          content: 'Lorem ipsum',
+        }
+      end
+      let(:text) { 'BT:https://example.com/test_post' }
+
+      shared_examples 'reference once' do |uri, url|
+        it 'reference it', :inline_jobs do
+          expect(subject.size).to eq 1
+          expect(subject[0][1]).to eq 'BT'
+
+          status = Status.find_by(id: subject[0][0])
+          expect(status).to_not be_nil
+          expect(status.id).to eq remote_status.id
+          expect(status.uri).to eq uri
+          expect(status.url).to eq url
+        end
+      end
+
+      before do
+        stub_request(:get, 'https://example.com/test_post').to_return(status: 200, body: Oj.dump(object_json), headers: { 'Content-Type' => 'application/activity+json' })
+      end
+
+      it_behaves_like 'reference once', 'https://example.com/test_post', 'https://example.com/test_post'
+
+      context 'when uri and url is difference and url is not accessable' do
+        let(:remote_status) { Fabricate(:status, account: account, uri: 'https://example.com/test_post', url: 'https://example.com/test_post_ohagi', text: 'Lorem ipsum') }
+        let(:text) { 'BT:https://example.com/test_post_ohagi' }
+        let(:object_json) do
+          {
+            id: 'https://example.com/test_post',
+            url: 'https://example.com/test_post_ohagi',
+            to: ActivityPub::TagManager::COLLECTIONS[:public],
+            '@context': ActivityPub::TagManager::CONTEXT,
+            type: 'Note',
+            actor: account.uri,
+            attributedTo: account.uri,
+            content: 'Lorem ipsum',
+          }
+        end
+
+        before do
+          stub_request(:get, 'https://example.com/test_post_ohagi').to_return(status: 404)
+        end
+
+        it_behaves_like 'reference once', 'https://example.com/test_post', 'https://example.com/test_post_ohagi'
+
+        it 'do not request to uri', :inline_jobs do
+          subject
+          expect(a_request(:get, 'https://example.com/test_post_ohagi')).to_not have_been_made
+        end
+
+        context 'when url and uri is specified at the same time' do
+          let(:text) { 'BT:https://example.com/test_post_ohagi BT:https://example.com/test_post' }
+
+          it_behaves_like 'reference once', 'https://example.com/test_post', 'https://example.com/test_post_ohagi'
         end
       end
     end
@@ -201,7 +362,7 @@ RSpec.describe ProcessReferencesService, type: :service do
     context 'when add reference to empty' do
       let(:new_text) { "BT #{target_status_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject).to include target_status.id
         expect(notify?).to be true
@@ -212,7 +373,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "BT #{target_status_uri}" }
       let(:new_text) { "BT #{target_status_uri}\nBT #{target_status2_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 2
         expect(subject).to include target_status.id
         expect(subject).to include target_status2.id
@@ -224,7 +385,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "BT #{target_status_uri}" }
       let(:new_text) { "BT #{target_status_uri}\nBT #{target_status_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject).to include target_status.id
       end
@@ -234,8 +395,19 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "BT #{target_status_uri}" }
       let(:new_text) { 'Hello' }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 0
+        expect(notify?).to be false
+      end
+    end
+
+    context 'when remove quote' do
+      let(:text) { "QT #{target_status_uri}" }
+      let(:new_text) { 'Hello' }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 0
+        expect(status.quote).to be_nil
         expect(notify?).to be false
       end
     end
@@ -244,10 +416,48 @@ RSpec.describe ProcessReferencesService, type: :service do
       let(:text) { "BT #{target_status_uri}" }
       let(:new_text) { "BT #{target_status2_uri}" }
 
-      it 'post status' do
+      it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject).to include target_status2.id
         expect(notify?(target_status2.id)).to be true
+      end
+    end
+
+    context 'when change quote' do
+      let(:text) { "QT #{target_status_uri}" }
+      let(:new_text) { "QT #{target_status2_uri}" }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject).to include target_status2.id
+        expect(status.quote).to_not be_nil
+        expect(status.quote.id).to eq target_status2.id
+        expect(notify?(target_status2.id)).to be true
+      end
+    end
+
+    context 'when change quote to reference' do
+      let(:text) { "QT #{target_status_uri}" }
+      let(:new_text) { "RT #{target_status_uri}" }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject).to include target_status.id
+        expect(status.quote).to be_nil
+        expect(notify?(target_status.id)).to be true
+      end
+    end
+
+    context 'when change reference to quote' do
+      let(:text) { "RT #{target_status_uri}" }
+      let(:new_text) { "QT #{target_status_uri}" }
+
+      it 'post status', :inline_jobs do
+        expect(subject.size).to eq 1
+        expect(subject).to include target_status.id
+        expect(status.quote).to_not be_nil
+        expect(status.quote.id).to eq target_status.id
+        expect(notify?(target_status.id)).to be true
       end
     end
   end

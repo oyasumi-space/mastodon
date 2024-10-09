@@ -12,44 +12,90 @@
 #  account_id      :bigint(8)        not null
 #  from_account_id :bigint(8)        not null
 #  type            :string
+#  filtered        :boolean          default(FALSE), not null
+#  group_key       :string
 #
 
 class Notification < ApplicationRecord
   self.inheritance_column = nil
 
   include Paginable
+  include Redisable
 
   LEGACY_TYPE_CLASS_MAP = {
     'Mention' => :mention,
     'Status' => :reblog,
+    'ListStatus' => :list_status,
     'Follow' => :follow,
     'FollowRequest' => :follow_request,
     'Favourite' => :favourite,
     'EmojiReaction' => :emoji_reaction,
     'StatusReference' => :status_reference,
     'Poll' => :poll,
-    'AccountWarning' => :warning,
+    'AccountWarning' => :moderation_warning,
   }.freeze
 
-  TYPES = %i(
-    mention
-    status
-    reblog
-    status_reference
-    follow
-    follow_request
-    favourite
-    emoji_reaction
-    reaction
-    poll
-    update
-    warning
-    admin.sign_up
-    admin.report
-  ).freeze
+  # `set_group_key!` needs to be updated if this list changes
+  GROUPABLE_NOTIFICATION_TYPES = %i(favourite reblog follow emoji_reaction).freeze
+  MAXIMUM_GROUP_SPAN_HOURS = 12
+
+  # Please update app/javascript/api_types/notification.ts if you change this
+  PROPERTIES = {
+    mention: {
+      filterable: true,
+    }.freeze,
+    status: {
+      filterable: false,
+    }.freeze,
+    list_status: {
+      filterable: false,
+    }.freeze,
+    reblog: {
+      filterable: true,
+    }.freeze,
+    status_reference: {
+      filterable: true,
+    }.freeze,
+    follow: {
+      filterable: true,
+    }.freeze,
+    follow_request: {
+      filterable: true,
+    }.freeze,
+    favourite: {
+      filterable: true,
+    }.freeze,
+    emoji_reaction: {
+      filterable: true,
+    }.freeze,
+    reaction: {
+      filterable: true,
+    }.freeze,
+    poll: {
+      filterable: false,
+    }.freeze,
+    update: {
+      filterable: false,
+    }.freeze,
+    severed_relationships: {
+      filterable: false,
+    }.freeze,
+    moderation_warning: {
+      filterable: false,
+    }.freeze,
+    'admin.sign_up': {
+      filterable: false,
+    }.freeze,
+    'admin.report': {
+      filterable: false,
+    }.freeze,
+  }.freeze
+
+  TYPES = PROPERTIES.keys.freeze
 
   TARGET_STATUS_INCLUDES_BY_TYPE = {
     status: :status,
+    list_status: [list_status: :status],
     reblog: [status: :reblog],
     status_reference: [status_reference: :status],
     mention: [mention: :status],
@@ -68,6 +114,7 @@ class Notification < ApplicationRecord
   with_options foreign_key: 'activity_id', optional: true do
     belongs_to :mention, inverse_of: :notification
     belongs_to :status, inverse_of: :notification
+    belongs_to :list_status, inverse_of: :notification
     belongs_to :follow, inverse_of: :notification
     belongs_to :follow_request, inverse_of: :notification
     belongs_to :favourite, inverse_of: :notification
@@ -76,6 +123,7 @@ class Notification < ApplicationRecord
     belongs_to :poll, inverse_of: false
     belongs_to :report, inverse_of: false
     belongs_to :account_warning, inverse_of: false
+    belongs_to :account_relationship_severance_event, inverse_of: false
   end
 
   validates :type, inclusion: { in: TYPES }
@@ -90,6 +138,8 @@ class Notification < ApplicationRecord
     case type
     when :status, :update
       status
+    when :list_status
+      list_status&.status
     when :reblog
       status&.reblog
     when :status_reference
@@ -105,8 +155,32 @@ class Notification < ApplicationRecord
     end
   end
 
+  def set_group_key!
+    return if filtered? || Notification::GROUPABLE_NOTIFICATION_TYPES.exclude?(type)
+
+    type_prefix = case type
+                  when :favourite, :reblog, :emoji_reaction
+                    [type, target_status&.id].join('-')
+                  when :follow
+                    type
+                  else
+                    raise NotImplementedError
+                  end
+    redis_key   = "notif-group/#{account.id}/#{type_prefix}"
+    hour_bucket = activity.created_at.utc.to_i / 1.hour.to_i
+
+    # Reuse previous group if it does not span too large an amount of time
+    previous_bucket = redis.get(redis_key).to_i
+    hour_bucket = previous_bucket if hour_bucket < previous_bucket + MAXIMUM_GROUP_SPAN_HOURS
+
+    # We do not concern ourselves with race conditions since we use hour buckets
+    redis.set(redis_key, hour_bucket, ex: MAXIMUM_GROUP_SPAN_HOURS.hours.to_i)
+
+    self.group_key = "#{type_prefix}-#{hour_bucket}"
+  end
+
   class << self
-    def browserable(types: [], exclude_types: [], from_account_id: nil)
+    def browserable(types: [], exclude_types: [], from_account_id: nil, include_filtered: false)
       requested_types = if types.empty?
                           TYPES
                         else
@@ -116,8 +190,97 @@ class Notification < ApplicationRecord
       requested_types -= exclude_types.map(&:to_sym)
 
       all.tap do |scope|
+        scope.merge!(where(filtered: false)) unless include_filtered || from_account_id.present?
         scope.merge!(where(from_account_id: from_account_id)) if from_account_id.present?
         scope.merge!(where(type: requested_types)) unless requested_types.size == TYPES.size
+      end
+    end
+
+    def paginate_groups(limit, pagination_order, grouped_types: nil)
+      raise ArgumentError unless %i(asc desc).include?(pagination_order)
+
+      query = reorder(id: pagination_order)
+
+      # Ideally `:types` would be a bind rather than part of the SQL itself, but that does not
+      # seem to be possible to do with Rails, considering that the expression would occur in
+      # multiple places, including in a `select`
+      group_key_sql = begin
+        if grouped_types.present?
+          # Normalize `grouped_types` so the number of different SQL query shapes remains small, and
+          # the queries can be analyzed in monitoring/telemetry tools
+          grouped_types = (grouped_types.map(&:to_sym) & GROUPABLE_NOTIFICATION_TYPES).sort
+
+          sanitize_sql_array([<<~SQL.squish, { types: grouped_types }])
+            COALESCE(
+              CASE
+                WHEN notifications.type IN (:types) THEN notifications.group_key
+                ELSE NULL
+              END,
+              'ungrouped-' || notifications.id
+            )
+          SQL
+        else
+          "COALESCE(notifications.group_key, 'ungrouped-' || notifications.id)"
+        end
+      end
+
+      unscoped
+        .with_recursive(
+          grouped_notifications: [
+            # Base case: fetching one notification and annotating it with visited groups
+            query
+              .select('notifications.*', "ARRAY[#{group_key_sql}] AS groups")
+              .limit(1),
+            # Recursive case, always yielding at most one annotated notification
+            unscoped
+              .from(
+                [
+                  # Expose the working table as `wt`, but quit early if we've reached the limit
+                  unscoped
+                    .select('id', 'groups')
+                    .from('grouped_notifications')
+                    .where('array_length(grouped_notifications.groups, 1) < :limit', limit: limit)
+                    .arel.as('wt'),
+                  # Recursive query, using `LATERAL` so we can refer to `wt`
+                  query
+                    .where(pagination_order == :desc ? 'notifications.id < wt.id' : 'notifications.id > wt.id')
+                    .where.not("#{group_key_sql} = ANY(wt.groups)")
+                    .limit(1)
+                    .arel.lateral('notifications'),
+                ]
+              )
+              .select('notifications.*', "array_append(wt.groups, #{group_key_sql}) AS groups"),
+          ]
+        )
+        .from('grouped_notifications AS notifications')
+        .order(id: pagination_order)
+        .limit(limit)
+    end
+
+    # This returns notifications from the request page, but with at most one notification per group.
+    # Notifications that have no `group_key` each count as a separate group.
+    def paginate_groups_by_max_id(limit, max_id: nil, since_id: nil, grouped_types: nil)
+      query = reorder(id: :desc)
+      query = query.where(id: ...(max_id.to_i)) if max_id.present?
+      query = query.where(id: (since_id.to_i + 1)...) if since_id.present?
+      query.paginate_groups(limit, :desc, grouped_types: grouped_types)
+    end
+
+    # Differs from :paginate_groups_by_max_id in that it gives the results immediately following min_id,
+    # whereas since_id gives the items with largest id, but with since_id as a cutoff.
+    # Results will be in ascending order by id.
+    def paginate_groups_by_min_id(limit, max_id: nil, min_id: nil, grouped_types: nil)
+      query = reorder(id: :asc)
+      query = query.where(id: (min_id.to_i + 1)...) if min_id.present?
+      query = query.where(id: ...(max_id.to_i)) if max_id.present?
+      query.paginate_groups(limit, :asc, grouped_types: grouped_types)
+    end
+
+    def to_a_grouped_paginated_by_id(limit, options = {})
+      if options[:min_id].present?
+        paginate_groups_by_min_id(limit, min_id: options[:min_id], max_id: options[:max_id], grouped_types: options[:grouped_types]).reverse
+      else
+        paginate_groups_by_max_id(limit, max_id: options[:max_id], since_id: options[:since_id], grouped_types: options[:grouped_types]).to_a
       end
     end
 
@@ -143,6 +306,8 @@ class Notification < ApplicationRecord
         case notification.type
         when :status, :update
           notification.status = cached_status
+        when :list_status
+          notification.list_status.status = cached_status
         when :reblog
           notification.status.reblog = cached_status
         when :status_reference
@@ -162,17 +327,10 @@ class Notification < ApplicationRecord
     end
   end
 
-  def from_account_web
-    case activity_type
-    when 'AccountWarning'
-      account_warning&.target_account
-    else
-      from_account
-    end
-  end
-
   after_initialize :set_from_account
   before_validation :set_from_account
+
+  after_destroy :remove_from_notification_request
 
   private
 
@@ -180,12 +338,22 @@ class Notification < ApplicationRecord
     return unless new_record?
 
     case activity_type
-    when 'Status', 'Follow', 'Favourite', 'EmojiReaction', 'EmojiReact', 'FollowRequest', 'Poll', 'Report', 'AccountWarning'
+    when 'Status', 'Follow', 'Favourite', 'EmojiReaction', 'EmojiReact', 'FollowRequest', 'Poll', 'Report'
       self.from_account_id = activity&.account_id
-    when 'Mention', 'StatusReference'
+    when 'Mention', 'StatusReference', 'ListStatus'
       self.from_account_id = activity&.status&.account_id
     when 'Account'
       self.from_account_id = activity&.id
+    when 'AccountRelationshipSeveranceEvent', 'AccountWarning'
+      # These do not really have an originating account, but this is mandatory
+      # in the data model, and the recipient's account will by definition
+      # always exist
+      self.from_account_id = account_id
     end
+  end
+
+  def remove_from_notification_request
+    notification_request = NotificationRequest.find_by(account_id: account_id, from_account_id: from_account_id)
+    notification_request&.reconsider_existence!
   end
 end

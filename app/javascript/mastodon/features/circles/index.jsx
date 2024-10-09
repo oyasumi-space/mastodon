@@ -4,16 +4,18 @@ import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
 
+import { createSelector } from '@reduxjs/toolkit';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
 
+
+import CirclesIcon from '@/material-icons/400-24px/account_circle-fill.svg?react';
+import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import { fetchCircles, deleteCircle } from 'mastodon/actions/circles';
 import { openModal } from 'mastodon/actions/modal';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
-import { IconButton } from 'mastodon/components/icon_button';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import ScrollableList from 'mastodon/components/scrollable_list';
 import ColumnLink from 'mastodon/features/ui/components/column_link';
@@ -95,7 +97,7 @@ class Circles extends ImmutablePureComponent {
 
     return (
       <Column bindToDocument={!multiColumn} label={intl.formatMessage(messages.heading)}>
-        <ColumnHeader title={intl.formatMessage(messages.heading)} icon='user-circle' multiColumn={multiColumn} />
+        <ColumnHeader title={intl.formatMessage(messages.heading)} icon='user-circle' iconComponent={CirclesIcon} multiColumn={multiColumn} />
 
         <NewCircleForm />
 
@@ -106,10 +108,7 @@ class Circles extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {circles.map(circle =>
-            (<div key={circle.get('id')} className='circle-item'>
-              <ColumnLink to={`#`} data-id={circle.get('id')} onClick={this.handleEditClick} icon='user-circle' text={circle.get('title')} />
-              <IconButton icon='trash' data_id={circle.get('id')} onClick={this.handleRemoveClick} />
-            </div>)
+            <ColumnLink key={circle.get('id')} to={`/circles/${circle.get('id')}`} icon='user-circle' iconComponent={CircleIcon} text={circle.get('title')} />,
           )}
         </ScrollableList>
 

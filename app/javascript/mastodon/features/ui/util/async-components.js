@@ -7,7 +7,15 @@ export function Compose () {
 }
 
 export function Notifications () {
-  return import(/* webpackChunkName: "features/notifications" */'../../notifications');
+  return import(/* webpackChunkName: "features/notifications_v1" */'../../notifications');
+}
+
+export function Notifications_v2 () {
+  return import(/* webpackChunkName: "features/notifications_v2" */'../../notifications_v2');
+}
+
+export function NotificationsWrapper () {
+  return import(/* webpackChunkName: "features/notifications" */'../../notifications_wrapper');
 }
 
 export function HomeTimeline () {
@@ -52,6 +60,10 @@ export function Antennas () {
 
 export function Circles () {
   return import(/* webpackChunkName: "features/circles" */'../../circles');
+}
+
+export function CircleStatuses () {
+  return import(/* webpackChunkName: "features/circle_statuses" */'../../circle_statuses');
 }
 
 export function Status () {
@@ -100,6 +112,10 @@ export function EmojiReactions () {
 
 export function StatusReferences () {
   return import(/* webpackChunkName: "features/status_references" */'../../status_references');
+}
+
+export function MentionedUsers () {
+  return import(/* webpackChunkName: "features/mentioned_users" */'../../mentioned_users');
 }
 
 export function FollowRequests () {
@@ -154,8 +170,16 @@ export function BlockModal () {
   return import(/* webpackChunkName: "modals/block_modal" */'../components/block_modal');
 }
 
+export function DomainBlockModal () {
+  return import(/* webpackChunkName: "modals/domain_block_modal" */'../components/domain_block_modal');
+}
+
 export function ReportModal () {
   return import(/* webpackChunkName: "modals/report_modal" */'../components/report_modal');
+}
+
+export function IgnoreNotificationsModal () {
+  return import(/* webpackChunkName: "modals/domain_block_modal" */'../components/ignore_notifications_modal');
 }
 
 export function MediaGallery () {
@@ -248,4 +272,16 @@ export function About () {
 
 export function PrivacyPolicy () {
   return import(/*webpackChunkName: "features/privacy_policy" */'../../privacy_policy');
+}
+
+export function NotificationRequests () {
+  return import(/*webpackChunkName: "features/notifications/requests" */'../../notifications/requests');
+}
+
+export function NotificationRequest () {
+  return import(/*webpackChunkName: "features/notifications/request" */'../../notifications/request');
+}
+
+export function LinkTimeline () {
+  return import(/*webpackChunkName: "features/link_timeline" */'../../link_timeline');
 }

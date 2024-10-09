@@ -19,15 +19,6 @@ RSpec.describe EmojiReactService, type: :service do
     expect(subject.first.custom_emoji_id).to be_nil
   end
 
-  context 'with name duplication on same account' do
-    before { Fabricate(:emoji_reaction, status: status, name: '😀') }
-
-    it 'react with emoji' do
-      expect(subject.count).to eq 1
-      expect(subject.first.name).to eq '😀'
-    end
-  end
-
   context 'when multiple reactions by same account' do
     let(:name) { '😂' }
 
@@ -47,6 +38,7 @@ RSpec.describe EmojiReactService, type: :service do
     it 'react with emoji' do
       expect(subject.count).to eq 1
       expect(subject.pluck(:name)).to contain_exactly('😂')
+      expect(EmojiReaction.where(status: status).count).to eq 2
     end
   end
 
@@ -56,6 +48,30 @@ RSpec.describe EmojiReactService, type: :service do
     it 'react with emoji' do
       expect(subject.count).to eq 1
       expect(subject.first.name).to eq '😀'
+      expect(EmojiReaction.where(status: status).count).to eq 2
+    end
+  end
+
+  context 'when user is silenced' do
+    before do
+      sender.silence!
+    end
+
+    it 'emoji reaction is not allowed' do
+      expect { subject }.to raise_error Mastodon::ValidationError
+    end
+  end
+
+  context 'when user is silenced but following target' do
+    before do
+      author.follow!(sender)
+      sender.silence!
+    end
+
+    it 'emoji reaction is allowed' do
+      expect(subject.count).to eq 1
+      expect(subject.first.name).to eq '😀'
+      expect(subject.first.custom_emoji_id).to be_nil
     end
   end
 
@@ -97,6 +113,33 @@ RSpec.describe EmojiReactService, type: :service do
     end
   end
 
+  context 'with ng rule' do
+    let(:name) { 'ohagi' }
+
+    context 'when rule hits' do
+      before do
+        Fabricate(:custom_emoji, shortcode: 'ohagi')
+        Fabricate(:ng_rule, reaction_type: ['emoji_reaction'])
+      end
+
+      it 'react with emoji' do
+        expect { subject }.to raise_error Mastodon::ValidationError
+      end
+    end
+
+    context 'when rule does not hit' do
+      before do
+        Fabricate(:custom_emoji, shortcode: 'ohagi')
+        Fabricate(:ng_rule, reaction_type: ['emoji_reaction'], emoji_reaction_name: 'aaa')
+      end
+
+      it 'react with emoji' do
+        expect { subject }.to_not raise_error
+        expect(subject.count).to eq 1
+      end
+    end
+  end
+
   context 'with custom emoji of remote' do
     let(:name) { 'ohagi@foo.bar' }
     let!(:custom_emoji) { Fabricate(:custom_emoji, shortcode: 'ohagi', domain: 'foo.bar', uri: 'https://foo.bar/emoji/ohagi') }
@@ -134,6 +177,122 @@ RSpec.describe EmojiReactService, type: :service do
       expect(subject.first.name).to eq 'ohagi'
       expect(subject.first.custom_emoji.id).to eq custom_emoji.id
       expect(subject.first.custom_emoji.domain).to eq 'foo.bar'
+    end
+  end
+
+  context 'with name duplication of unicode emoji on same account' do
+    before { Fabricate(:emoji_reaction, status: status, name: '😀') }
+
+    it 'react with emoji' do
+      expect(subject.count).to eq 1
+      expect(subject.first.name).to eq '😀'
+    end
+  end
+
+  context 'with name duplication of local cuetom emoji on same account' do
+    let(:name) { 'ohagi' }
+    let!(:custom_emoji) { Fabricate(:custom_emoji, shortcode: 'ohagi') }
+
+    before { Fabricate(:emoji_reaction, account: sender, status: status, name: 'ohagi', custom_emoji: custom_emoji) }
+
+    it 'react with emoji' do
+      expect { subject.count }.to raise_error Mastodon::ValidationError
+    end
+  end
+
+  context 'with name duplication of remote cuetom emoji on same account' do
+    let(:name) { 'ohagi@foo.bar' }
+    let!(:custom_emoji) { Fabricate(:custom_emoji, shortcode: 'ohagi', domain: 'foo.bar', uri: 'https://foo.bar/emoji/ohagi') }
+
+    before { Fabricate(:emoji_reaction, account: sender, status: status, name: 'ohagi', custom_emoji: custom_emoji) }
+
+    it 'react with emoji' do
+      expect { subject.count }.to raise_error Mastodon::ValidationError
+    end
+  end
+
+  context 'when remote status' do
+    let(:author) { Fabricate(:account, domain: 'author.foo.bar', uri: 'https://author.foo.bar/actor', inbox_url: 'https://author.foo.bar/inbox', protocol: 'activitypub') }
+
+    before do
+      stub_request(:post, 'https://author.foo.bar/inbox')
+    end
+
+    it 'react with emoji', :inline_jobs do
+      expect(subject.count).to eq 1
+      expect(a_request(:post, 'https://author.foo.bar/inbox').with(body: hash_including({
+        type: 'Like',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        content: '😀',
+      }))).to have_been_made.once
+    end
+
+    context 'when has followers' do
+      let!(:bob) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor', inbox_url: 'https://foo.bar/inbox', protocol: 'activitypub') }
+
+      before do
+        bob.follow!(sender)
+        stub_request(:post, 'https://foo.bar/inbox')
+      end
+
+      it 'react with emoji', :inline_jobs do
+        expect(subject.count).to eq 1
+        expect(a_request(:post, 'https://foo.bar/inbox').with(body: hash_including({
+          type: 'Like',
+          actor: ActivityPub::TagManager.instance.uri_for(sender),
+          content: '😀',
+        }))).to have_been_made.once
+      end
+    end
+  end
+
+  context 'when sender has remote followers' do
+    let!(:bob) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor', inbox_url: 'https://foo.bar/inbox', protocol: 'activitypub') }
+
+    before do
+      bob.follow!(sender)
+      stub_request(:post, 'https://foo.bar/inbox')
+    end
+
+    it 'react with emoji', :inline_jobs do
+      expect(subject.count).to eq 1
+      expect(a_request(:post, 'https://foo.bar/inbox').with(body: hash_including({
+        type: 'Like',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        content: '😀',
+      }))).to have_been_made.once
+    end
+  end
+
+  context 'when has relay server' do
+    before do
+      Fabricate(:relay, inbox_url: 'https://foo.bar/inbox', state: :accepted)
+      stub_request(:post, 'https://foo.bar/inbox')
+    end
+
+    it 'react with emoji', :inline_jobs do
+      expect(subject.count).to eq 1
+      expect(a_request(:post, 'https://foo.bar/inbox').with(body: hash_including({
+        type: 'Like',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        content: '😀',
+      }))).to have_been_made.once
+    end
+  end
+
+  context 'when has friend server' do
+    before do
+      Fabricate(:friend_domain, inbox_url: 'https://foo.bar/inbox', active_state: :accepted, pseudo_relay: true)
+      stub_request(:post, 'https://foo.bar/inbox')
+    end
+
+    it 'react with emoji', :inline_jobs do
+      expect(subject.count).to eq 1
+      expect(a_request(:post, 'https://foo.bar/inbox').with(body: hash_including({
+        type: 'Like',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        content: '😀',
+      }))).to have_been_made.once
     end
   end
 end

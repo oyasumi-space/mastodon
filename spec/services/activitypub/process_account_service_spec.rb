@@ -2,11 +2,111 @@
 
 require 'rails_helper'
 
-RSpec.describe ActivityPub::ProcessAccountService, type: :service do
+RSpec.describe ActivityPub::ProcessAccountService do
   subject { described_class.new }
 
   before do
     stub_request(:get, 'https://example.com/.well-known/nodeinfo').to_return(status: 404)
+  end
+
+  describe 'about blocking new remote account' do
+    subject { described_class.new.call('alice', 'example.com', payload) }
+
+    let(:hold_remote_new_accounts) { true }
+    let(:permit_domain) { nil }
+    let(:payload) do
+      {
+        id: 'https://foo.test',
+        type: 'Actor',
+        inbox: 'https://foo.test/inbox',
+        actor_type: 'Person',
+        summary: 'new bio',
+      }.with_indifferent_access
+    end
+
+    before do
+      Setting.hold_remote_new_accounts = hold_remote_new_accounts
+      Fabricate(:specified_domain, domain: permit_domain, table: 0) if permit_domain
+    end
+
+    it 'creates pending account in a simple case' do
+      expect(subject).to_not be_nil
+      expect(subject.uri).to eq 'https://foo.test'
+      expect(subject.suspended?).to be true
+      expect(subject.remote_pending).to be true
+    end
+
+    context 'when is blocked' do
+      let(:permit_domain) { 'foo.bar' }
+
+      it 'creates pending account' do
+        expect(subject).to_not be_nil
+        expect(subject.suspended?).to be true
+        expect(subject.remote_pending).to be true
+      end
+
+      context 'when the domain is not on list but hold_remote_new_accounts is disabled' do
+        let(:hold_remote_new_accounts) { false }
+
+        it 'creates normal account' do
+          expect(subject).to_not be_nil
+          expect(subject.suspended?).to be false
+          expect(subject.remote_pending).to be false
+        end
+      end
+
+      context 'with has existing account' do
+        before do
+          Fabricate(:account, uri: 'https://foo.test', domain: 'example.com', username: 'alice', note: 'old bio')
+        end
+
+        it 'updated account' do
+          expect(subject).to_not be_nil
+          expect(subject.suspended?).to be false
+          expect(subject.remote_pending).to be false
+          expect(subject.note).to eq 'new bio'
+        end
+      end
+
+      context 'with has existing suspended pending account' do
+        before do
+          Fabricate(:account, uri: 'https://foo.test', domain: 'example.com', username: 'alice', note: 'old bio', suspended_at: 1.day.ago, remote_pending: true, suspension_origin: :local)
+        end
+
+        it 'updated account' do
+          expect(subject).to_not be_nil
+          expect(subject.suspended?).to be true
+          expect(subject.remote_pending).to be true
+          expect(subject.suspension_origin_local?).to be true
+          expect(subject.note).to eq 'new bio'
+        end
+      end
+
+      context 'with has existing suspended account' do
+        before do
+          Fabricate(:account, uri: 'https://foo.test', domain: 'example.com', username: 'alice', note: 'old bio', suspended_at: 1.day.ago, suspension_origin: :local)
+        end
+
+        it 'does not update account' do
+          expect(subject).to_not be_nil
+          expect(subject.suspended?).to be true
+          expect(subject.remote_pending).to be false
+          expect(subject.suspension_origin_local?).to be true
+          expect(subject.note).to eq 'old bio'
+        end
+      end
+    end
+
+    context 'when is in whitelist' do
+      let(:permit_domain) { 'example.com' }
+
+      it 'does not create account' do
+        expect(subject).to_not be_nil
+        expect(subject.uri).to eq 'https://foo.test'
+        expect(subject.suspended?).to be false
+        expect(subject.remote_pending).to be false
+      end
+    end
   end
 
   context 'with searchability' do
@@ -25,6 +125,7 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
         searchableBy: searchable_by,
         indexable: indexable,
         summary: sender_bio,
+        actor_type: 'Person',
       }.with_indifferent_access
     end
 
@@ -64,19 +165,19 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    context 'when limited old spec' do
-      let(:searchable_by) { 'as:Limited' }
-
-      it 'searchability is limited' do
-        expect(subject.searchability).to eq 'limited'
-      end
-    end
-
     context 'when empty array' do
       let(:searchable_by) { '' }
 
       it 'searchability is direct' do
         expect(subject.searchability).to eq 'direct'
+      end
+    end
+
+    context 'when unintended value' do
+      let(:searchable_by) { 'ohagi' }
+
+      it 'searchability is direct' do
+        expect(subject.searchability).to eq 'limited'
       end
     end
 
@@ -167,6 +268,71 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
   end
 
+  context 'with subscription policy' do
+    subject { described_class.new.call('alice', 'example.com', payload) }
+
+    let(:subscribable_by) { 'https://www.w3.org/ns/activitystreams#Public' }
+    let(:sender_bio) { '' }
+    let(:payload) do
+      {
+        id: 'https://foo.test',
+        type: 'Actor',
+        inbox: 'https://foo.test/inbox',
+        followers: 'https://example.com/followers',
+        subscribableBy: subscribable_by,
+        summary: sender_bio,
+        actor_type: 'Person',
+      }.with_indifferent_access
+    end
+
+    before do
+      stub_request(:get, 'https://example.com/.well-known/nodeinfo').to_return(body: '{}')
+      stub_request(:get, 'https://example.com/followers').to_return(body: '[]')
+    end
+
+    context 'when public' do
+      it 'subscription policy is allow' do
+        expect(subject.subscription_policy.to_s).to eq 'allow'
+      end
+    end
+
+    context 'when private' do
+      let(:subscribable_by) { 'https://example.com/followers' }
+
+      it 'subscription policy is followers_only' do
+        expect(subject.subscription_policy.to_s).to eq 'followers_only'
+      end
+    end
+
+    context 'when empty' do
+      let(:subscribable_by) { '' }
+
+      it 'subscription policy is block' do
+        expect(subject.subscription_policy.to_s).to eq 'block'
+      end
+    end
+
+    context 'when default value' do
+      let(:subscribable_by) { nil }
+
+      it 'subscription policy is allow' do
+        expect(subject.subscription_policy.to_s).to eq 'allow'
+      end
+    end
+
+    context 'with bio' do
+      let(:subscribable_by) { nil }
+
+      context 'with no-subscribe' do
+        let(:sender_bio) { '[subscribable:no]' }
+
+        it 'subscription policy is block' do
+          expect(subject.subscription_policy.to_s).to eq 'block'
+        end
+      end
+    end
+  end
+
   context 'with property values, an avatar, and a profile header' do
     let(:payload) do
       {
@@ -226,6 +392,32 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
   end
 
+  context 'with other settings' do
+    let(:payload) do
+      {
+        id: 'https://foo.test',
+        type: 'Actor',
+        inbox: 'https://foo.test/inbox',
+        otherSetting: [
+          { type: 'PropertyValue', name: 'Pronouns', value: 'They/them' },
+          { type: 'PropertyValue', name: 'Occupation', value: 'Unit test' },
+        ],
+      }.with_indifferent_access
+    end
+
+    before do
+      stub_request(:get, 'https://example.com/.well-known/nodeinfo').to_return(body: '{}')
+    end
+
+    it 'parses out of attachment' do
+      account = subject.call('alice', 'example.com', payload)
+      expect(account.settings).to be_a Hash
+      expect(account.settings.size).to eq 2
+      expect(account.settings['Pronouns']).to eq 'They/them'
+      expect(account.settings['Occupation']).to eq 'Unit test'
+    end
+  end
+
   context 'when account is using note contains ng words' do
     subject { described_class.new.call(account.username, account.domain, payload) }
 
@@ -241,20 +433,49 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
     end
 
     it 'creates account when ng word is not set' do
-      Setting.ng_words = ['Amazon']
+      Fabricate(:ng_word, keyword: 'Amazon', stranger: false)
       subject
       expect(account.reload.display_name).to eq 'Ohagi'
+
+      history = NgwordHistory.find_by(uri: payload[:id])
+      expect(history).to be_nil
     end
 
     it 'does not create account when ng word is set' do
-      Setting.ng_words = ['Ohagi']
+      Fabricate(:ng_word, keyword: 'Ohagi', stranger: false)
       subject
       expect(account.reload.display_name).to_not eq 'Ohagi'
+
+      history = NgwordHistory.find_by(uri: payload[:id])
+      expect(history).to_not be_nil
+      expect(history.account_name_blocked?).to be true
+      expect(history.within_ng_words?).to be true
+      expect(history.keyword).to eq 'Ohagi'
+    end
+  end
+
+  context 'with attribution domains' do
+    let(:payload) do
+      {
+        id: 'https://foo.test',
+        type: 'Actor',
+        inbox: 'https://foo.test/inbox',
+        attributionDomains: [
+          'example.com',
+        ],
+      }.with_indifferent_access
+    end
+
+    it 'parses attribution domains' do
+      account = subject.call('alice', 'example.com', payload)
+
+      expect(account.attribution_domains)
+        .to match_array(%w(example.com))
     end
   end
 
   context 'when account is not suspended' do
-    subject { described_class.new.call('alice', 'example.com', payload) }
+    subject { described_class.new.call(account.username, account.domain, payload) }
 
     let!(:account) { Fabricate(:account, username: 'alice', domain: 'example.com') }
 
@@ -353,12 +574,10 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    it 'creates at least some accounts' do
-      expect { subject }.to change { Account.remote.count }.by_at_least(2)
-    end
-
-    it 'creates no more account than the limit allows' do
-      expect { subject }.to change { Account.remote.count }.by_at_most(5)
+    it 'creates accounts without exceeding rate limit' do
+      expect { subject }
+        .to create_some_remote_accounts
+        .and create_fewer_than_rate_limit_accounts
     end
   end
 
@@ -420,12 +639,20 @@ RSpec.describe ActivityPub::ProcessAccountService, type: :service do
       end
     end
 
-    it 'creates at least some accounts' do
-      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_least(2)
+    it 'creates accounts without exceeding rate limit', :inline_jobs do
+      expect { subject.call('user1', 'foo.test', payload) }
+        .to create_some_remote_accounts
+        .and create_fewer_than_rate_limit_accounts
     end
+  end
 
-    it 'creates no more account than the limit allows' do
-      expect { subject.call('user1', 'foo.test', payload) }.to change { Account.remote.count }.by_at_most(5)
-    end
+  private
+
+  def create_some_remote_accounts
+    change(Account.remote, :count).by_at_least(2)
+  end
+
+  def create_fewer_than_rate_limit_accounts
+    change(Account.remote, :count).by_at_most(5)
   end
 end

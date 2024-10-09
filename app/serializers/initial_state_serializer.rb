@@ -3,6 +3,7 @@
 class InitialStateSerializer < ActiveModel::Serializer
   include RoutingHelper
   include DtlHelper
+  include RegistrationLimitationHelper
 
   attributes :meta, :compose, :accounts,
              :media_attachments, :settings,
@@ -14,60 +15,51 @@ class InitialStateSerializer < ActiveModel::Serializer
   has_one :role, serializer: REST::RoleSerializer
 
   def meta
-    store = {
-      streaming_api_base_url: Rails.configuration.x.streaming_api_base_url,
-      access_token: object.token,
-      locale: I18n.locale,
-      domain: Addressable::IDNA.to_unicode(instance_presenter.domain),
-      title: instance_presenter.title,
-      admin: object.admin&.id&.to_s,
-      search_enabled: Chewy.enabled?,
-      repository: Mastodon::Version.repository,
-      source_url: instance_presenter.source_url,
-      version: instance_presenter.version,
-      limited_federation_mode: Rails.configuration.x.limited_federation_mode,
-      mascot: instance_presenter.mascot&.file&.url,
-      profile_directory: Setting.profile_directory,
-      trends_enabled: Setting.trends,
-      registrations_open: Setting.registrations_mode != 'none' && !Rails.configuration.x.single_user_mode,
-      timeline_preview: Setting.timeline_preview,
-      activity_api_enabled: Setting.activity_api_enabled,
-      single_user_mode: Rails.configuration.x.single_user_mode,
-      trends_as_landing_page: Setting.trends_as_landing_page,
-      status_page_url: Setting.status_page_url,
-      sso_redirect: sso_redirect,
-      dtl_tag: DTL_ENABLED ? DTL_TAG : nil,
-    }
+    store = default_meta_store
 
     if object.current_account
       store[:me]                = object.current_account.id.to_s
-      store[:unfollow_modal]    = object.current_account.user.setting_unfollow_modal
-      store[:boost_modal]       = object.current_account.user.setting_boost_modal
-      store[:delete_modal]      = object.current_account.user.setting_delete_modal
-      store[:auto_play_gif]     = object.current_account.user.setting_auto_play_gif
-      store[:display_media]     = object.current_account.user.setting_display_media
-      store[:display_media_expand] = object.current_account.user.setting_display_media_expand
-      store[:expand_spoilers] = object.current_account.user.setting_expand_spoilers
-      store[:enable_emoji_reaction] = object.current_account.user.setting_enable_emoji_reaction && Setting.enable_emoji_reaction
-      store[:show_emoji_reaction_on_timeline] = object.current_account.user.setting_show_emoji_reaction_on_timeline
-      store[:enable_login_privacy] = object.current_account.user.setting_enable_login_privacy
-      store[:enable_dtl_menu] = object.current_account.user.setting_enable_dtl_menu
-      store[:hide_recent_emojis] = object.current_account.user.setting_hide_recent_emojis
-      store[:reduce_motion]     = object.current_account.user.setting_reduce_motion
-      store[:disable_swiping]   = object.current_account.user.setting_disable_swiping
-      store[:advanced_layout]   = object.current_account.user.setting_advanced_layout
-      store[:use_blurhash]      = object.current_account.user.setting_use_blurhash
-      store[:use_pending_items] = object.current_account.user.setting_use_pending_items
-      store[:show_trends]       = Setting.trends && object.current_account.user.setting_trends
-      store[:bookmark_category_needed] = object.current_account.user.setting_bookmark_category_needed
-      store[:simple_timeline_menu] = object.current_account.user.setting_simple_timeline_menu
+      store[:boost_modal]       = object_account_user.setting_boost_modal
+      store[:delete_modal]      = object_account_user.setting_delete_modal
+      store[:auto_play_gif]     = object_account_user.setting_auto_play_gif
+      store[:display_media]     = object_account_user.setting_display_media
+      store[:expand_spoilers] = object_account_user.setting_expand_spoilers
+      store[:enable_emoji_reaction] = object_account_user.setting_enable_emoji_reaction && Setting.enable_emoji_reaction
+      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu
+      store[:reduce_motion]     = object_account_user.setting_reduce_motion
+      store[:disable_swiping]   = object_account_user.setting_disable_swiping
+      store[:disable_hover_cards] = object_account_user.setting_disable_hover_cards
+      store[:advanced_layout]   = object_account_user.setting_advanced_layout
+      store[:use_blurhash]      = object_account_user.setting_use_blurhash
+      store[:use_pending_items] = object_account_user.setting_use_pending_items
+      store[:show_trends]       = Setting.trends && object_account_user.setting_trends
+      store[:bookmark_category_needed] = object_account_user.setting_bookmark_category_needed
+      store[:simple_timeline_menu] = object_account_user.setting_simple_timeline_menu
+      store[:boost_menu] = object_account_user.setting_boost_menu
+      store[:hide_items] = [
+        object_account_user.setting_hide_favourite_menu ? 'favourite_menu' : nil,
+        object_account_user.setting_hide_recent_emojis ? 'recent_emojis' : nil,
+        object_account_user.setting_hide_blocking_quote ? 'blocking_quote' : nil,
+        object_account_user.setting_hide_emoji_reaction_unavailable_server ? 'emoji_reaction_unavailable_server' : nil,
+        object_account_user.setting_hide_quote_unavailable_server ? 'quote_unavailable_server' : nil,
+        object_account_user.setting_hide_status_reference_unavailable_server ? 'status_reference_unavailable_server' : nil,
+        object_account_user.setting_hide_emoji_reaction_count ? 'emoji_reaction_count' : nil,
+        object_account_user.setting_show_emoji_reaction_on_timeline ? nil : 'emoji_reaction_on_timeline',
+        object_account_user.setting_show_quote_in_home ? nil : 'quote_in_home',
+        object_account_user.setting_show_quote_in_public ? nil : 'quote_in_public',
+        object_account_user.setting_show_relationships ? nil : 'relationships',
+      ].compact
+      store[:enabled_visibilities] = enabled_visibilities
+      store[:featured_tags] = object.current_account.featured_tags.pluck(:name)
     else
       store[:auto_play_gif] = Setting.auto_play_gif
       store[:display_media] = Setting.display_media
       store[:reduce_motion] = Setting.reduce_motion
       store[:use_blurhash]  = Setting.use_blurhash
       store[:enable_emoji_reaction] = Setting.enable_emoji_reaction
-      store[:show_emoji_reaction_on_timeline] = Setting.enable_emoji_reaction
+      store[:hide_items] = [
+        Setting.enable_emoji_reaction ? nil : 'emoji_reaction_on_timeline',
+      ].compact
     end
 
     store[:disabled_account_id] = object.disabled_account.id.to_s if object.disabled_account
@@ -83,11 +75,11 @@ class InitialStateSerializer < ActiveModel::Serializer
 
     if object.current_account
       store[:me]                    = object.current_account.id.to_s
-      store[:default_privacy]       = object.visibility || object.current_account.user.setting_default_privacy
-      store[:stay_privacy]          = object.current_account.user.setting_stay_privacy
-      store[:default_searchability] = object.searchability || object.current_account.user.setting_default_searchability
-      store[:default_sensitive]     = object.current_account.user.setting_default_sensitive
-      store[:default_language]      = object.current_account.user.preferred_posting_language
+      store[:default_privacy]       = object.visibility || object_account_user.setting_default_privacy
+      store[:stay_privacy]          = object_account_user.setting_stay_privacy
+      store[:default_searchability] = object.searchability || object_account_user.setting_default_searchability
+      store[:default_sensitive]     = object_account_user.setting_default_sensitive
+      store[:default_language]      = object_account_user.preferred_posting_language
     end
 
     store[:text] = object.text if object.text
@@ -103,11 +95,11 @@ class InitialStateSerializer < ActiveModel::Serializer
       associations: [:account_stat, { user: :role, moved_to_account: [:account_stat, { user: :role }] }]
     ).call
 
-    store[object.current_account.id.to_s]  = ActiveModelSerializers::SerializableResource.new(object.current_account, serializer: REST::AccountSerializer) if object.current_account
-    store[object.admin.id.to_s]            = ActiveModelSerializers::SerializableResource.new(object.admin, serializer: REST::AccountSerializer) if object.admin
-    store[object.owner.id.to_s]            = ActiveModelSerializers::SerializableResource.new(object.owner, serializer: REST::AccountSerializer) if object.owner
-    store[object.disabled_account.id.to_s] = ActiveModelSerializers::SerializableResource.new(object.disabled_account, serializer: REST::AccountSerializer) if object.disabled_account
-    store[object.moved_to_account.id.to_s] = ActiveModelSerializers::SerializableResource.new(object.moved_to_account, serializer: REST::AccountSerializer) if object.moved_to_account
+    store[object.current_account.id.to_s]  = serialized_account(object.current_account) if object.current_account
+    store[object.admin.id.to_s]            = serialized_account(object.admin) if object.admin
+    store[object.owner.id.to_s]            = serialized_account(object.owner) if object.owner
+    store[object.disabled_account.id.to_s] = serialized_account(object.disabled_account) if object.disabled_account
+    store[object.moved_to_account.id.to_s] = serialized_account(object.moved_to_account) if object.moved_to_account
 
     store
   end
@@ -120,7 +112,51 @@ class InitialStateSerializer < ActiveModel::Serializer
     LanguagesHelper::SUPPORTED_LOCALES.map { |(key, value)| [key, value[0], value[1]] }
   end
 
+  def enabled_visibilities
+    vs = object_account_user.setting_enabled_visibilities
+    vs -= %w(public_unlisted) unless Setting.enable_public_unlisted_visibility
+    vs -= %w(public) unless Setting.enable_public_visibility
+    vs
+  end
+
   private
+
+  def default_meta_store
+    {
+      access_token: object.token,
+      activity_api_enabled: Setting.activity_api_enabled,
+      admin: object.admin&.id&.to_s,
+      domain: Addressable::IDNA.to_unicode(instance_presenter.domain),
+      dtl_tag: dtl_enabled? ? dtl_tag_name : nil,
+      enable_local_timeline: Setting.enable_local_timeline,
+      limited_federation_mode: Rails.configuration.x.limited_federation_mode,
+      locale: I18n.locale,
+      mascot: instance_presenter.mascot&.file&.url,
+      profile_directory: Setting.profile_directory,
+      registrations_open: Setting.registrations_mode != 'none' && !reach_registrations_limit? && !Rails.configuration.x.single_user_mode,
+      registrations_reach_limit: Setting.registrations_mode != 'none' && reach_registrations_limit?,
+      repository: Mastodon::Version.repository,
+      search_enabled: Chewy.enabled?,
+      single_user_mode: Rails.configuration.x.single_user_mode,
+      source_url: instance_presenter.source_url,
+      sso_redirect: sso_redirect,
+      status_page_url: Setting.status_page_url,
+      streaming_api_base_url: Rails.configuration.x.streaming_api_base_url,
+      timeline_preview: Setting.timeline_preview,
+      title: instance_presenter.title,
+      trends_as_landing_page: Setting.trends_as_landing_page,
+      trends_enabled: Setting.trends,
+      version: instance_presenter.version,
+    }
+  end
+
+  def object_account_user
+    object.current_account.user
+  end
+
+  def serialized_account(account)
+    ActiveModelSerializers::SerializableResource.new(account, serializer: REST::AccountSerializer)
+  end
 
   def instance_presenter
     @instance_presenter ||= InstancePresenter.new

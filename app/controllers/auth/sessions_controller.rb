@@ -7,24 +7,17 @@ class Auth::SessionsController < Devise::SessionsController
 
   layout 'auth'
 
+  skip_before_action :check_self_destruct!
   skip_before_action :require_no_authentication, only: [:create]
   skip_before_action :require_functional!
   skip_before_action :update_user_sign_in
 
   prepend_before_action :check_suspicious!, only: [:create]
 
-  include TwoFactorAuthenticationConcern
-
-  before_action :set_instance_presenter, only: [:new]
-  before_action :set_body_classes
+  include Auth::TwoFactorAuthenticationConcern
 
   content_security_policy only: :new do |p|
     p.form_action(false)
-  end
-
-  def check_suspicious!
-    user = find_user
-    @login_is_suspicious = suspicious_sign_in?(user) unless user.nil?
   end
 
   def create
@@ -80,7 +73,11 @@ class Auth::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    params.require(:user).permit(:email, :password, :otp_attempt, credential: {})
+    params.require(:user).permit(:email, :password, :otp_attempt, :disable_css, credential: {})
+  end
+
+  def login_page_params
+    params.permit(:with_options)
   end
 
   def after_sign_in_path_for(resource)
@@ -103,12 +100,9 @@ class Auth::SessionsController < Devise::SessionsController
 
   private
 
-  def set_instance_presenter
-    @instance_presenter = InstancePresenter.new
-  end
-
-  def set_body_classes
-    @body_classes = 'lighter'
+  def check_suspicious!
+    user = find_user
+    @login_is_suspicious = suspicious_sign_in?(user) unless user.nil?
   end
 
   def home_paths(resource)
@@ -122,6 +116,11 @@ class Auth::SessionsController < Devise::SessionsController
   def continue_after?
     truthy_param?(:continue)
   end
+
+  def with_login_options?
+    login_page_params[:with_options] == '1'
+  end
+  helper_method :with_login_options?
 
   def restart_session
     clear_attempt_from_session
@@ -161,6 +160,8 @@ class Auth::SessionsController < Devise::SessionsController
     sign_in(user)
     flash.delete(:notice)
 
+    disable_custom_css!(user) if disable_custom_css?
+
     LoginActivity.create(
       user: user,
       success: true,
@@ -170,6 +171,15 @@ class Auth::SessionsController < Devise::SessionsController
     )
 
     UserMailer.suspicious_sign_in(user, request.remote_ip, request.user_agent, Time.now.utc).deliver_later! if @login_is_suspicious
+  end
+
+  def disable_custom_css?
+    user_params[:disable_css].present? && user_params[:disable_css] != '0'
+  end
+
+  def disable_custom_css!(user)
+    user.settings['web.use_custom_css'] = false
+    user.save!
   end
 
   def suspicious_sign_in?(user)
@@ -185,6 +195,28 @@ class Auth::SessionsController < Devise::SessionsController
       ip: request.remote_ip,
       user_agent: request.user_agent
     )
+
+    # Only send a notification email every hour at most
+    return if redis.get("2fa_failure_notification:#{user.id}").present?
+
+    redis.set("2fa_failure_notification:#{user.id}", '1', ex: 1.hour)
+
+    UserMailer.failed_2fa(user, request.remote_ip, request.user_agent, Time.now.utc).deliver_later!
+  end
+
+  def second_factor_attempts_key(user)
+    "2fa_auth_attempts:#{user.id}:#{Time.now.utc.hour}"
+  end
+
+  def respond_to_on_destroy
+    respond_to do |format|
+      format.json do
+        render json: {
+          redirect_to: after_sign_out_path_for(resource_name),
+        }, status: 200
+      end
+      format.all { super }
+    end
   end
 
   def second_factor_attempts_key(user)

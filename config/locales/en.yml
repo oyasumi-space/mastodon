@@ -7,7 +7,6 @@ en:
     hosted_on: Mastodon hosted on %{domain}
     title: About
   accounts:
-    follow: Follow
     followers:
       one: Follower
       other: Followers
@@ -25,14 +24,18 @@ en:
   admin:
     account_actions:
       action: Perform action
+      already_silenced: This account has already been limited.
+      already_suspended: This account has already been suspended.
       title: Perform moderation action on %{acct}
     account_moderation_notes:
       create: Leave note
       created_msg: Moderation note successfully created!
       destroyed_msg: Moderation note successfully destroyed!
     accounts:
-      add_email_domain_block: Block e-mail domain
+      add_email_domain_block: Block email domain
       approve: Approve
+      approve_domain: Approve domain
+      approve_remote: Approve remote account
       approved_msg: Successfully approved %{username}'s sign-up application
       are_you_sure: Are you sure?
       avatar: Avatar
@@ -46,6 +49,7 @@ en:
         title: Change email for %{username}
       change_role:
         changed_msg: Role successfully changed!
+        edit_roles: Manage user roles
         label: Change role
         no_role: No role
         title: Change role for %{username}
@@ -58,7 +62,7 @@ en:
       demote: Demote
       destroyed_msg: "%{username}'s data is now queued to be deleted imminently"
       disable: Freeze
-      disable_sign_in_token_auth: Disable e-mail token authentication
+      disable_sign_in_token_auth: Disable email token authentication
       disable_two_factor_authentication: Disable 2FA
       disabled: Frozen
       display_name: Display name
@@ -67,7 +71,7 @@ en:
       email: Email
       email_status: Email status
       enable: Unfreeze
-      enable_sign_in_token_auth: Enable e-mail token authentication
+      enable_sign_in_token_auth: Enable email token authentication
       enabled: Enabled
       enabled_msg: Successfully unfroze %{username}'s account
       followers: Followers
@@ -93,6 +97,7 @@ en:
         all: All
         disabled: Disabled
         pending: Pending
+        remote_pending: Pending (Remote)
         silenced: Limited
         suspended: Suspended
         title: Moderation
@@ -116,7 +121,9 @@ en:
       redownload: Refresh profile
       redownloaded_msg: Successfully refreshed %{username}'s profile from origin
       reject: Reject
+      reject_remote: Reject remote account
       rejected_msg: Successfully rejected %{username}'s sign-up application
+      remote_pending_hint_html: This account is currently on hold and temporarily suspended. The account must be approved before it can be made available on this server.
       remote_suspension_irreversible: The data of this account has been irreversibly deleted.
       remote_suspension_reversible_hint_html: The account has been suspended on their server, and the data will be fully removed on %{date}. Until then, the remote server can restore this account without any ill effects. If you wish to remove all of the account's data immediately, you can do so below.
       remove_avatar: Remove avatar
@@ -132,7 +139,7 @@ en:
       resubscribe: Resubscribe
       role: Role
       search: Search
-      search_same_email_domain: Other users with the same e-mail domain
+      search_same_email_domain: Other users with the same email domain
       search_same_ip: Other users with the same IP
       security: Security
       security_measures:
@@ -171,28 +178,29 @@ en:
     action_logs:
       action_types:
         approve_appeal: Approve Appeal
+        approve_remote_account: Approve Remote Account
         approve_user: Approve User
         assigned_to_self_report: Assign Report
-        change_email_user: Change E-mail for User
+        change_email_user: Change Email for User
         change_role_user: Change Role of User
         confirm_user: Confirm User
         create_account_warning: Create Warning
         create_announcement: Create Announcement
-        create_canonical_email_block: Create E-mail Block
+        create_canonical_email_block: Create Email Block
         create_custom_emoji: Create Custom Emoji
         create_domain_allow: Create Domain Allow
         create_domain_block: Create Domain Block
-        create_email_domain_block: Create E-mail Domain Block
+        create_email_domain_block: Create Email Domain Block
         create_ip_block: Create IP rule
         create_unavailable_domain: Create Unavailable Domain
         create_user_role: Create Role
         demote_user: Demote User
         destroy_announcement: Delete Announcement
-        destroy_canonical_email_block: Delete E-mail Block
+        destroy_canonical_email_block: Delete Email Block
         destroy_custom_emoji: Delete Custom Emoji
         destroy_domain_allow: Delete Domain Allow
         destroy_domain_block: Delete Domain Block
-        destroy_email_domain_block: Delete E-mail Domain Block
+        destroy_email_domain_block: Delete Email Domain Block
         destroy_instance: Purge Domain
         destroy_ip_block: Delete IP rule
         destroy_status: Delete Post
@@ -200,14 +208,17 @@ en:
         destroy_user_role: Destroy Role
         disable_2fa_user: Disable 2FA
         disable_custom_emoji: Disable Custom Emoji
-        disable_sign_in_token_auth_user: Disable E-mail Token Authentication for User
+        disable_sign_in_token_auth_user: Disable Email Token Authentication for User
         disable_user: Disable User
         enable_custom_emoji: Enable Custom Emoji
-        enable_sign_in_token_auth_user: Enable E-mail Token Authentication for User
+        enable_sign_in_token_auth_user: Enable Email Token Authentication for User
         enable_user: Enable User
+        force_cw_status: Add CW to Post
+        force_sensitive_status: Add Sensitive Flag to Post
         memorialize_account: Memorialize Account
         promote_user: Promote User
         reject_appeal: Reject Appeal
+        reject_remote_account: Reject Remote Account
         reject_user: Reject User
         remove_avatar_user: Remove Avatar
         reopen_report: Reopen Report
@@ -226,32 +237,34 @@ en:
         update_custom_emoji: Update Custom Emoji
         update_domain_block: Update Domain Block
         update_ip_block: Update IP rule
+        update_report: Update Report
         update_status: Update Post
         update_user_role: Update Role
       actions:
         approve_appeal_html: "%{name} approved moderation decision appeal from %{target}"
+        approve_remote_account_html: "%{name} approved %{target} join on this server"
         approve_user_html: "%{name} approved sign-up from %{target}"
         assigned_to_self_report_html: "%{name} assigned report %{target} to themselves"
-        change_email_user_html: "%{name} changed the e-mail address of user %{target}"
+        change_email_user_html: "%{name} changed the email address of user %{target}"
         change_role_user_html: "%{name} changed role of %{target}"
-        confirm_user_html: "%{name} confirmed e-mail address of user %{target}"
+        confirm_user_html: "%{name} confirmed email address of user %{target}"
         create_account_warning_html: "%{name} sent a warning to %{target}"
         create_announcement_html: "%{name} created new announcement %{target}"
-        create_canonical_email_block_html: "%{name} blocked e-mail with the hash %{target}"
+        create_canonical_email_block_html: "%{name} blocked email with the hash %{target}"
         create_custom_emoji_html: "%{name} uploaded new emoji %{target}"
         create_domain_allow_html: "%{name} allowed federation with domain %{target}"
         create_domain_block_html: "%{name} blocked domain %{target}"
-        create_email_domain_block_html: "%{name} blocked e-mail domain %{target}"
+        create_email_domain_block_html: "%{name} blocked email domain %{target}"
         create_ip_block_html: "%{name} created rule for IP %{target}"
         create_unavailable_domain_html: "%{name} stopped delivery to domain %{target}"
         create_user_role_html: "%{name} created %{target} role"
         demote_user_html: "%{name} demoted user %{target}"
         destroy_announcement_html: "%{name} deleted announcement %{target}"
-        destroy_canonical_email_block_html: "%{name} unblocked e-mail with the hash %{target}"
+        destroy_canonical_email_block_html: "%{name} unblocked email with the hash %{target}"
         destroy_custom_emoji_html: "%{name} deleted emoji %{target}"
         destroy_domain_allow_html: "%{name} disallowed federation with domain %{target}"
         destroy_domain_block_html: "%{name} unblocked domain %{target}"
-        destroy_email_domain_block_html: "%{name} unblocked e-mail domain %{target}"
+        destroy_email_domain_block_html: "%{name} unblocked email domain %{target}"
         destroy_instance_html: "%{name} purged domain %{target}"
         destroy_ip_block_html: "%{name} deleted rule for IP %{target}"
         destroy_status_html: "%{name} removed post by %{target}"
@@ -259,23 +272,24 @@ en:
         destroy_user_role_html: "%{name} deleted %{target} role"
         disable_2fa_user_html: "%{name} disabled two factor requirement for user %{target}"
         disable_custom_emoji_html: "%{name} disabled emoji %{target}"
-        disable_sign_in_token_auth_user_html: "%{name} disabled e-mail token authentication for %{target}"
+        disable_sign_in_token_auth_user_html: "%{name} disabled email token authentication for %{target}"
         disable_user_html: "%{name} disabled login for user %{target}"
         enable_custom_emoji_html: "%{name} enabled emoji %{target}"
-        enable_sign_in_token_auth_user_html: "%{name} enabled e-mail token authentication for %{target}"
+        enable_sign_in_token_auth_user_html: "%{name} enabled email token authentication for %{target}"
         enable_user_html: "%{name} enabled login for user %{target}"
         force_cw_status_html: "%{name} turned post by %{target} cw"
         force_sensitive_status_html: "%{name} turned post by %{target} sensitive"
         memorialize_account_html: "%{name} turned %{target}'s account into a memoriam page"
         promote_user_html: "%{name} promoted user %{target}"
         reject_appeal_html: "%{name} rejected moderation decision appeal from %{target}"
+        reject_remote_account_html: "%{name} rejected %{target} join on this server"
         reject_user_html: "%{name} rejected sign-up from %{target}"
         remove_avatar_user_html: "%{name} removed %{target}'s avatar"
         remove_history_status_html: "%{name} removed post edit histories by %{target}"
         remove_media_status_html: "%{name} removed post medias by %{target}"
         remove_status_status_html: "%{name} removed post by %{target}"
         reopen_report_html: "%{name} reopened report %{target}"
-        resend_user_html: "%{name} resent confirmation e-mail for %{target}"
+        resend_user_html: "%{name} resent confirmation email for %{target}"
         reset_password_user_html: "%{name} reset password of user %{target}"
         resolve_report_html: "%{name} resolved report %{target}"
         sensitive_account_html: "%{name} marked %{target}'s media as sensitive"
@@ -290,6 +304,7 @@ en:
         update_custom_emoji_html: "%{name} updated emoji %{target}"
         update_domain_block_html: "%{name} updated domain block for %{target}"
         update_ip_block_html: "%{name} changed rule for IP %{target}"
+        update_report_html: "%{name} updated report %{target}"
         update_status_html: "%{name} updated post by %{target}"
         update_user_role_html: "%{name} changed %{target} role"
       deleted_account: deleted account
@@ -297,6 +312,7 @@ en:
       filter_by_action: Filter by action
       filter_by_user: Filter by user
       title: Audit log
+      unavailable_instance: "(domain name unavailable)"
     announcements:
       destroyed_msg: Announcement successfully deleted!
       edit:
@@ -316,6 +332,8 @@ en:
       updated_msg: Announcement successfully updated!
     critical_update_pending: Critical update pending
     custom_emojis:
+      aliases: Alias names
+      aliases_hint: When searching within the pictogram picker, you can search not only by short code, but also by alias name. You can specify multiple alias names by separating them with "," (comma).
       assign_category: Assign category
       by_domain: Domain
       copied_msg: Successfully created local copy of the emoji
@@ -328,11 +346,17 @@ en:
       disable: Disable
       disabled: Disabled
       disabled_msg: Successfully disabled that emoji
+      domain: Domain
+      edit:
+        label: Edit
+        title: Edit custom emoji
       emoji: Emoji
       enable: Enable
       enabled: Enabled
       enabled_msg: Successfully enabled that emoji
       image_hint: PNG or GIF up to %{size}
+      license: License
+      license_hint: Set license information for custom pictograms. However, many servers do not support the federation of license information, and Misskey also supports license information for local pictograms, but does not reference license information from other servers. Consider that licenses may be ignored.
       list: List
       listed: Listed
       new:
@@ -349,6 +373,7 @@ en:
       update_failed_msg: Could not update that emoji
       updated_msg: Emoji successfully updated!
       upload: Upload
+      visible_in_picker: Visible in emoji picker
     dashboard:
       active_users: active users
       interactions: interactions
@@ -388,6 +413,8 @@ en:
       undo: Disallow federation with domain
     domain_blocks:
       add_new: Add new domain block
+      block_trends: Reject trends
+      block_trends_hint: Reject trends in the future
       confirm_suspension:
         cancel: Cancel
         confirm: Suspend
@@ -399,13 +426,20 @@ en:
         undo_relationships: This will undo any follow relationship between accounts of these servers and yours.
       created_msg: Domain block is now being processed
       destroyed_msg: Domain block has been undone
-      detect_invalid_subscription: 不正な購読を行うサーバーとしてマークする
-      detect_invalid_subscription_hint: Misskey、Calckeyなどは購読機能で未フォローユーザーの未収載投稿を拾います。これをマークしたサーバーは、ユーザーが任意で配送を拒否できます。停止とは無関係です
+      detect_invalid_subscription: Mark as a server with unauthorized subscriptions
+      detect_invalid_subscription_hint: Misskey, Calckey, and others pick up unfollowed posts from unfollowed users with the subscribe feature. Servers that mark these can refuse delivery at the user's discretion. This has nothing to do with suspension.
       domain: Domain
       edit: Edit domain block
       existing_domain_block: You have already imposed stricter limits on %{name}.
       existing_domain_block_html: You have already imposed stricter limits on %{name}, you need to <a href="%{unblock_url}">unblock it</a> first.
       export: Export
+      headers:
+        disagreement: Political disagreement
+        harassment: Harassment or spam
+        invalid_privacy: Privacy is not protected
+        mastodon_default: Original Mastodon supports
+      hidden: Hide
+      hidden_hint: You may choose to make this domain block private if disclosure would jeopardize the security of this server.
       import: Import
       new:
         create: Create block
@@ -426,32 +460,38 @@ en:
       public_comment_hint: Comment about this domain limitation for the general public, if advertising the list of domain limitations is enabled.
       reject_favourite: Reject favorites
       reject_favourite_hint: Reject favorites or emoji-reaction in the future
+      reject_friend: Reject friend server applications
+      reject_friend_hint: Reject friend server application in the future
       reject_hashtag: Reject hashtags
       reject_hashtag_hint: Reject hashtags in the future
       reject_media: Reject media files
       reject_media_hint: Removes locally stored media files and refuses to download any in the future. Irrelevant for suspensions
       reject_new_follow: Reject follows
       reject_new_follow_hint: Reject follows in the future
-      reject_reply: Reject replies
-      reject_reply_exclude_followers: Reject replies exclude followers
-      reject_reply_hint: Reject replies in the future
+      reject_reply_exclude_followers: Reject mentions/quotes exclude followers
       reject_reply_exclude_followers_hint: Reject replies exclude followers in the future
       reject_reports: Reject reports
       reject_reports_hint: Ignore all reports coming from this domain. Irrelevant for suspensions
+<<<<<<< HEAD
       reject_send_sensitive: センシティブな投稿を配送しない
       reject_send_sensitive_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
       reject_send_unlisted_dissubscribable: 購読拒否アカウントの未収載投稿を配送しない
       reject_send_unlisted_dissubscribable_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
+=======
+      reject_send_sensitive: Do not deliver sensitive postings
+      reject_send_sensitive_hint: Fetches from the other server may not be prevented. It has nothing to do with outages.
+>>>>>>> kb15.0-lts
       reject_straight_follow: Reject straight follow
       reject_straight_follow_hint: The server accounts must be authenticated when follow our accounts
       undo: Undo domain block
       view: View domain block
     email_domain_blocks:
       add_new: Add new
+      allow_registrations_with_approval: Allow registrations with approval
       attempts_over_week:
         one: "%{count} attempt over the last week"
         other: "%{count} sign-up attempts over the last week"
-      created_msg: Successfully blocked e-mail domain
+      created_msg: Successfully blocked email domain
       delete: Delete
       dns:
         types:
@@ -460,12 +500,12 @@ en:
       new:
         create: Add domain
         resolve: Resolve domain
-        title: Block new e-mail domain
-      no_email_domain_block_selected: No e-mail domain blocks were changed as none were selected
+        title: Block new email domain
+      no_email_domain_block_selected: No email domain blocks were changed as none were selected
       not_permitted: Not permitted
-      resolved_dns_records_hint_html: The domain name resolves to the following MX domains, which are ultimately responsible for accepting e-mail. Blocking an MX domain will block sign-ups from any e-mail address which uses the same MX domain, even if the visible domain name is different. <strong>Be careful not to block major e-mail providers.</strong>
+      resolved_dns_records_hint_html: The domain name resolves to the following MX domains, which are ultimately responsible for accepting email. Blocking an MX domain will block sign-ups from any email address which uses the same MX domain, even if the visible domain name is different. <strong>Be careful not to block major email providers.</strong>
       resolved_through_html: Resolved through %{domain}
-      title: Blocked e-mail domains
+      title: Blocked email domains
     export_domain_allows:
       new:
         title: Import domain allows
@@ -489,7 +529,39 @@ en:
       suppressed: Suppressed
       title: Follow recommendations
       unsuppress: Restore follow recommendation
+    friend_servers:
+      accept: Accept
+      add_new: Add and make a new application
+      delete: Delete
+      description_html: "<strong>Friend server</strong> is a system for exchanging posts with each other's local public and local search permissions as they are."
+      disabled: Disabled
+      domain: Domain
+      edit:
+        allow_all_posts: Receive all posts
+        allow_all_posts_hint: Normally, posts from accounts that are not following anyone on your server will be blocked from acceptance, with one exception. You can unblock that block. You can reactivate the block at any time, e.g., if spam occurs.
+        available: Available
+        delivery_local: Deliver without changing public unlisted visibility and searchability
+        delivery_local_hint: Local public posts will be added the friend's global timeline
+        description: A friend server is applied to the other server at the same time as registration.
+        domain: Domain
+        inbox_url: Friend server inbox URL
+        inbox_url_hint: Default value is https://domain/inbox if you input empty (For example, https://example.com/inbox)
+        pseudo_relay: Send all public or searchable posts
+        pseudo_relay_hint: Must be valid for both parties and "Accept submissions from this server unconditionally" must be enabled on the other side
+      edit_friend: Edit
+      enabled: Enabled
+      follow: Request
+      pending: Pending
+      pending_you: Your review requested
+      reject: Reject
+      save_and_enable: Save and enable
+      setup: Add and make a new application
+      status: Status
+      title: Friend server
     instances:
+      audit_log:
+        title: Recent Audit Logs
+        view_all: View full audit logs
       availability:
         description_html:
           one: If delivering to the domain fails <strong>%{count} day</strong> without succeeding, no further delivery attempts will be made unless a delivery <em>from</em> the domain is received.
@@ -511,14 +583,17 @@ en:
         description_html: You can define content policies that will be applied to all accounts from this domain and any of its subdomains.
         limited_federation_mode_description_html: You can chose whether to allow federation with this domain.
         policies:
+          block_trends: Reject trends
+          detect_invalid_subscription: No subscription privacy
           reject_favourite: Reject favorite
+          reject_friend: Reject friend server application
           reject_hashtag: Reject hashtags
           reject_media: Reject media
           reject_new_follow: Reject follows
-          reject_straight_follow: Reject straight follow
-          reject_reply: Reject reply
-          reject_reply_exclude_followers: Reject reply exclude followers
+          reject_reply_exclude_followers: Reject reply/quote exclude followers
           reject_reports: Reject reports
+          reject_send_sensitive: No Sensitive Submission Delivery
+          reject_straight_follow: Reject straight follow
           silence: Limit
           suspend: Suspend
         policy: Policy
@@ -563,6 +638,7 @@ en:
       total_reported: Reports about them
       total_storage: Media attachments
       totals_time_period_hint_html: The totals displayed below include data for all time.
+      unknown_instance: There is currently no record of this domain on this server.
     invites:
       deactivate_all: Deactivate all
       filter:
@@ -586,15 +662,140 @@ en:
         title: Create new IP rule
       no_ip_block_selected: No IP rules were changed as none were selected
       title: IP rules
-    media_attachments:
-      title: Media attachments
+    ng_rule_histories:
+      back_to_ng_rule: Back to NG rule
+      back_to_ng_rules: Back to index
+      data:
+        media_count: "%{count} medias"
+        poll_count: "%{count} polls"
+      from_local_user: Local user
+      hidden: Private post
+      moderate_account: Moderate account
+      reason_actions:
+        reaction_emoji_reaction: Emoji reaction
+        reaction_favourite: Favourite
+        reaction_follow: Follow request
+        reaction_reblog: Boost
+        reaction_vote: Vote
+        status_create: Post
+        status_edit: Edit post
+      title: NG Rule History %{title}
+    ng_rules:
+      account_allow_followed_by_local: Check only accounts that are not followed by local users
+      account_allow_followed_by_local_hint: Use this option only if all local users with more than 1 follow are trusted
+      account_avatar_state: Has avatar or not
+      account_display_name: Name
+      account_domain: Domain
+      account_field_name: Field name
+      account_field_value: Field value
+      account_header_state: Has header or not
+      account_include_local: Contains local users
+      account_note: Account note
+      account_username: ID
+      available: Available
+      copy: Copy
+      copy_error: Copy failed.
+      edit:
+        headers:
+          account: Account
+          options: Options
+          reaction: Reaction
+          status: Post
+        helps:
+          generic: Restrictions will be in effect only if all items match the criteria.
+          textarea_html: <strong>Where multiple lines can be entered</strong>, enter conditions separated by line breaks. If any one of the multiple lines is included, the condition is considered a match. You can use a regular expression by starting a line with "?" at the beginning of a line to use a regular expression.
+          threshold_html: <strong>In specifying the upper limit</strong>, specifying "-1" disables the upper limit check. If "0" is specified, the check will pass only if the subject is completely absent. For example, an upper limit of "0" for the number of media is not equivalent to "no media.
+        history: Check the history of this rule's application.
+        summary:
+          account: Set the conditions for the account. This NG rule will be checked when an account matching here posts and reacts. No check is performed when an account is created. By default, all accounts are subject to this rule.
+          reaction: Set the reaction conditions. The account conditions must match at the same time. Please note that by default, not all reactions will match unless you set the "Reaction Type".
+          status: Set the conditions of your submission. The account conditions must match at the same time. Please note that by default, not all posts will be applicable unless you set the "Visibility" and "Searchability".
+        title: Edit NG Rule
+      emoji_reaction_name: Emoji reaction emoji or shortcode
+      emoji_reaction_origin_domain: Custom emoji origin domain
+      emoji_reaction_origin_domain_hint: If a pictogram from another server is used, the domain of the server where the pictogram was originally registered will be used.
+      index:
+        delete: Delete
+        disabled: Disabled
+        edit:
+          title: Edit
+        empty: Empty NG rules
+        empty_title: Empty title
+        hit_count: "%{count} hits on this week"
+        preamble: Some spam inevitably requires specifying conditions that are too loose, making it easier for other normal posts to become involved in the restrictions; NG rules allow you to specify details such as account and posting characteristics to reduce the number of posts that get involved as much as possible. Please consider your settings carefully and check your history regularly to minimize the involvement of normal posts.
+        title: NG Rules
+      new:
+        save: Save new NG rule
+        title: Add new NG Rule
+      reaction_allow_follower: Allow all reactions targeted at followers
+      reaction_allow_follower_hint: If enabled, reactions between other servers are unconditionally allowed
+      reaction_type: Reaction type
+      reaction_types:
+        emoji_reaction: Emoji reaction
+        favourite: Favourite
+        follow: Follow
+        reblog: Boost
+        vote: Vote
+      record_history_also_local: Local users are also subject to history recording
+      rubular: Regular Expression Checker
+      states:
+        needed: have
+        no_needed: Should not have
+        optional: Optional
+      status_allow_follower_mention: Check posts only if they contain mentions/quotes to non-followers
+      status_allow_follower_mention_hint: If enabled, mentions between other servers are unconditionally allowed
+      status_cw_state: Has warning or not
+      status_media_state: Has media or not
+      status_media_threshold: Medias limit
+      status_mention_state: Has mention or not
+      status_mention_threshold: Mentions limit
+      status_poll_state: Has poll or not
+      status_poll_threshold: Poll items limit
+      status_quote_state: Has quote or not
+      status_reference_state: Has quiet quote or not
+      status_reference_threshold: Has quiet quote or not
+      status_reply_state: Is reply or not
+      status_searchability: Searchability
+      status_sensitive_state: Is sensitive or not
+      status_spoiler_text: Content warning
+      status_tag: Tag
+      status_text: Post text
+      status_visibility: Visibility
+      test_error: Regular expression syntax is incorrect.
+      title: NG Rule
     ng_words:
-      hide_local_users_for_anonymous: Hide timeline local user posts from anonymous
+      edit:
+        add_domain: Add domain
+      hold_remote_new_accounts: Hold new remote accounts
       keywords: Reject keywords
-      keywords_hint: The first character of the line is "?". to use regular expressions
-      post_hash_tags_max: Hash tags max for posts
+      keywords_for_stranger_mention: Keywords for stranger mention
+      phrases:
+        regexp_html: "<strong>Reg</strong> - If the <strong>Reg</strong> checkbox is checked, the comparison is performed using regular expressions."
+        regexp_short: Reg
+        stranger_html: "<strong>UE</strong> - Items checked under <strong>Uem</strong> apply only to mentions, replies, quotes, etc. from accounts with which you have no follow relationship."
+        stranger_short: Uem
+      post_hash_tags_max: Hash tags limit of a post
+      post_mentions_max: Mentions limit of a post
+      post_stranger_mentions_max: Mentions limit of a post
+      preamble: This setting is useful for solving problems related to spam that are difficult to address with domain blocking. You can reject posts that meet certain criteria, such as the inclusion of specific keywords. Please consider your settings carefully and check your history regularly to ensure that problem-free posts are not deleted.
+      remote_approval_hint: Newly recognized accounts with unspecified domains will be placed in Suspended status. You can review that list and approve them if necessary. If this setting is not enabled, all remote accounts will be approved immediately.
+      remote_approval_list: List of remote accounts awaiting approval
+      save_error: Has save errors
+      settings: Settings
+      stranger_mention_from_local_ng: NG words for Mention to accounts you do not follow are also applied to posts by local users.
+      stranger_mention_from_local_ng_hint: Use this if there is a possibility that a spam account has entered your server
       test_error: Testing is returned any errors
       title: NG words and against spams
+      white_list: White list
+      white_list_header: List of domains for immediate approval of remote accounts
+      white_list_hint: Whitelisting can be used as a last resort when exposed to severe attacks. External attacks do not disappear immediately, but they can be reduced gradually and reliably through moderation. In addition, a regular remote account approval process is required.
+    ngword_histories:
+      back_to_ng_words: NG words and against spams
+      target_types:
+        account_name: Account name
+        account_note: Account note
+        status: Post
+      title: NG words history
     relationships:
       title: "%{acct}'s relationships"
     relays:
@@ -625,14 +826,19 @@ en:
       action_taken_by: Action taken by
       actions:
         delete_description_html: The reported posts will be deleted and a strike will be recorded to help you escalate on future infractions by the same account.
+        force_cw_description_html: The sensitive message in the reported posts will be added content warning and a strike will be recorded to help you escalate on future infractions by the same account.
         mark_as_sensitive_description_html: The media in the reported posts will be marked as sensitive and a strike will be recorded to help you escalate on future infractions by the same account.
         other_description_html: See more options for controlling the account's behaviour and customize communication to the reported account.
         resolve_description_html: No action will be taken against the reported account, no strike recorded, and the report will be closed.
         silence_description_html: The account will be visible only to those who already follow it or manually look it up, severely limiting its reach. Can always be reverted. Closes all reports against this account.
         suspend_description_html: The account and all its contents will be inaccessible and eventually deleted, and interacting with it will be impossible. Reversible within 30 days. Closes all reports against this account.
-      actions_description_html: Decide which action to take to resolve this report. If you take a punitive action against the reported account, an e-mail notification will be sent to them, except when the <strong>Spam</strong> category is selected.
+      actions_description_html: Decide which action to take to resolve this report. If you take a punitive action against the reported account, an email notification will be sent to them, except when the <strong>Spam</strong> category is selected.
       actions_description_remote_html: Decide which action to take to resolve this report. This will only affect how <strong>your</strong> server communicates with this remote account and handle its content.
+      actions_no_posts: This report doesn't have any associated posts to delete
       add_to_report: Add more to report
+      already_suspended_badges:
+        local: Already suspended on this server
+        remote: Already suspended on their server
       are_you_sure: Are you sure?
       assign_to_self: Assign to me
       assigned: Assigned moderator
@@ -647,7 +853,9 @@ en:
       confirm_action: Confirm moderation action against @%{acct}
       created_at: Reported
       delete_and_resolve: Delete posts
+      force_cw: Add warning
       forwarded: Forwarded
+      forwarded_replies_explanation: This report is from a remote user and about remote content. It has been forwarded to you because the reported content is in reply to one of your users.
       forwarded_to: Forwarded to %{domain}
       mark_as_resolved: Mark as resolved
       mark_as_sensitive: Mark as sensitive
@@ -668,6 +876,7 @@ en:
       report: 'Report #%{id}'
       reported_account: Reported account
       reported_by: Reported by
+      reported_with_application: Reported with application
       resolved: Resolved
       resolved_msg: Report successfully resolved!
       skip_to_actions: Skip to actions
@@ -677,11 +886,13 @@ en:
       summary:
         action_preambles:
           delete_html: 'You are about to <strong>remove</strong> some of <strong>@%{acct}</strong>''s posts. This will:'
+          force_cw_html: 'You are about to <strong>add</strong> some of <strong>@%{acct}</strong>''s posts <strong>warning message</strong>. This will:'
           mark_as_sensitive_html: 'You are about to <strong>mark</strong> some of <strong>@%{acct}</strong>''s posts as <strong>sensitive</strong>. This will:'
           silence_html: 'You are about to <strong>limit</strong> <strong>@%{acct}</strong>''s account. This will:'
           suspend_html: 'You are about to <strong>suspend</strong> <strong>@%{acct}</strong>''s account. This will:'
         actions:
           delete_html: Remove the offending posts
+          force_cw_html: Add the offending posts warning message
           mark_as_sensitive_html: Mark the offending posts' media as sensitive
           silence_html: Severely limit <strong>@%{acct}</strong>'s reach by making their profile and contents only visible to people already following them or manually looking it profile up
           suspend_html: Suspend <strong>@%{acct}</strong>, making their profile and contents inaccessible and impossible to interact with
@@ -690,7 +901,7 @@ en:
         delete_data_html: Delete <strong>@%{acct}</strong>'s profile and contents 30 days from now unless they get unsuspended in the meantime
         preview_preamble_html: "<strong>@%{acct}</strong> will receive a warning with the following contents:"
         record_strike_html: Record a strike against <strong>@%{acct}</strong> to help you escalate on future violations from this account
-        send_email_html: Send <strong>@%{acct}</strong> a warning e-mail
+        send_email_html: Send <strong>@%{acct}</strong> a warning email
         warning_placeholder: Optional additional reasoning for the moderation action.
       target_origin: Origin of reported account
       title: Reports
@@ -730,7 +941,7 @@ en:
         manage_appeals: Manage Appeals
         manage_appeals_description: Allows users to review appeals against moderation actions
         manage_blocks: Manage Blocks
-        manage_blocks_description: Allows users to block e-mail providers and IP addresses
+        manage_blocks_description: Allows users to block email providers and IP addresses
         manage_custom_emojis: Manage Custom Emojis
         manage_custom_emojis_description: Allows users to manage custom emojis on the server
         manage_federation: Manage Federation
@@ -752,7 +963,7 @@ en:
         manage_taxonomies: Manage Taxonomies
         manage_taxonomies_description: Allows users to review trending content and update hashtag settings
         manage_user_access: Manage User Access
-        manage_user_access_description: Allows users to disable other users' two-factor authentication, change their e-mail address, and reset their password
+        manage_user_access_description: Allows users to disable other users' two-factor authentication, change their email address, and reset their password
         manage_users: Manage Users
         manage_users_description: Allows users to view other users' details and perform moderation actions against them
         manage_webhooks: Manage Webhooks
@@ -773,11 +984,17 @@ en:
       title: Server rules
     sensitive_words:
       alert: This post contains sensitive words, so alert added
+      auto_warning_text: Custom warning text
+      auto_warning_text_hint: If not specified, the default warning text is used.
       hint: This keywords is applied to public posts only..
-      keywords: Sensitive keywords
-      keywords_for_all: Sensitive keywords (Contains CW alert)
-      keywords_for_all_hint: The first character of the line is "?". to use regular expressions
-      title: Sensitive words and moderation options
+      phrases:
+        regexp_html: "<strong>Reg</strong> Exp checked items are compared using regular expressions."
+        regexp_short: Reg
+        remote_html: "<strong>Rem</strong> ote checked applies to remote posts as well."
+        remote_short: Rem
+        spoiler_html: "<strong>War</strong> ning checked will also be applied to the content warning statement."
+        spoiler_short: War
+      title: Sensitive words
     settings:
       about:
         manage_rules: Manage server rules
@@ -794,14 +1011,16 @@ en:
         desc_html: This relies on external scripts from hCaptcha, which may be a security and privacy concern. In addition, <strong>this can make the registration process significantly less accessible to some (especially disabled) people</strong>. For these reasons, please consider alternative measures such as approval-based or invite-based registration.
         title: Require new users to solve a CAPTCHA to confirm their account
       content_retention:
+        danger_zone: Danger zone
         preamble: Control how user-generated content is stored in Mastodon.
         title: Content retention
       default_noindex:
         desc_html: Affects all users who have not changed this setting themselves
         title: Opt users out of search engine indexing by default
       discovery:
-        emoji_reactions: Stamp
+        emoji_reactions: Emoji reaction
         follow_recommendations: Follow recommendations
+        friend_servers: Friend servers
         preamble: Surfacing interesting content is instrumental in onboarding new users who may not know anyone Mastodon. Control how various discovery features work on your server.
         profile_directory: Profile directory
         public_timelines: Public timelines
@@ -809,6 +1028,7 @@ en:
         publish_statistics: Publish statistics
         title: Discovery
         trends: Trends
+        visibilities: Visibilities
       domain_blocks:
         all: To everyone
         disabled: To no one
@@ -834,7 +1054,7 @@ en:
       destroyed_msg: Site upload successfully deleted!
     software_updates:
       critical_update: Critical — please update quickly
-      description: It is recommended to keep your Mastodon installation up to date to benefit from the latest fixes and features. Moreover, it is sometimes critical to update Mastodon in a timely manner to avoid security issues. For these reasons, Mastodon checks for updates every 30 minutes, and will notify you according to your e-mail notification preferences.
+      description: It is recommended to keep your Mastodon installation up to date to benefit from the latest fixes and features. Moreover, it is sometimes critical to update Mastodon in a timely manner to avoid security issues. For these reasons, Mastodon checks for updates every 30 minutes, and will notify you according to your email notification preferences.
       documentation_link: Learn more
       release_notes: Release notes
       title: Available updates
@@ -844,6 +1064,18 @@ en:
         minor: Minor release
         patch: Patch release — bugfixes and easy to apply changes
       version: Version
+    special_domains:
+      stop_fetch_activity_domains:
+        preamble: On servers with different domains for Web and Activity, you may not be able to retrieve Activity even if you access Web. In citations, this setting suppresses fetching when such a URL is specified in the body of a post. In most cases, this setting is rarely used.
+        title: Domains do not fetch for quotes
+      stop_link_preview_domains:
+        preamble: If a site temporarily restricts connections from IP addresses that have received many hits, your server may be treated unfavorably. This setting suppresses the process of accessing such sites and generating link previews. In most cases, this setting is rarely used.
+        title: Domains do not fetch for link previews
+      title: Special domains
+    special_instances:
+      emoji_reaction_disallow_domains: Domains we are not permitted emoji reaction
+      emoji_reaction_disallow_domains_hint: If you need to be considerate to your coalition partners, set the domain with a new line separator. It is not possible to put an emoji reaction on a post from a set domain.
+      title: Special servers
     statuses:
       account: Author
       application: Application
@@ -868,9 +1100,8 @@ en:
       original_status: Original post
       reblogs: Reblogs
       remove: Remove post
-      remove_media: Remove medias
       remove_history: Remove edit history
-      searchability: Searchability
+      remove_media: Remove medias
       status_changed: Post changed
       title: Account posts
       trending: Trending
@@ -915,6 +1146,9 @@ en:
         message_html: You haven't defined any server rules.
       sidekiq_process_check:
         message_html: No Sidekiq process running for the %{value} queue(s). Please review your Sidekiq configuration
+      software_version_check:
+        action: See available updates
+        message_html: A Mastodon update is available.
       software_version_critical_check:
         action: See available updates
         message_html: A critical Mastodon update is available, please update as quickly as possible.
@@ -928,16 +1162,39 @@ en:
         action: Check here for more information
         message_html: "<strong>Your object storage is misconfigured. The privacy of your users is at risk.</strong>"
     tags:
+      moderation:
+        not_trendable: Not trendable
+        not_usable: Not usable
+        pending_review: Pending review
+        review_requested: Review requested
+        reviewed: Reviewed
+        title: Status
+        trendable: Trendable
+        unreviewed: Unreviewed
+        usable: Usable
+      name: Name
+      newest: Newest
+      oldest: Oldest
+      open: View Publicly
+      reset: Reset
       review: Review status
+      search: Search
+      title: Hashtags
       updated_msg: Hashtag settings updated successfully
     title: Administration
     trends:
       allow: Allow
       approved: Approved
+      confirm_allow: Are you sure you want to allow selected tags?
+      confirm_disallow: Are you sure you want to disallow selected tags?
       disallow: Disallow
       links:
         allow: Allow link
         allow_provider: Allow publisher
+        confirm_allow: Are you sure you want to allow selected links?
+        confirm_allow_provider: Are you sure you want to allow selected providers?
+        confirm_disallow: Are you sure you want to disallow selected links?
+        confirm_disallow_provider: Are you sure you want to disallow selected providers?
         description_html: These are links that are currently being shared a lot by accounts that your server sees posts from. It can help your users find out what's going on in the world. No links are displayed publicly until you approve the publisher. You can also allow or reject individual links.
         disallow: Disallow link
         disallow_provider: Disallow publisher
@@ -961,6 +1218,10 @@ en:
       statuses:
         allow: Allow post
         allow_account: Allow author
+        confirm_allow: Are you sure you want to allow selected statuses?
+        confirm_allow_account: Are you sure you want to allow selected accounts?
+        confirm_disallow: Are you sure you want to disallow selected statuses?
+        confirm_disallow_account: Are you sure you want to disallow selected accounts?
         description_html: These are posts that your server knows about that are currently being shared and favorited a lot at the moment. It can help your new and returning users to find more people to follow. No posts are displayed publicly until you approve the author, and the author allows their account to be suggested to others. You can also allow or reject individual posts.
         disallow: Disallow post
         disallow_account: Disallow author
@@ -993,17 +1254,17 @@ en:
         used_by_over_week:
           one: Used by one person over the last week
           other: Used by %{count} people over the last week
-      title: Trends
+      title: Recommendations & Trends
       trending: Trending
-    update-pendings:
-      major: Major update pending
-      patch: Patch update pending
+    update_pendings:
+      major: Major update available
+      patch: Patch update available
     warning_presets:
       add_new: Add new
       delete: Delete
       edit_preset: Edit warning preset
       empty: You haven't defined any warning presets yet.
-      title: Manage warning presets
+      title: Warning presets
     webhooks:
       add_new: Add endpoint
       delete: Delete
@@ -1046,6 +1307,9 @@ en:
     new_pending_account:
       body: The details of the new account are below. You can approve or reject this application.
       subject: New account up for review on %{instance} (%{username})
+    new_pending_friend_server:
+      body: The new friend server %{domain} is waiting for your review. You can approve or reject this application.
+      subject: New friend server up for review on %{instance} (%{domain})
     new_report:
       body: "%{reporter} has reported %{target}"
       body_remote: Someone from %{domain} has reported %{target}
@@ -1060,8 +1324,6 @@ en:
       new_trending_statuses:
         title: Trending posts
       new_trending_tags:
-        no_approved_tags: There are currently no approved trending hashtags.
-        requirements: 'Any of these candidates could surpass the #%{rank} approved trending hashtag, which is currently #%{lowest_tag_name} with a score of %{lowest_tag_score}.'
         title: Trending hashtags
       subject: New trends up for review on %{instance}
   aliases:
@@ -1077,71 +1339,63 @@ en:
       domain: Domains
       keyword: Keywords
       tag: Tags
+    edit:
+      available: Available
+      description: Antenna is for all public and local public posts recognized by the server, from all accounts that have not refused to subscribe. Detected posts will be added to the specified list.
+      title: Edit antenna
     errors:
       duplicate_account: Duplicate account
       duplicate_domain: Duplicate domain
       duplicate_keyword: Duplicate keyword
       duplicate_tag: Duplicate tag
+      empty_contexts: No contexts! You must set any context filters
+      invalid_list_owner: This list is not yours
       limit:
         accounts: 登録できるアカウント数の上限に達しています
         domains: 登録できるドメイン数の上限に達しています
         keywords: 登録できるキーワード数の上限に達しています
         tags: 登録できるタグ数の上限に達しています
-      too_short_keyword: Too short keyword! must 2 and more letters
-    edit:
-      accounts_hint: \@askyq or @askyq@example.com
-      accounts_raw: Account list
-      available: Available
-      description: アンテナは、サーバーが認識した全ての公開・ローカル公開投稿のうち、検索許可が「公開」または明示的に設定されていないもの(検索許可システムに対応していないサーバーからの投稿)、かつ購読を拒否していないすべてのアカウントからの投稿が対象です。検出された投稿は、指定したリストに追加されます。
-      domains_hint: ドメインとは、アカウントIDやサイトのURLのうち「kmy.blue」「example.com」に該当する部分です。自身のサーバーを指定することはできません
-      domains_raw: Domain list
-      exclude_accounts_raw: Excluding account list
-      exclude_domains_raw: Excluding domain list
-      exclude_keywords_raw: Excluding keyword list
-      exclude_tags_raw: Excluding hashtag list
-      hint: 下のリストに、絞り込み条件・除外条件を入力します。条件は複数指定することができます。1行につき1つずつ入力してください。空行、コメント、重複を含めることはできません。
-      ignore_reblog: Ignore BTs
-      insert_feeds: Insert home/list timeline (Destination list setting is NOT available if this checkbox is NOT set)
-      keywords_hint: キーワードは1つあたり最低2文字です。キーワードによる絞り込みを指定した場合、検索許可に対応しているサーバーからの投稿は、検索許可が「公開」以外のものは掲載されなくなります
-      keywords_raw: Keyword list
-      list: Destination list
-      stl: Enable stl (Social timeline) mode
-      stl_hint: All of under settings will be ignored, but rejecting subscription settings are ignored
-      tags_raw: Hashtag list
-      title: Edit antenna
-      with_media_only: With media only
-    errors:
-      deprecated_api_multiple_keywords: These parameters cannot be changed from this application because they apply to more than one filter keyword. Use a more recent application or the web interface.
-      empty_contexts: No contexts! You must set any context filters
-      invalid_context: None or invalid context supplied
-      invalid_list_owner: This list is not yours
       over_limit: You have exceeded the limit of %{limit} antennas
       over_ltl_limit: You have exceeded the limit of %{limit} ltl antennas
       over_stl_limit: You have exceeded the limit of %{limit} stl antennas
+      too_short_keyword: Keyword is too short
     index:
+      accounts:
+        other: "%{count} accounts"
       contexts: Antennas in %{contexts}
       delete: Delete
       disabled: Disabled
+      domains:
+        other: "%{count} domains"
       empty: You have no antennas.
       expires_in: Expires in %{distance}
       expires_on: Expires on %{date}
+      keywords:
+        other: "%{count} keywords"
       stl: This antenna is in STL mode, ignoring reject-subscription settings.
+      tags:
+        other: "%{count} tags"
       title: Antennas
   appearance:
     advanced_web_interface: Advanced web interface
     advanced_web_interface_hint: 'If you want to make use of your entire screen width, the advanced web interface allows you to configure many different columns to see as much information at the same time as you want: Home, notifications, federated timeline, any number of lists and hashtags.'
     animations_and_accessibility: Animations and accessibility
     confirmation_dialogs: Confirmation dialogs
+    custom_emoji_and_emoji_reactions: Custom emoji and emoji reactions
     discovery: Discovery
     localization:
       body: Mastodon is translated by volunteers.
       guide_link: https://crowdin.com/project/mastodon
       guide_link_text: Everyone can contribute.
+    quotes: Quotes
+    remote_server_features: Other server features
+    saved_posts: Saving posts
     sensitive_content: Sensitive content
+    status_action_bar: Post menu
   application_mailer:
-    notification_preferences: Change e-mail preferences
+    notification_preferences: Change email preferences
     salutation: "%{name},"
-    settings: 'Change e-mail preferences: %{link}'
+    settings: 'Change email preferences: %{link}'
     unsubscribe: Unsubscribe
     view: 'View:'
     view_profile: View profile
@@ -1160,9 +1414,16 @@ en:
       help_html: If you have issues solving the CAPTCHA, you can get in touch with us through %{email} and we can assist you.
       hint_html: Just one more thing! We need to confirm you're a human (this is so we can keep the spam out!). Solve the CAPTCHA below and click "Continue".
       title: Security check
-    cloudflare_with_registering: With cloudflare on auth
     confirmations:
-      wrong_email_hint: If that e-mail address is not correct, you can change it in account settings.
+      awaiting_review: Your email address is confirmed! The %{domain} staff is now reviewing your registration. You will receive an email if they approve your account!
+      awaiting_review_title: Your registration is being reviewed
+      clicking_this_link: clicking this link
+      login_link: log in
+      proceed_to_login_html: You can now proceed to %{login_link}.
+      redirect_to_app_html: You should have been redirected to the <strong>%{app_name}</strong> app. If that did not happen, try %{clicking_this_link} or manually return to the app.
+      registration_complete: Your registration on %{domain} is now complete!
+      welcome_title: Welcome, %{name}!
+      wrong_email_hint: If that email address is not correct, you can change it in account settings.
     delete_account: Delete account
     delete_account_html: If you wish to delete your account, you can <a href="%{path}">proceed here</a>. You will be asked for confirmation.
     description:
@@ -1170,6 +1431,7 @@ en:
       prefix_sign_up: Sign up on Mastodon today!
       suffix: With an account, you will be able to follow people, post updates and exchange messages with users from any Mastodon server and more!
     didnt_get_confirmation: Didn't receive a confirmation link?
+    disable_custom_css: Disable custom CSS
     dont_have_your_security_key: Don't have your security key?
     forgot_password: Forgot your password?
     invalid_reset_password_token: Password reset token is invalid or expired. Please request a new one.
@@ -1183,7 +1445,7 @@ en:
     or_log_in_with: Or log in with
     privacy_policy_agreement_html: I have read and agree to the <a href="%{privacy_policy_path}" target="_blank">privacy policy</a>
     progress:
-      confirm: Confirm e-mail
+      confirm: Confirm email
       details: Your details
       review: Our review
       rules: Accept rules
@@ -1192,6 +1454,9 @@ en:
       saml: SAML
     register: Sign up
     registration_closed: "%{instance} is not accepting new members"
+    registration_limit:
+      hint_html: The maximum number of new registrations allowed, or the time of day, is restricted by the administrator. You will not be able to complete authentication while the restriction is in effect. Please contact the administrator or wait until the restriction is lifted. If you have reached the limit, you will need to register again.
+      title: New registrations are currently restricted
     resend_confirmation: Resend confirmation link
     reset_password: Reset password
     rules:
@@ -1205,10 +1470,10 @@ en:
     security: Security
     set_new_password: Set new password
     setup:
-      email_below_hint_html: Check your spam folder, or request another one. You can correct your e-mail address if it's wrong.
+      email_below_hint_html: Check your spam folder, or request another one. You can correct your email address if it's wrong.
       email_settings_hint_html: Click the link we sent you to verify %{email}. We'll wait right here.
       link_not_received: Didn't get a link?
-      new_confirmation_instructions_sent: You will receive a new e-mail with the confirmation link in a few minutes!
+      new_confirmation_instructions_sent: You will receive a new email with the confirmation link in a few minutes!
       title: Check your inbox
     sign_in:
       preamble_html: Login with your <strong>%{domain}</strong> credentials. If your account is hosted on a different server, you will not be able to log in here.
@@ -1219,13 +1484,24 @@ en:
       title: Let's get you set up on %{domain}.
     status:
       account_status: Account status
-      confirming: Waiting for e-mail confirmation to be completed.
+      confirming: Waiting for email confirmation to be completed.
       functional: Your account is fully operational.
-      pending: Your application is pending review by our staff. This may take some time. You will receive an e-mail if your application is approved.
+      pending: Your application is pending review by our staff. This may take some time. You will receive an email if your application is approved.
       redirecting_to: Your account is inactive because it is currently redirecting to %{acct}.
+      self_destruct: As %{domain} is closing down, you will only get limited access to your account.
       view_strikes: View past strikes against your account
     too_fast: Form submitted too fast, try again.
     use_security_key: Use security key
+    with_login_options: Will you disable your custom css?
+  author_attribution:
+    example_title: Sample text
+    hint_html: Control how you're credited when links are shared on Mastodon.
+    more_from_html: More from %{name}
+    s_blog: "%{name}'s Blog"
+    title: Author attribution
+  bookmark_categories:
+    errors:
+      limit: Bookmark category limit
   challenge:
     confirm: Continue
     hint_html: "<strong>Tip:</strong> We won't ask you for your password again for the next hour."
@@ -1234,7 +1510,6 @@ en:
   crypto:
     errors:
       invalid_key: is not a valid Ed25519 or Curve25519 key
-      invalid_signature: is not a valid Ed25519 signature
   date:
     formats:
       default: "%b %d, %Y"
@@ -1263,9 +1538,9 @@ en:
       before: 'Before proceeding, please read these notes carefully:'
       caches: Content that has been cached by other servers may persist
       data_removal: Your posts and other data will be permanently removed
-      email_change_html: You can <a href="%{path}">change your e-mail address</a> without deleting your account
-      email_contact_html: If it still doesn't arrive, you can e-mail <a href="mailto:%{email}">%{email}</a> for help
-      email_reconfirmation_html: If you are not receiving the confirmation e-mail, you can <a href="%{path}">request it again</a>
+      email_change_html: You can <a href="%{path}">change your email address</a> without deleting your account
+      email_contact_html: If it still doesn't arrive, you can email <a href="mailto:%{email}">%{email}</a> for help
+      email_reconfirmation_html: If you are not receiving the confirmation email, you can <a href="%{path}">request it again</a>
       irreversible: You will not be able to restore or reactivate your account
       more_details_html: For more details, see the <a href="%{terms_path}">privacy policy</a>.
       username_available: Your username will become available again
@@ -1292,6 +1567,7 @@ en:
       title_actions:
         delete_statuses: Post removal
         disable: Freezing of account
+        force_cw: Add content-warning to posts
         mark_statuses_as_sensitive: Marking of posts as sensitive
         none: Warning
         sensitive: Marking of account as sensitive
@@ -1300,8 +1576,6 @@ en:
       your_appeal_approved: Your appeal has been approved
       your_appeal_pending: You have submitted an appeal
       your_appeal_rejected: Your appeal has been rejected
-  domain_validator:
-    invalid_domain: is not a valid domain name
   edit_profile:
     basic_information: Basic information
     hint_html: "<strong>Customize what people see on your public profile and next to your posts.</strong> Other people are more likely to follow you back and interact with you when you have a filled out profile and a profile picture."
@@ -1347,6 +1621,7 @@ en:
   filters:
     contexts:
       account: Profiles
+      explore: Trends and search results
       home: Home and lists
       notifications: Notifications
       public: Public timelines
@@ -1386,6 +1661,8 @@ en:
       index:
         hint: This filter applies to select individual posts regardless of other criteria. You can add more posts to this filter from the web interface.
         title: Filtered posts
+  footer:
+    trending_now: Trending now
   generic:
     all: All
     all_items_on_page_selected_html:
@@ -1472,14 +1749,18 @@ en:
     delete: Deactivate
     expired: Expired
     expires_in:
+      '1209600': 2 weeks
       '1800': 30 minutes
       '21600': 6 hours
+      '2629746': 1 month
       '3600': 1 hour
       '43200': 12 hours
       '604800': 1 week
+      '7889238': 3 months
       '86400': 1 day
     expires_in_prompt: Never
     generate: Generate invite link
+    invalid: This invite is not valid
     invited_by: 'You were invited by:'
     max_uses:
       one: 1 use
@@ -1497,7 +1778,7 @@ en:
     authentication_methods:
       otp: two-factor authentication app
       password: password
-      sign_in_token: e-mail security code
+      sign_in_token: email security code
       webauthn: security keys
     description_html: If you see activity that you don't recognize, consider changing your password and enabling two-factor authentication.
     empty: No authentication history available
@@ -1508,20 +1789,21 @@ en:
     unsubscribe:
       action: Yes, unsubscribe
       complete: Unsubscribed
-      confirmation_html: Are you sure you want to unsubscribe from receiving %{type} for Mastodon on %{domain} to your e-mail at %{email}? You can always re-subscribe from your <a href="%{settings_path}">e-mail notification settings</a>.
+      confirmation_html: Are you sure you want to unsubscribe from receiving %{type} for Mastodon on %{domain} to your email at %{email}? You can always re-subscribe from your <a href="%{settings_path}">email notification settings</a>.
       emails:
         notification_emails:
-          favourite: favorite notification e-mails
-          follow: follow notification e-mails
-          follow_request: follow request e-mails
-          mention: mention notification e-mails
-          reblog: boost notification e-mails
-      resubscribe_html: If you've unsubscribed by mistake, you can re-subscribe from your <a href="%{settings_path}">e-mail notification settings</a>.
-      success_html: You'll no longer receive %{type} for Mastodon on %{domain} to your e-mail at %{email}.
+          favourite: favorite notification emails
+          follow: follow notification emails
+          follow_request: follow request emails
+          mention: mention notification emails
+          reblog: boost notification emails
+      resubscribe_html: If you've unsubscribed by mistake, you can re-subscribe from your <a href="%{settings_path}">email notification settings</a>.
+      success_html: You'll no longer receive %{type} for Mastodon on %{domain} to your email at %{email}.
       title: Unsubscribe
   media_attachments:
     validations:
       images_and_video: Cannot attach a video to a post that already contains images
+      not_found: Media %{ids} not found or already attached to another post
       not_ready: Cannot attach files that have not finished processing. Try again in a moment!
       too_many: Cannot attach more than 4 files
   migrations:
@@ -1569,14 +1851,14 @@ en:
         subject: "%{name} submitted a report"
       sign_up:
         subject: "%{name} signed up"
+    emoji_reaction:
+      body: 'Your post was reacted with emoji by %{name}:'
+      subject: "%{name} reacted your post with emoji"
+      title: New emoji reaction
     favourite:
       body: 'Your post was favorited by %{name}:'
       subject: "%{name} favorited your post"
       title: New favorite
-    emoji_reaction:
-      body: 'Your post was stamped by %{name}:'
-      subject: "%{name} stamped your post"
-      title: New stamp
     follow:
       body: "%{name} is now following you!"
       subject: "%{name} is now following you"
@@ -1602,10 +1884,9 @@ en:
     update:
       subject: "%{name} edited a post"
   notifications:
-    administration_emails: Admin e-mail notifications
-    email_events: Events for e-mail notifications
+    administration_emails: Admin email notifications
+    email_events: Events for email notifications
     email_events_hint: 'Select events that you want to receive notifications for:'
-    other_settings: Other notifications settings
   number:
     human:
       decimal_units:
@@ -1644,8 +1925,11 @@ en:
       too_few_options: must have more than one item
       too_many_options: can't contain more than %{max} items
   preferences:
+    custom_css: Custom css
+    does_not_search: The full-text search feature is not available on this server. Instead, your posts will be searched according to this setting on other kmyblue servers.
     dtl: Deep timeline
-    dtl_hint: "You can join deep timeline with #%{tag} tag. Following settings make convenient to use deep timeline."
+    dtl_hint: 'You can join deep timeline with #%{tag} tag. Following settings make convenient to use deep timeline.'
+    emoji_reaction_permitting: Receiving emoji reactions
     other: Other
     posting_defaults: Posting defaults
     public_timelines: Public timelines
@@ -1661,24 +1945,27 @@ en:
     reach_hint_html: Control whether you want to be discovered and followed by new people. Do you want your posts to appear on the Explore screen? Do you want other people to see you in their follow recommendations? Do you want to accept all new followers automatically, or have granular control over each one?
     search: Search
     search_hint_html: Control how you want to be found. Do you want people to find you by what you've publicly posted about? Do you want people outside Mastodon to find your profile when searching the web? Please mind that total exclusion from all search engines cannot be guaranteed for public information.
-    stop_deliver: Stop delivering
+    search_kmyblue_hint_html: 'There are two types of post search settings in kmyblue: ''Indexable'' and ''Searchability''. indexable allows all public posts of an account to be searchable by other standard Mastodon, and changes to the setting are retroactive to past posts. Searchability can be specified on a per-post basis, and on kmyblue and Fedibird, this setting takes precedence over Indexable. Past posts cannot be changed.'
     title: Privacy and reach
   privacy_extra:
     hint_html: These settings are kmyblue original. You will receive additional privacy benefits by doing this setting.
-    post_processing_hint_html: 投稿された情報に対して、システムが追加で行うことができる操作を制御します。これらには、第三者のサイトへあなたの投稿に関する情報の送信を伴う設定も含まれます。
-    post_processing: 投稿の処理
-    stop_deliver: 配送停止
-    stop_deliver_hint_html: Mastodonの投稿を、他のソフトウェアでは自由に検索することができます。Mastodon内で行ったプライバシーの設定は無視され、あなたの投稿が意図しない人に見つかるおそれがあります。ここでは、他のサーバーやソフトウェアであなたの投稿が見つからないようにする設定が可能です。ただしリスクは伴います。
+    post_processing: Processing posts
+    post_processing_hint_html: Controls additional operations that the system may perform on the information you post. These include settings that involve sending information about your submission to third party sites.
+    stop_deliver: Stop delivery
+    stop_deliver_hint_html: Mastodon posts can be freely searched by other software; privacy settings made within Mastodon will be ignored and your posts may be found by unintended people. Here, you can set up your posts so that they will not be found by other servers or software. However, there is a risk involved.
     title: Privacy extra settings
   privacy_policy:
     title: Privacy Policy
   reactions:
     errors:
       banned: Banned reaction from the user
-      disabled: Stamp is disabled on this server
+      disabled: Emoji reaction is disabled on this server
       duplication: Cannot react same things
       limit_reached: Limit of different reactions reached
       unrecognized_emoji: is not a recognized emoji
+  redirects:
+    prompt: If you trust this link, click it to continue.
+    title: You are leaving %{instance}.
   relationships:
     activity: Account activity
     confirm_follow_selected_followers: Are you sure you want to follow selected followers?
@@ -1710,10 +1997,16 @@ en:
     descriptions:
       account: Public posts from @%{acct}
       tag: 'Public posts tagged #%{hashtag}'
+  scheduled_expiration_statuses:
+    over_daily_limit: You have exceeded the limit of %{limit} scheduled expiration posts for today
+    over_total_limit: You have exceeded the limit of %{limit} scheduled expiration posts
   scheduled_statuses:
     over_daily_limit: You have exceeded the limit of %{limit} scheduled posts for today
     over_total_limit: You have exceeded the limit of %{limit} scheduled posts
     too_soon: The scheduled date must be in the future
+  self_destruct:
+    lead_html: Unfortunately, <strong>%{domain}</strong> is permanently closing down. If you had an account there, you will not be able to continue using it, but you can still request a backup of your data.
+    title: This server is closing down
   sessions:
     activity: Last activity
     browser: Browser
@@ -1738,6 +2031,7 @@ en:
       unknown_browser: Unknown Browser
       weibo: Weibo
     current_session: Current session
+    date: Date
     description: "%{browser} on %{platform}"
     explanation: These are the web browsers currently logged in to your Mastodon account.
     ip: IP
@@ -1769,19 +2063,31 @@ en:
     delete: Account deletion
     development: Development
     edit_profile: Edit profile
-    export: Data export
+    export: Export
     featured_tags: Featured hashtags
     import: Import
     import_and_export: Import and export
     migrate: Account migration
-    notifications: Notifications
+    notifications: Email notifications
     preferences: Preferences
     profile: Public profile
     relationships: Follows and followers
+    severed_relationships: Severed relationships
     statuses_cleanup: Automated post deletion
     strikes: Moderation strikes
     two_factor_authentication: Two-factor Auth
     webauthn_authentication: Security keys
+  severed_relationships:
+    download: Download (%{count})
+    event_type:
+      account_suspension: Account suspension (%{target_name})
+      domain_block: Server suspension (%{target_name})
+      user_domain_block: You blocked %{target_name}
+    lost_followers: Lost followers
+    lost_follows: Lost follows
+    preamble: You may lose follows and followers when you block a domain or when your moderators decide to suspend a remote server. When that happens, you will be able to download lists of severed relationships, to be inspected and possibly imported on another server.
+    purged: Information about this server has been purged by your server's administrators.
+    type: Event
   statuses:
     attached:
       audio:
@@ -1804,21 +2110,12 @@ en:
     edited_at_html: Edited %{date}
     errors:
       in_reply_not_found: The post you are trying to reply to does not appear to exist.
-    open_in_web: Open in web
     over_character_limit: character limit of %{max} exceeded
     pin_errors:
       direct: Posts that are only visible to mentioned users cannot be pinned
       limit: You have already pinned the maximum number of posts
       ownership: Someone else's post cannot be pinned
       reblog: A boost cannot be pinned
-    poll:
-      total_people:
-        one: "%{count} person"
-        other: "%{count} people"
-      total_votes:
-        one: "%{count} vote"
-        other: "%{count} votes"
-      vote: Vote
     searchabilities:
       direct: Reactionners
       direct_long: Reacter of this post can find
@@ -1832,28 +2129,42 @@ en:
       public: Public
       public_long: Anyone can find
       public_search_long: You can search all posts permitted to search
-    show_more: Show more
-    show_newer: Show newer
-    show_older: Show older
-    show_thread: Show thread
+      public_unlisted: Local and followers
+      public_unlisted_long: Local users and followers can find
+      unset: "(Unsupported servers)"
     title: '%{name}: "%{quote}"'
     too_many_hashtags: Too many hashtags
+    too_many_mentions: Too many mentions
+    violate_rules: Violate NG rules
     visibilities:
+      circle: Circle-only
       direct: Direct
+<<<<<<< HEAD
       login: Login only
       login_long: Only show to logined users
+=======
+      limited: Limited
+      login: Login-only
+      login_long: Only logined users
+      mutual: Mutual-only
+>>>>>>> kb15.0-lts
       private: Followers-only
       private_long: Only show to followers
       public: Public
       public_long: Everyone can see
-      unlisted: Unlisted
+      public_unlisted: Local-public
+      public_unlisted_long: Everyone can see, but not listed on public timelines of other servers
+      reply: Reply
+      unlisted: Quiet Public (Unlisted)
       unlisted_long: Everyone can see, but not listed on public timelines
+      unset: Default
+      unset_long: Following Mastodon default behavior
   statuses_cleanup:
     enabled: Automatically delete old posts
     enabled_hint: Automatically deletes your posts once they reach a specified age threshold, unless they match one of the exceptions below
     exceptions: Exceptions
     explanation: Because deleting posts is an expensive operation, this is done slowly over time when the server is not otherwise busy. For this reason, your posts may be deleted a while after they reach the age threshold.
-    ignore_emojis: Ignore stamps
+    ignore_emojis: Ignore emoji reactions
     ignore_favs: Ignore favorites
     ignore_reblogs: Ignore boosts
     interaction_exceptions: Exceptions based on interactions
@@ -1868,6 +2179,8 @@ en:
     keep_polls_hint: Doesn't delete any of your polls
     keep_self_bookmark: Keep posts you bookmarked
     keep_self_bookmark_hint: Doesn't delete your own posts if you have bookmarked them
+    keep_self_emoji: Keep posts you reacted with emoji
+    keep_self_emoji_hint: Doesn't delete your own posts if you have reacted them with emoji
     keep_self_fav: Keep posts you favorited
     keep_self_fav_hint: Doesn't delete your own posts if you have favorited them
     min_age:
@@ -1880,8 +2193,8 @@ en:
       '63113904': 2 years
       '7889238': 3 months
     min_age_label: Age threshold
-    min_emojis: Keep posts stamped at least
-    min_emojis_hint: Doesn't delete any of your posts that has received at least this number of stamps. Leave blank to delete posts regardless of their number of emojis
+    min_emojis: Keep posts reacted with emoji at least
+    min_emojis_hint: Doesn't delete any of your posts that has received at least this number of emoji reactions. Leave blank to delete posts regardless of their number of emojis
     min_favs: Keep posts favorited at least
     min_favs_hint: Doesn't delete any of your posts that has received at least this number of favorites. Leave blank to delete posts regardless of their number of favorites
     min_reblogs: Keep posts boosted at least
@@ -1896,7 +2209,9 @@ en:
   themes:
     contrast: Mastodon (High contrast)
     default: Mastodon (Dark)
+    full-dark: フルダーク
     mastodon-light: Mastodon (Light)
+    system: Automatic (use system theme)
     head-space: Head Space (⚠️Beta⚠️)
     head-space-static: Head Space (Static) (⚠️Beta⚠️)
     head-space-en: Head Space (EN Font) (⚠️Beta⚠️)
@@ -1928,18 +2243,27 @@ en:
     webauthn: Security keys
   user_mailer:
     appeal_approved:
-      action: Go to your account
+      action: Account Settings
       explanation: The appeal of the strike against your account on %{strike_date} that you submitted on %{appeal_date} has been approved. Your account is once again in good standing.
       subject: Your appeal from %{date} has been approved
+      subtitle: Your account is once again in good standing.
       title: Appeal approved
     appeal_rejected:
       explanation: The appeal of the strike against your account on %{strike_date} that you submitted on %{appeal_date} has been rejected.
       subject: Your appeal from %{date} has been rejected
+      subtitle: Your appeal has been rejected.
       title: Appeal rejected
     backup_ready:
-      explanation: You requested a full backup of your Mastodon account. It's now ready for download!
+      explanation: You requested a full backup of your Mastodon account.
+      extra: It's now ready for download!
       subject: Your archive is ready for download
       title: Archive takeout
+    failed_2fa:
+      details: 'Here are details of the sign-in attempt:'
+      explanation: Someone has tried to sign in to your account but provided an invalid second authentication factor.
+      further_actions_html: If this wasn't you, we recommend that you %{action} immediately as it may be compromised.
+      subject: Second factor authentication failure
+      title: Failed second factor authentication
     suspicious_sign_in:
       change_password: change your password
       details: 'Here are details of the sign-in:'
@@ -1982,13 +2306,44 @@ en:
         silence: Account limited
         suspend: Account suspended
     welcome:
-      edit_profile_action: Setup profile
-      edit_profile_step: You can customize your profile by uploading a profile picture, changing your display name and more. You can opt-in to review new followers before they’re allowed to follow you.
+      apps_android_action: Get it on Google Play
+      apps_ios_action: Download on the App Store
+      apps_step: Download our official apps.
+      apps_title: Mastodon apps
+      checklist_subtitle: 'Let''s get you started on this new social frontier:'
+      checklist_title: Welcome Checklist
+      edit_profile_action: Personalize
+      edit_profile_step: Boost your interactions by having a comprehensive profile.
+      edit_profile_title: Personalize your profile
       explanation: Here are some tips to get you started
-      final_action: Start posting
-      final_step: 'Start posting! Even without followers, your public posts may be seen by others, for example on the local timeline or in hashtags. You may want to introduce yourself on the #introductions hashtag.'
-      full_handle: Your full handle
-      full_handle_hint: This is what you would tell your friends so they can message or follow you from another server.
+      feature_action: Learn more
+      feature_audience: Mastodon provides you with a unique possibility of managing your audience without middlemen. Mastodon deployed on your own infrastructure allows you to follow and be followed from any other Mastodon server online and is under no one's control but yours.
+      feature_audience_title: Build your audience in confidence
+      feature_control: You know best what you want to see on your home feed. No algorithms or ads to waste your time. Follow anyone across any Mastodon server from a single account and receive their posts in chronological order, and make your corner of the internet a little more like you.
+      feature_control_title: Stay in control of your own timeline
+      feature_creativity: Mastodon supports audio, video and picture posts, accessibility descriptions, polls, content warnings, animated avatars, custom emojis, thumbnail crop control, and more, to help you express yourself online. Whether you're publishing your art, your music, or your podcast, Mastodon is there for you.
+      feature_creativity_title: Unparalleled creativity
+      feature_moderation: Mastodon puts decision making back in your hands. Each server creates their own rules and regulations, which are enforced locally and not top-down like corporate social media, making it the most flexible in responding to the needs of different groups of people. Join a server with the rules you agree with, or host your own.
+      feature_moderation_title: Moderating the way it should be
+      follow_action: Follow
+      follow_step: Following interesting people is what Mastodon is all about.
+      follow_title: Personalize your home feed
+      follows_subtitle: Follow well-known accounts
+      follows_title: Who to follow
+      follows_view_more: View more people to follow
+      hashtags_recent_count:
+        one: "%{people} person in the past 2 days"
+        other: "%{people} people in the past 2 days"
+      hashtags_subtitle: Explore what’s trending since past 2 days
+      hashtags_title: Trending hashtags
+      hashtags_view_more: View more trending hashtags
+      post_action: Compose
+      post_step: Say hello to the world with text, photos, videos, or polls.
+      post_title: Make your first post
+      share_action: Share
+      share_step: Let your friends know how to find you on Mastodon.
+      share_title: Share your Mastodon profile
+      sign_in_action: Sign in
       subject: Welcome to Mastodon
       title: Welcome aboard, %{name}!
   users:
@@ -1997,7 +2352,11 @@ en:
     invalid_otp_token: Invalid two-factor code
     otp_lost_help_html: If you lost access to both, you may get in touch with %{email}
     rate_limited: Too many authentication attempts, try again later.
+<<<<<<< HEAD
     seamless_external_login: You are logged in via an external service, so password and e-mail settings are not available.
+=======
+    seamless_external_login: You are logged in via an external service, so password and email settings are not available.
+>>>>>>> kb15.0-lts
     signed_in_as: 'Signed in as:'
   verification:
     extra_instructions_html: <strong>Tip:</strong> The link on your website can be invisible. The important part is <code>rel="me"</code> which prevents impersonation on websites with user-generated content. You can even use a <code>link</code> tag in the header of the page instead of <code>a</code>, but the HTML must be accessible without executing JavaScript.
@@ -2006,6 +2365,7 @@ en:
     instructions_html: Copy and paste the code below into the HTML of your website. Then add the address of your website into one of the extra fields on your profile from the "Edit profile" tab and save changes.
     verification: Verification
     verified_links: Your verified links
+    website_verification: Website verification
   webauthn_credentials:
     add: Add new security key
     create:

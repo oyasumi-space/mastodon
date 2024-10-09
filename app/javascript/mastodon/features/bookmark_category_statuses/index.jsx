@@ -2,24 +2,31 @@ import PropTypes from 'prop-types';
 
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
+
 import { Helmet } from 'react-helmet';
+import { withRouter } from 'react-router-dom';
 
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
+
 import { debounce } from 'lodash';
 
+import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg';
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import { deleteBookmarkCategory, expandBookmarkCategoryStatuses, fetchBookmarkCategory, fetchBookmarkCategoryStatuses , setupBookmarkCategoryEditor } from 'mastodon/actions/bookmark_categories';
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { openModal } from 'mastodon/actions/modal';
+import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import { Icon }  from 'mastodon/components/icon';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import StatusList from 'mastodon/components/status_list';
 import BundleColumnError from 'mastodon/features/ui/components/bundle_column_error';
-import Column from 'mastodon/features/ui/components/column';
 import { getBookmarkCategoryStatusList } from 'mastodon/selectors';
+import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import EditBookmarkCategoryForm from './components/edit_bookmark_category_form';
 
@@ -40,10 +47,6 @@ const mapStateToProps = (state, { params }) => ({
 
 class BookmarkCategoryStatuses extends ImmutablePureComponent {
 
-  static contextTypes = {
-    router: PropTypes.object,
-  };
-
   static propTypes = {
     params: PropTypes.object.isRequired,
     dispatch: PropTypes.func.isRequired,
@@ -55,6 +58,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
     hasMore: PropTypes.bool,
     isLoading: PropTypes.bool,
     isEditing: PropTypes.bool,
+    ...WithRouterPropTypes,
   };
 
   UNSAFE_componentWillMount () {
@@ -69,7 +73,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
       dispatch(removeColumn(columnId));
     } else {
       dispatch(addColumn('BOOKMARKS_EX', { id: this.props.params.id }));
-      this.context.router.history.push('/');
+      this.props.history.push('/');
     }
   };
 
@@ -101,7 +105,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
           if (columnId) {
             dispatch(removeColumn(columnId));
           } else {
-            this.context.router.history.push('/bookmark_categories');
+            this.props.history.push('/bookmark_categories');
           }
         },
       },
@@ -113,7 +117,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
   };
 
   handleLoadMore = debounce(() => {
-    this.props.dispatch(expandBookmarkCategoryStatuses());
+    this.props.dispatch(expandBookmarkCategoryStatuses(this.props.params.id));
   }, 300, { leading: true });
 
   render () {
@@ -144,6 +148,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.heading)}>
         <ColumnHeader
           icon='bookmark'
+          iconComponent={BookmarkIcon}
           title={bookmarkCategory.get('title')}
           onPin={this.handlePin}
           onMove={this.handleMove}
@@ -151,16 +156,18 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
           pinned={pinned}
           multiColumn={multiColumn}
         >
-          <div className='column-settings__row column-header__links'>
-            <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleEditClick}>
-              <Icon id='pencil' /> <FormattedMessage id='bookmark_categories.edit' defaultMessage='Edit category' />
-            </button>
+          <div className='column-settings'>
+            <section className='column-header__links'>
+              <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleEditClick}>
+                <Icon id='pencil' icon={EditIcon} /> <FormattedMessage id='bookmark_categories.edit' defaultMessage='Edit category' />
+              </button>
 
-            <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleDeleteClick}>
-              <Icon id='trash' /> <FormattedMessage id='bookmark_categories.delete' defaultMessage='Delete category' />
-            </button>
+              <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleDeleteClick}>
+                <Icon id='trash' icon={DeleteIcon} /> <FormattedMessage id='bookmark_categories.delete' defaultMessage='Delete category' />
+              </button>
 
-            {editor}
+              {editor}
+            </section>
           </div>
         </ColumnHeader>
 
@@ -185,4 +192,4 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(BookmarkCategoryStatuses));
+export default withRouter(connect(mapStateToProps)(injectIntl(BookmarkCategoryStatuses)));

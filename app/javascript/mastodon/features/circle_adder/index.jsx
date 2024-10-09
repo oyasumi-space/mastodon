@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 
 import { injectIntl } from 'react-intl';
 
+import { createSelector } from '@reduxjs/toolkit';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
+
 
 import { setupCircleAdder, resetCircleAdder } from '../../actions/circles';
 import NewCircleForm from '../circles/components/new_circle_form';

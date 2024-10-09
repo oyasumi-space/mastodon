@@ -4,9 +4,11 @@
   - [default, 8]
   - [push, 6]
   - [ingress, 4]
+  - [perishable, 4]
   - [mailers, 2]
   - [pull]
   - [scheduler]
+
 :scheduler:
   :listened_queues_only: true
   :schedule:

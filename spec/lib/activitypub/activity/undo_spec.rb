@@ -146,12 +146,49 @@ RSpec.describe ActivityPub::Activity::Undo do
         expect(sender.following?(recipient)).to be false
       end
 
+      it 'deletes follow from sender to recipient when has friend' do
+        friend = Fabricate(:friend_domain, domain: sender.domain, passive_state: :accepted)
+        subject.perform
+        expect(sender.following?(recipient)).to be false
+        expect(friend.reload.they_are_accepted?).to be true
+      end
+
       context 'with only object uri' do
         let(:object_json) { 'bar' }
 
         it 'deletes follow from sender to recipient' do
           subject.perform
           expect(sender.following?(recipient)).to be false
+        end
+      end
+
+      context 'when for a friend' do
+        let(:sender) { Fabricate(:account, domain: 'abc.com', url: 'https://abc.com/#actor') }
+        let!(:friend) { Fabricate(:friend_domain, domain: 'abc.com', passive_state: :accepted, passive_follow_activity_id: 'bar') }
+        let(:object_json) do
+          {
+            id: 'bar',
+            type: 'Follow',
+            actor: ActivityPub::TagManager.instance.uri_for(sender),
+            object: 'https://www.w3.org/ns/activitystreams#Public',
+          }
+        end
+
+        it 'deletes follow from this server to friend' do
+          subject.perform
+          expect(FriendDomain.exists?(domain: 'abc.com')).to be false
+        end
+
+        it 'when my server is pending' do
+          friend.update(active_state: :pending)
+          subject.perform
+          expect(FriendDomain.exists?(domain: 'abc.com')).to be false
+        end
+
+        it 'when my server is accepted' do
+          friend.update(active_state: :accepted)
+          subject.perform
+          expect(FriendDomain.exists?(domain: 'abc.com')).to be false
         end
       end
     end

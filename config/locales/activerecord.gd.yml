@@ -1,3 +1,4 @@
+---
 gd:
   activerecord:
     attributes:
@@ -14,35 +15,41 @@ gd:
       user/invite_request:
         text: Adhbhar
     errors:
+      attributes:
+        domain:
+          invalid: "– chan eil seo ’na ainm àrainne dligheach"
+      messages:
+        invalid_domain_on_line: Chan eil %{value} ’na ainm àrainne dligheach
+        too_many_lines: "– tha seo thar crìoch de %{limit} nan loidhnichean"
       models:
         account:
           attributes:
             username:
-              invalid: '– chan fhaod ach litrichean gun sràcan, àireamhan ’s fo-loidhnichean a bhith ’na bhroinn'
-              reserved: '– tha e glèidhte'
+              invalid: "– chan fhaod ach litrichean gun sràcan, àireamhan ’s fo-loidhnichean a bhith ’na bhroinn"
+              reserved: "– tha e glèidhte"
         admin/webhook:
           attributes:
             url:
-              invalid: '– chan eil seo ’na URL dligheach'
+              invalid: "– chan eil seo ’na URL dligheach"
         doorkeeper/application:
           attributes:
             website:
-              invalid: '– chan eil seo ’na URL dligheach'
+              invalid: "– chan eil seo ’na URL dligheach"
         import:
           attributes:
             data:
-              malformed: '– chan eil cruth dligheach air'
+              malformed: "– chan eil cruth dligheach air"
         status:
           attributes:
             reblog:
-              taken: '– tha seo aig a’ phost mu thràth'
+              taken: "– tha seo aig a’ phost mu thràth"
         user:
           attributes:
             email:
-              blocked: '– tha seo a’ chleachdadh solaraiche puist-d nach eil ceadaichte'
-              unreachable: '– tha coltas nach eil seo ann'
+              blocked: "– tha seo a’ chleachdadh solaraiche puist-d nach eil ceadaichte"
+              unreachable: "– tha coltas nach eil seo ann"
             role_id:
-              elevated: '– chan fhaod seo a bhith nas àirde na an dreuchd a th’ agad an-dràsta'
+              elevated: "– chan fhaod seo a bhith nas àirde na an dreuchd a th’ agad an-dràsta"
         user_role:
           attributes:
             permissions_as_keys:

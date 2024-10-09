@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe FollowService, type: :service do
+RSpec.describe FollowService do
   subject { described_class.new }
 
   let(:sender) { Fabricate(:account, username: 'alice') }
@@ -143,15 +143,42 @@ RSpec.describe FollowService, type: :service do
 
     before do
       stub_request(:post, 'http://example.com/inbox').to_return(status: 200, body: '', headers: {})
+    end
+
+    it 'creates follow request and sends an activity to inbox', :inline_jobs do
       subject.call(sender, bob)
+
+      expect(FollowRequest.find_by(account: sender, target_account: bob))
+        .to_not be_nil
+
+      expect(a_request(:post, 'http://example.com/inbox'))
+        .to have_been_made.once
+    end
+  end
+
+  context 'with ng rule' do
+    let(:bob) { Fabricate(:account) }
+
+    context 'when rule matches' do
+      before do
+        Fabricate(:ng_rule, reaction_type: ['follow'])
+      end
+
+      it 'does not favourite' do
+        expect { subject.call(sender, bob) }.to raise_error Mastodon::ValidationError
+        expect(sender.following?(bob)).to be false
+      end
     end
 
-    it 'creates follow request' do
-      expect(FollowRequest.find_by(account: sender, target_account: bob)).to_not be_nil
-    end
+    context 'when rule does not match' do
+      before do
+        Fabricate(:ng_rule, account_display_name: 'else', reaction_type: ['follow'])
+      end
 
-    it 'sends a follow activity to the inbox' do
-      expect(a_request(:post, 'http://example.com/inbox')).to have_been_made.once
+      it 'favourites' do
+        expect { subject.call(sender, bob) }.to_not raise_error
+        expect(sender.following?(bob)).to be true
+      end
     end
   end
 end

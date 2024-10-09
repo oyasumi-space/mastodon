@@ -9,7 +9,7 @@ class AddLtlToAntennas < ActiveRecord::Migration[7.0]
 
   def change
     safety_assured do
-      add_column_with_default :antennas, :ltl, :boolean, default: false, allow_null: false
+      add_column :antennas, :ltl, :boolean, default: false, null: false
     end
   end
 end

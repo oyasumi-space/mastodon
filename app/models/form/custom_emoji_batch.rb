@@ -6,7 +6,7 @@ class Form::CustomEmojiBatch
   include AccountableConcern
 
   attr_accessor :custom_emoji_ids, :action, :current_account,
-                :category_id, :category_name, :aliases_raw, :visible_in_picker
+                :category_id, :category_name, :visible_in_picker
 
   def save
     case action
@@ -34,7 +34,7 @@ class Form::CustomEmojiBatch
   end
 
   def update!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
+    verify_authorization(:update?)
 
     category = if category_id.present?
                  CustomEmojiCategory.find(category_id)
@@ -43,14 +43,13 @@ class Form::CustomEmojiBatch
                end
 
     custom_emojis.each do |custom_emoji|
-      new_aliases_raw = (aliases_raw.presence || custom_emoji.aliases_raw)
-      custom_emoji.update(category_id: category&.id, aliases_raw: new_aliases_raw)
+      custom_emoji.update(category_id: category&.id)
       log_action :update, custom_emoji
     end
   end
 
   def list!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
+    verify_authorization(:update?)
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(visible_in_picker: true)
@@ -59,7 +58,7 @@ class Form::CustomEmojiBatch
   end
 
   def unlist!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :update?) }
+    verify_authorization(:update?)
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(visible_in_picker: false)
@@ -68,7 +67,7 @@ class Form::CustomEmojiBatch
   end
 
   def enable!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :enable?) }
+    verify_authorization(:enable?)
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(disabled: false)
@@ -77,7 +76,7 @@ class Form::CustomEmojiBatch
   end
 
   def disable!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :disable?) }
+    verify_authorization(:disable?)
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.update(disabled: true)
@@ -86,7 +85,7 @@ class Form::CustomEmojiBatch
   end
 
   def copy!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :copy?) }
+    verify_authorization(:copy?)
 
     custom_emojis.each do |custom_emoji|
       copied_custom_emoji = custom_emoji.copy!
@@ -95,11 +94,15 @@ class Form::CustomEmojiBatch
   end
 
   def delete!
-    custom_emojis.each { |custom_emoji| authorize(custom_emoji, :destroy?) }
+    verify_authorization(:destroy?)
 
     custom_emojis.each do |custom_emoji|
       custom_emoji.destroy
       log_action :destroy, custom_emoji
     end
+  end
+
+  def verify_authorization(permission)
+    custom_emojis.each { |custom_emoji| authorize(custom_emoji, permission) }
   end
 end

@@ -87,6 +87,8 @@ class ActivityPub::Activity::Undo < ActivityPub::Activity
   end
 
   def undo_follow
+    return remove_follow_from_friend if friend_follow?
+
     target_account = account_from_uri(target_uri)
 
     return if target_account.nil? || !target_account.local?
@@ -98,6 +100,18 @@ class ActivityPub::Activity::Undo < ActivityPub::Activity
     else
       delete_later!(object_uri)
     end
+  end
+
+  def remove_follow_from_friend
+    friend.destroy_without_signal!
+  end
+
+  def friend
+    @friend ||= FriendDomain.find_by(domain: @account.domain) if @account.domain.present? && @object['object'] == ActivityPub::TagManager::COLLECTIONS[:public]
+  end
+
+  def friend_follow?
+    friend.present?
   end
 
   def undo_like_original
@@ -133,11 +147,6 @@ class ActivityPub::Activity::Undo < ActivityPub::Activity
       if emoji_reaction
         emoji_reaction.destroy
         write_stream(emoji_reaction)
-
-        if @original_status.account.local?
-          forward_for_undo_emoji_reaction
-          relay_for_undo_emoji_reaction
-        end
       end
     else
       undo_like_original
@@ -154,25 +163,11 @@ class ActivityPub::Activity::Undo < ActivityPub::Activity
       emoji_group = { 'name' => emoji_reaction.name, 'count' => 0, 'account_ids' => [], 'status_id' => @original_status.id.to_s }
       emoji_group['domain'] = emoji_reaction.custom_emoji.domain if emoji_reaction.custom_emoji
     end
-    DeliveryEmojiReactionWorker.perform_async(render_emoji_reaction(emoji_group), @original_status.id, emoji_reaction.account_id) if @original_status.local? || Setting.streaming_other_servers_emoji_reaction
+    DeliveryEmojiReactionWorker.perform_async(render_emoji_reaction(emoji_group), @original_status.id, emoji_reaction.account_id) if @original_status.local? ? Setting.streaming_local_emoji_reaction : Setting.streaming_other_servers_emoji_reaction
   end
 
   def render_emoji_reaction(emoji_group)
     @render_emoji_reaction ||= Oj.dump(event: :emoji_reaction, payload: emoji_group.to_json)
-  end
-
-  def forward_for_undo_emoji_reaction
-    return if @json['signature'].blank?
-
-    ActivityPub::RawDistributionWorker.perform_async(Oj.dump(@json), @original_status.account.id, [@account.preferred_inbox_url])
-  end
-
-  def relay_for_undo_emoji_reaction
-    return unless @json['signature'].present? && @original_status.public_visibility?
-
-    ActivityPub::DeliveryWorker.push_bulk(Relay.enabled.pluck(:inbox_url)) do |inbox_url|
-      [Oj.dump(@json), @original_status.account.id, inbox_url]
-    end
   end
 
   def shortcode

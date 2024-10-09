@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe ProcessReferencesWorker do
+RSpec.describe ProcessReferencesWorker do
   let(:worker) { described_class.new }
 
   describe 'perform' do

@@ -26,7 +26,7 @@ class AccountStatusesFilter
     scope.merge!(no_reblogs_scope) if exclude_reblogs?
     scope.merge!(hashtag_scope)    if tagged?
 
-    available_searchabilities = [:public, :unlisted, :private, :direct, :limited, nil]
+    available_searchabilities = [:public, :public_unlisted, :unlisted, :private, :direct, :limited, nil]
     available_visibilities = [:public, :public_unlisted, :login, :unlisted, :private, :direct, :limited]
 
     available_visibilities -= [:public_unlisted] if (domain_block&.detect_invalid_subscription || misskey_software?) && @account.user&.setting_reject_public_unlisted_subscription
@@ -44,10 +44,12 @@ class AccountStatusesFilter
   private
 
   def initial_scope
-    if suspended? || blocked?
+    return Status.none if account.unavailable?
+
+    if blocked?
       Status.none
     elsif anonymous?
-      account.statuses.where(visibility: %i(public unlisted public_unlisted))
+      account.statuses.distributable_visibility_for_anonymous
     elsif author?
       account.statuses.all # NOTE: #merge! does not work without the #all
     else
@@ -80,7 +82,7 @@ class AccountStatusesFilter
   end
 
   def only_media_scope
-    Status.joins(:media_attachments).merge(account.media_attachments.reorder(nil)).group(Status.arel_table[:id])
+    Status.joins(:media_attachments).merge(account.media_attachments).group(Status.arel_table[:id])
   end
 
   def no_replies_scope
@@ -103,10 +105,6 @@ class AccountStatusesFilter
     else
       Status.none
     end
-  end
-
-  def suspended?
-    account.suspended?
   end
 
   def anonymous?
@@ -163,14 +161,7 @@ class AccountStatusesFilter
 
   def misskey_software?
     return false if @account.nil? || @account.local?
-    return false if instance_info.nil?
 
-    %w(misskey cherrypick).include?(instance_info.software)
-  end
-
-  def instance_info
-    return @instance_info if defined?(@instance_info)
-
-    @instance_info = InstanceInfo.find_by(domain: @account.domain)
+    InstanceInfo.invalid_subscription_software?(@account.domain)
   end
 end

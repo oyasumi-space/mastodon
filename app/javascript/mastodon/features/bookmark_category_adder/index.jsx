@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 
 import { injectIntl } from 'react-intl';
 
+import { createSelector } from '@reduxjs/toolkit';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
+
 
 import { setupBookmarkCategoryAdder, resetBookmarkCategoryAdder } from '../../actions/bookmark_categories';
 import NewBookmarkCategoryForm from '../bookmark_categories/components/new_bookmark_category_form';

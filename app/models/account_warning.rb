@@ -17,7 +17,7 @@
 #
 
 class AccountWarning < ApplicationRecord
-  enum action: {
+  enum :action, {
     none: 0,
     disable: 1_000,
     force_cw: 1_200,
@@ -26,9 +26,11 @@ class AccountWarning < ApplicationRecord
     sensitive: 2_000,
     silence: 3_000,
     suspend: 4_000,
-  }, _suffix: :action
+  }, suffix: :action
 
-  before_validation :before_validate
+  RECENT_PERIOD = 3.months.freeze
+
+  normalizes :text, with: ->(text) { text.to_s }, apply_to_nil: true
 
   belongs_to :account, inverse_of: :account_warnings
   belongs_to :target_account, class_name: 'Account', inverse_of: :strikes
@@ -38,7 +40,7 @@ class AccountWarning < ApplicationRecord
 
   scope :latest, -> { order(id: :desc) }
   scope :custom, -> { where.not(text: '') }
-  scope :recent, -> { where('account_warnings.created_at >= ?', 3.months.ago) }
+  scope :recent, -> { where(created_at: RECENT_PERIOD.ago..) }
 
   def statuses
     Status.with_discarded.where(id: status_ids || [])
@@ -50,11 +52,5 @@ class AccountWarning < ApplicationRecord
 
   def to_log_human_identifier
     target_account.acct
-  end
-
-  private
-
-  def before_validate
-    self.text = '' if text.blank?
   end
 end

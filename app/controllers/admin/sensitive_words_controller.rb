@@ -6,13 +6,14 @@ module Admin
       authorize :sensitive_words, :show?
 
       @admin_settings = Form::AdminSettings.new
+      @sensitive_words = ::SensitiveWord.caches.presence || [::SensitiveWord.new]
     end
 
     def create
       authorize :sensitive_words, :create?
 
       begin
-        test_words
+        ::SensitiveWord.save_from_raws(settings_params_test)
       rescue
         flash[:alert] = I18n.t('admin.ng_words.test_error')
         redirect_to after_update_redirect_path
@@ -31,18 +32,16 @@ module Admin
 
     private
 
-    def test_words
-      sensitive_words = settings_params['sensitive_words'].split(/\r\n|\r|\n/)
-      sensitive_words_for_full = settings_params['sensitive_words_for_full'].split(/\r\n|\r|\n/)
-      Admin::NgWord.reject_with_custom_words?('Sample text', sensitive_words + sensitive_words_for_full)
-    end
-
     def after_update_redirect_path
       admin_sensitive_words_path
     end
 
     def settings_params
       params.require(:form_admin_settings).permit(*Form::AdminSettings::KEYS)
+    end
+
+    def settings_params_test
+      params.require(:form_admin_settings)[:sensitive_words_test]
     end
   end
 end

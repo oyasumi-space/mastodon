@@ -1,3 +1,4 @@
+---
 ta:
   about:
     about_mastodon_html: 'எதிர்காலத்தின் சமூகப் பிணையம்: விளம்பரம் இல்லை, பொதுநிறுவனக் கண்காணிப்பு இல்லை, நெறிக்குட்பட்ட வரைவுத்திட்டம், மற்றும் பகிர்ந்தாளுதல்! மஸ்டோடோனுடன் உங்கள் தரவுகள் உங்களுக்கே சொந்தம்!'
@@ -5,7 +6,6 @@ ta:
     contact_unavailable: பொ/இ
     hosted_on: மாஸ்டோடாண் %{domain} இனையத்தில் இயங்குகிறது
   accounts:
-    follow: பின்தொடர்
     followers:
       one: பின்தொடர்பவர்
       other: பின்தொடர்பவர்கள்
@@ -18,13 +18,12 @@ ta:
   admin:
     account_actions:
       action: நடவடிக்கை எடு
-      title: '%{acct}ஐ நடுநிலைப்படுத்தவும்'
+      title: "%{acct}ஐ நடுநிலைப்படுத்தவும்"
     account_moderation_notes:
       create: குறிப்பு எழுதவும்
       created_msg: நடுநிலை குறிப்பு வெற்றிகரமாக பதிவு செய்யப்பட்டது!
       destroyed_msg: நடுநிலை குறிப்பு வெற்றிகரமாக அகற்றப்பட்டது!
     accounts:
-      add_email_domain_block: இம்மின்னஞ்சல் களத்தைத் தடுப்புப்பட்டியலில் சேர்
       approve: அங்கீகரி
       are_you_sure: நிச்சயமா?
       avatar: அவதாரம்
@@ -34,7 +33,7 @@ ta:
         label: மின் அஞ்சலை மற்றுக
         new_email: புதிய மின் அஞ்சல்
         submit: மின் அஞ்சல் மாற்றுக
-        title: '%{username} உடைய மின் அஞ்சலை மாற்றுக'
+        title: "%{username} உடைய மின் அஞ்சலை மாற்றுக"
       confirm: உறுதிசெய்
       confirmed: உறுதி செய்யப்பட்டது
       confirming: உறுதி செய்யப்படுகிறது
@@ -86,7 +85,6 @@ ta:
       reset: மீட்டமைக்கவும்
       reset_password: கடவுச்சொல்லை மீளமைத்திடுக
       search: தேடு
-      search_same_email_domain: இம்மின்னஞ்சல் களத்தில் உள்ள மற்ற பயனர்கள்
       shared_inbox_url: குழு மின்னஞ்சல் முகவரி
       show:
         created_reports: உறுவாக்கிய அறிக்கைகள்
@@ -101,20 +99,17 @@ ta:
       whitelisted: அனுமதிப்பட்டியல்
     action_logs:
       action_types:
-        change_email_user: பயனரின் மின்னஞ்சலை மாற்று
         confirm_user: பயனரை உறுதி செய்
         create_account_warning: எச்சரிக்கையை உருவாக்கு
         create_announcement: அறிவிப்பை உருவாக்கு
         create_custom_emoji: தனிப்பயனான எமோஜியை உருவாக்கு
         create_domain_allow: கள அனுமதியை உருவாக்கு
         create_domain_block: கள முடக்கத்தை உருவாக்கு
-        create_email_domain_block: மின்னஞ்சல் கள முடக்கத்தை உருவாக்கு
         demote_user: பயனரைப் படியிறக்கு
         destroy_announcement: அறிவிப்பை நீக்கு
         destroy_custom_emoji: தனிப்பயனான எமோஜியை நீக்கு
         destroy_domain_allow: கள அனுமதியை நீக்கு
         destroy_domain_block: கள முடக்கத்தை நீக்கு
-        destroy_email_domain_block: மின்னஞ்சல் கள முடக்கத்தை நீக்கு
         destroy_status: பதிவை நீக்கு
         disable_2fa_user: 2FA-வை முடக்கு
         disable_custom_emoji: தனிப்பயனான எமோஜியை முடக்கு
@@ -147,7 +142,7 @@ ta:
         create: அறிவிப்பை உருவாக்கு
         title: புதிய அறிவிப்பு
       published_msg: அறிவிப்பு வெற்றிகரமாகப் பதியப்பட்டது!
-      scheduled_for: '%{time} மணிக்குப் பதியப்படும்'
+      scheduled_for: "%{time} மணிக்குப் பதியப்படும்"
       scheduled_msg: அறிவிப்பு, குறித்த நேரத்தில் பதியப்படும்!
       title: அறிவிப்புகள்
       unpublished_msg: அறிவிப்பு வெற்றிகரமாகத் திரும்பப் பெறப்பட்டது!
@@ -193,7 +188,6 @@ ta:
   crypto:
     errors:
       invalid_key: ஒரு முறையான Ed25519 அல்லது Curve25519 key அல்ல
-      invalid_signature: ஒரு முறையான Ed25519 அடையாளம் அல்ல
   filters:
     index:
       empty: தடுப்புகள் ஏதும் இல்லை.
@@ -209,9 +203,7 @@ ta:
     carry_mutes_over_text: இப்பயனர் %{acct}-இலிருந்து நகர்ந்துவிட்டார், அக்கணக்கை நீங்கள் முடக்கியிருந்தீர்கள்.
     copy_account_note_text: 'இப்பயனர் %{acct}-லிருந்து நகர்ந்துவிட்டார், இவரைப் பற்றிய உங்கள் முந்தைய குறிப்புகள் இங்கே:'
   notifications:
-    email_events: மின்னஞ்சல் அறிவிப்புகளுக்கான நிகழ்வுகள்
     email_events_hint: 'எந்த நிகழ்வுகளுக்கு அறிவிப்புகளைப் பெற வேண்டும் என்று தேர்வு செய்க:'
-    other_settings: அறிவிப்புகள் குறித்த பிற அமைப்புகள்
   polls:
     errors:
       invalid_choice: நீங்கள் தேர்வு செய்த விருப்பம் கிடைக்கவில்லை
@@ -226,4 +218,3 @@ ta:
         other: "%{count} ஒலிகள்"
     errors:
       in_reply_not_found: நீங்கள் மறுமொழி அளிக்க முயலும் பதிவு இருப்பதுபோல் தெரியவில்லை.
-    show_thread: தொடரைக் காட்டு

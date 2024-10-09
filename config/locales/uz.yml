@@ -1,8 +1,7 @@
+---
 uz:
   about:
     title: Haqida
-  accounts:
-    follow: Obuna bo‘lish
   admin:
     accounts:
       display_name: Ko'rsatiladigan nom
@@ -25,7 +24,7 @@ uz:
       media_attachments: Media qo'shimchalari
       memorialize: Xotiraga aylantiring
       memorialized: Yodga olingan
-      memorialized_msg: '%{username} esdalik hisobiga muvaffaqiyatli aylantirildi'
+      memorialized_msg: "%{username} esdalik hisobiga muvaffaqiyatli aylantirildi"
       moderation:
         active: Aktiv
         all: Barchasi

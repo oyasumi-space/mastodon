@@ -51,7 +51,7 @@ RSpec.describe 'Antennas' do
       subject
 
       expect(response).to have_http_status(200)
-      expect(body_as_json).to match_array(expected_response)
+      expect(response.parsed_body).to match_array(expected_response)
     end
   end
 
@@ -68,7 +68,7 @@ RSpec.describe 'Antennas' do
       subject
 
       expect(response).to have_http_status(200)
-      expect(body_as_json).to eq({
+      expect(response.parsed_body).to match(
         id: antenna.id.to_s,
         title: antenna.title,
         with_media_only: antenna.with_media_only,
@@ -80,8 +80,8 @@ RSpec.describe 'Antennas' do
         accounts_count: 0,
         domains_count: 0,
         tags_count: 0,
-        keywords_count: 0,
-      })
+        keywords_count: 0
+      )
     end
 
     context 'when the antenna belongs to a different user' do
@@ -116,7 +116,7 @@ RSpec.describe 'Antennas' do
       subject
 
       expect(response).to have_http_status(200)
-      expect(body_as_json).to match(a_hash_including(title: 'my antenna', ltl: true))
+      expect(response.parsed_body).to match(a_hash_including(title: 'my antenna', ltl: true))
       expect(Antenna.where(account: user.account).count).to eq(1)
     end
 
@@ -150,7 +150,7 @@ RSpec.describe 'Antennas' do
       expect(response).to have_http_status(200)
       antenna.reload
 
-      expect(body_as_json).to eq({
+      expect(response.parsed_body).to match(
         id: antenna.id.to_s,
         title: antenna.title,
         with_media_only: antenna.with_media_only,
@@ -162,8 +162,8 @@ RSpec.describe 'Antennas' do
         accounts_count: 0,
         domains_count: 0,
         tags_count: 0,
-        keywords_count: 0,
-      })
+        keywords_count: 0
+      )
     end
 
     def change_antenna_title

@@ -15,6 +15,10 @@ class ActivityPub::Parser::CustomEmojiParser
     @json['name']&.delete(':')
   end
 
+  def aliases
+    as_array_ex(@json['keywords'])
+  end
+
   def image_remote_url
     @json.dig('icon', 'url')
   end
@@ -26,7 +30,7 @@ class ActivityPub::Parser::CustomEmojiParser
   end
 
   def is_sensitive # rubocop:disable Naming/PredicateName
-    (@json['isSensitive'].presence || false)
+    @json['isSensitive'].presence || false
   end
 
   def license

@@ -5,6 +5,8 @@ require 'rails_helper'
 RSpec.describe DeliveryAntennaService, type: :service do
   subject { described_class.new }
 
+  let(:ltl_enabled) { true }
+
   let(:last_active_at) { Time.now.utc }
   let(:last_active_at_tom) { Time.now.utc }
   let(:visibility) { :public }
@@ -35,6 +37,8 @@ RSpec.describe DeliveryAntennaService, type: :service do
 
     bob.follow!(alice)
     alice.block!(ohagi)
+
+    Form::AdminSettings.new(enable_local_timeline: '0').save unless ltl_enabled
 
     allow(redis).to receive(:publish)
 
@@ -84,11 +88,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_account(bob, alice) }
     let!(:empty_antenna) { antenna_with_account(tom, bob) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -96,7 +100,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
   context 'when blocked' do
     let!(:empty_antenna) { antenna_with_account(ohagi, alice) }
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -105,7 +109,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:last_active_at_tom) { Time.now.utc.ago(1.year) }
     let!(:empty_antenna) { antenna_with_account(tom, alice) }
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -115,12 +119,35 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_domain(bob, 'fast.example.com') }
     let!(:empty_antenna) { antenna_with_domain(tom, 'ohagi.example.com') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
+    end
+  end
+
+  context 'with local domain' do
+    let(:domain)         { nil }
+    let!(:antenna)       { antenna_with_domain(bob, 'cb6e6126.ngrok.io') }
+    let!(:empty_antenna) { antenna_with_domain(tom, 'ohagi.example.com') }
+
+    it 'detecting antenna', :inline_jobs do
+      expect(antenna_feed_of(antenna)).to include status.id
+    end
+
+    it 'not detecting antenna', :inline_jobs do
+      expect(antenna_feed_of(empty_antenna)).to_not include status.id
+    end
+
+    context 'when local timeline is disabled' do
+      let(:ltl_enabled) { false }
+
+      it 'not detecting antenna', :inline_jobs do
+        expect(antenna_feed_of(antenna)).to_not include status.id
+        expect(antenna_feed_of(empty_antenna)).to_not include status.id
+      end
     end
   end
 
@@ -128,11 +155,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_tag(bob, 'hoge') }
     let!(:empty_antenna) { antenna_with_tag(tom, 'hog') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -141,11 +168,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body') }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'anime') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -155,11 +182,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'some') }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'anime') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -169,11 +196,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body') }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'anime') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -183,11 +210,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_domain(bob, 'fast.example.com', exclude_accounts: [tom.id]) }
     let!(:empty_antenna) { antenna_with_domain(tom, 'fast.example.com', exclude_accounts: [alice.id]) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -197,11 +224,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_domain(bob, 'fast.example.com', exclude_keywords: ['aaa']) }
     let!(:empty_antenna) { antenna_with_domain(tom, 'fast.example.com', exclude_keywords: ['body']) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -211,11 +238,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_domain(bob, 'fast.example.com') }
     let!(:empty_antenna) { antenna_with_domain(tom, 'fast.example.com', exclude_tags: [Tag.find_or_create_by_names(['hoge']).first.id]) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -225,11 +252,11 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body', exclude_domains: ['ohagi.example.com']) }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'body', exclude_domains: ['fast.example.com']) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
 
-    it 'not detecting antenna' do
+    it 'not detecting antenna', :inline_jobs do
       expect(antenna_feed_of(empty_antenna)).to_not include status.id
     end
   end
@@ -238,7 +265,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body') }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'body') }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
       expect(antenna_feed_of(empty_antenna)).to include status.id
     end
@@ -249,7 +276,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:empty_antenna) { antenna_with_keyword(tom, 'body') }
 
     [1, 2, 3, 4, 5].each do |_|
-      it 'detecting antenna' do
+      it 'detecting antenna', :inline_jobs do
         expect(antenna_feed_of(antenna)).to include status.id
         expect(antenna_feed_of(empty_antenna)).to include status.id
       end
@@ -260,7 +287,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body', insert_feeds: true) }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'body', insert_feeds: true) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
       expect(home_feed_of(bob)).to include status.id
       expect(antenna_feed_of(empty_antenna)).to include status.id
@@ -272,7 +299,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let!(:antenna)       { antenna_with_keyword(bob, 'body', insert_feeds: true, list: list(bob)) }
     let!(:empty_antenna) { antenna_with_keyword(tom, 'body', insert_feeds: true, list: list(tom)) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
       expect(list_feed_of(antenna.list)).to include status.id
       expect(antenna_feed_of(empty_antenna)).to include status.id
@@ -286,11 +313,23 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:visibility)     { :unlisted }
 
     context 'when public searchability' do
-      it 'detecting antenna' do
+      it 'detecting antenna', :inline_jobs do
         expect(antenna_feed_of(antenna)).to include status.id
       end
 
-      it 'not detecting antenna' do
+      it 'not detecting antenna', :inline_jobs do
+        expect(antenna_feed_of(empty_antenna)).to_not include status.id
+      end
+    end
+
+    context 'when public_unlisted searchability' do
+      let(:searchability) { :public_unlisted }
+
+      it 'detecting antenna', :inline_jobs do
+        expect(antenna_feed_of(antenna)).to include status.id
+      end
+
+      it 'not detecting antenna', :inline_jobs do
         expect(antenna_feed_of(empty_antenna)).to_not include status.id
       end
     end
@@ -298,7 +337,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     context 'when private searchability' do
       let(:searchability) { :private }
 
-      it 'not detecting antenna' do
+      it 'not detecting antenna', :inline_jobs do
         expect(antenna_feed_of(antenna)).to_not include status.id
         expect(antenna_feed_of(empty_antenna)).to_not include status.id
       end
@@ -311,7 +350,16 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:visibility)     { :unlisted }
 
     context 'when public searchability' do
-      it 'detecting antenna' do
+      it 'detecting antenna', :inline_jobs do
+        expect(antenna_feed_of(antenna)).to include status.id
+        expect(antenna_feed_of(empty_antenna)).to include status.id
+      end
+    end
+
+    context 'when public_unlisted searchability' do
+      let(:searchability) { :public_unlisted }
+
+      it 'detecting antenna', :inline_jobs do
         expect(antenna_feed_of(antenna)).to include status.id
         expect(antenna_feed_of(empty_antenna)).to include status.id
       end
@@ -320,7 +368,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     context 'when private searchability' do
       let(:searchability) { :private }
 
-      it 'detecting antenna' do
+      it 'detecting antenna', :inline_jobs do
         expect(antenna_feed_of(antenna)).to include status.id
         expect(antenna_feed_of(empty_antenna)).to include status.id
       end
@@ -331,7 +379,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:mode)           { :stl }
     let!(:antenna)       { antenna_with_keyword(bob, 'anime', stl: true) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
   end
@@ -340,7 +388,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:mode)           { :ltl }
     let!(:antenna)       { antenna_with_keyword(bob, 'anime', ltl: true) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
   end
@@ -349,7 +397,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:mode)           { :stl }
     let!(:antenna)       { antenna_with_keyword(bob, 'anime', exclude_keywords: ['body'], stl: true) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
   end
@@ -358,7 +406,7 @@ RSpec.describe DeliveryAntennaService, type: :service do
     let(:mode)           { :ltl }
     let!(:antenna)       { antenna_with_keyword(bob, 'anime', exclude_keywords: ['body'], ltl: true) }
 
-    it 'detecting antenna' do
+    it 'detecting antenna', :inline_jobs do
       expect(antenna_feed_of(antenna)).to include status.id
     end
   end

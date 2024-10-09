@@ -31,7 +31,7 @@ class ActivityPub::ReferencesController < ActivityPub::BaseController
   end
 
   def cached_references
-    cache_collection(Status.where(id: results).reorder(:id), Status)
+    preload_collection(Status.where(id: results).reorder(:id), Status)
   end
 
   def results
@@ -69,6 +69,7 @@ class ActivityPub::ReferencesController < ActivityPub::BaseController
     ActivityPub::CollectionPresenter.new(
       type: :unordered,
       id: ActivityPub::TagManager.instance.references_uri_for(@status),
+      size: @status.status_referred_by_count,
       first: page
     )
   end

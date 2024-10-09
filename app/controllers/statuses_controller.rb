@@ -10,9 +10,7 @@ class StatusesController < ApplicationController
 
   before_action :require_account_signature!, only: [:show, :activity], if: -> { request.format == :json && authorized_fetch_mode? }
   before_action :set_status
-  before_action :set_instance_presenter
   before_action :redirect_to_original, only: :show
-  before_action :set_body_classes, only: :embed
 
   after_action :set_link_headers
 
@@ -30,7 +28,7 @@ class StatusesController < ApplicationController
       end
 
       format.json do
-        expires_in 3.minutes, public: true if @status.distributable? && public_fetch_mode? && !misskey_software?
+        expires_in 3.minutes, public: true if @status.distributable? && public_fetch_mode? && !misskey_software? && !@status.expires?
         render_with_cache json: @status, content_type: 'application/activity+json', serializer: status_activity_serializer, adapter: ActivityPub::Adapter, cancel_cache: misskey_software?
       end
     end
@@ -52,12 +50,10 @@ class StatusesController < ApplicationController
 
   private
 
-  def set_body_classes
-    @body_classes = 'with-modals'
-  end
-
   def set_link_headers
-    response.headers['Link'] = LinkHeader.new([[ActivityPub::TagManager.instance.uri_for(@status), [%w(rel alternate), %w(type application/activity+json)]]])
+    response.headers['Link'] = LinkHeader.new(
+      [[ActivityPub::TagManager.instance.uri_for(@status), [%w(rel alternate), %w(type application/activity+json)]]]
+    ).to_s
   end
 
   def set_status
@@ -65,6 +61,8 @@ class StatusesController < ApplicationController
 
     if request.authorization.present? && request.authorization.match(/^Bearer /i)
       raise Mastodon::NotPermittedError unless @status.capability_tokens.find_by(token: request.authorization.gsub(/^Bearer /i, ''))
+    elsif request.format == :json && @status.expires?
+      raise Mastodon::NotPermittedError unless StatusPolicy.new(signed_request_account, @status).show_activity?
     else
       authorize @status, :show?
     end
@@ -72,23 +70,15 @@ class StatusesController < ApplicationController
     not_found
   end
 
-  def set_instance_presenter
-    @instance_presenter = InstancePresenter.new
-  end
-
   def misskey_software?
     return @misskey_software if defined?(@misskey_software)
 
     @misskey_software = false
 
-    return false if !@status.local? || signed_request_account&.domain.blank?
+    return false if !@status.local? || signed_request_account&.domain.blank? || !@status.sending_maybe_compromised_privacy?
+    return @misskey_software = true if DomainBlock.detect_invalid_subscription?(signed_request_account.domain)
 
-    info = InstanceInfo.find_by(domain: signed_request_account.domain)
-    return false if info.nil?
-
-    @misskey_software = %w(misskey calckey cherrypick sharkey).include?(info.software) &&
-                        ((@status.public_unlisted_visibility? && @status.account.user&.setting_reject_public_unlisted_subscription) ||
-                         (@status.unlisted_visibility? && @status.account.user&.setting_reject_unlisted_subscription))
+    @misskey_software = InstanceInfo.invalid_subscription_software?(signed_request_account.domain)
   end
 
   def status_activity_serializer

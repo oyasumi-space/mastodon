@@ -49,6 +49,36 @@ RSpec.describe ActivityPub::Activity::Like do
     it 'creates a favourite from sender to status' do
       expect(sender.favourited?(status)).to be true
     end
+
+    it 'creates a favourite and set uri' do
+      expect(status.favourites.first.uri).to eq 'foo'
+    end
+  end
+
+  context 'when ng rule is existing' do
+    subject { described_class.new(json, sender) }
+
+    context 'when ng rule is match' do
+      before do
+        Fabricate(:ng_rule, account_domain: 'example.com', reaction_type: ['favourite'])
+        subject.perform
+      end
+
+      it 'does not create a reblog by sender of status' do
+        expect(sender.favourited?(status)).to be false
+      end
+    end
+
+    context 'when ng rule is not match' do
+      before do
+        Fabricate(:ng_rule, account_domain: 'foo.bar', reaction_type: ['favourite'])
+        subject.perform
+      end
+
+      it 'creates a reblog by sender of status' do
+        expect(sender.favourited?(status)).to be true
+      end
+    end
   end
 
   describe '#perform when receive emoji reaction' do
@@ -363,6 +393,47 @@ RSpec.describe ActivityPub::Activity::Like do
       end
     end
 
+    context 'when sender is silenced' do
+      let(:content) { '😀' }
+
+      before do
+        sender.silence!
+      end
+
+      it 'does not create emoji reaction' do
+        expect(subject.count).to eq 0
+      end
+    end
+
+    context 'when sender is silenced but following recipient' do
+      let(:content) { '😀' }
+
+      before do
+        recipient.follow!(sender)
+        sender.silence!
+      end
+
+      it 'create emoji reaction' do
+        expect(subject.count).to eq 1
+        expect(subject.first.name).to eq '😀'
+        expect(subject.first.account).to eq sender
+        expect(sender.favourited?(status)).to be false
+      end
+    end
+
+    context 'when sender is silenced but reacted to remote account' do
+      let(:content) { '😀' }
+      let(:recipient) { Fabricate(:account, domain: 'kirakira.com', uri: 'https://kirakira.com/actor') }
+
+      before do
+        sender.silence!
+      end
+
+      it 'does not create emoji reaction' do
+        expect(subject.count).to eq 0
+      end
+    end
+
     context 'when emoji reaction between other servers is disabled' do
       let(:recipient) { Fabricate(:account, domain: 'narrow.com', uri: 'https://narrow.com/') }
       let(:content) { '😀' }
@@ -391,9 +462,189 @@ RSpec.describe ActivityPub::Activity::Like do
         expect(sender.favourited?(status)).to be false
       end
     end
+
+    context 'when receiver is blocking sender' do
+      let(:content) { '😀' }
+
+      before do
+        recipient.block!(sender)
+      end
+
+      it 'create emoji reaction' do
+        expect(subject.count).to eq 0
+      end
+    end
+
+    context 'when receiver is blocking emoji reactions' do
+      let(:content) { '😀' }
+
+      before do
+        recipient.user.settings['emoji_reaction_policy'] = 'block'
+        recipient.user.save!
+      end
+
+      it 'create emoji reaction' do
+        expect(subject.count).to eq 0
+      end
+    end
+
+    context 'when receiver is domain-blocking emoji reactions' do
+      let(:content) { '😀' }
+
+      before do
+        recipient.domain_blocks.create!(domain: 'example.com')
+      end
+
+      it 'create emoji reaction' do
+        expect(subject.count).to eq 0
+      end
+    end
+
+    context 'when receiver is not domain-blocking emoji reactions' do
+      let(:content) { '😀' }
+
+      before do
+        recipient.domain_blocks.create!(domain: 'other-example.com')
+      end
+
+      it 'create emoji reaction' do
+        expect(subject.count).to eq 1
+      end
+    end
+
+    context 'when my server is silencing sender server' do
+      let(:block_domain) { 'example.com' }
+      let(:follow) { false }
+
+      before do
+        Fabricate(:domain_block, domain: block_domain, severity: :silence)
+        recipient.follow!(sender) if follow
+      end
+
+      context 'with unicode emoji' do
+        let(:content) { '😀' }
+
+        it 'does not create emoji reaction' do
+          expect(subject.count).to eq 0
+        end
+
+        context 'when following' do
+          let(:follow) { true }
+
+          it 'create emoji reaction' do
+            expect(subject.count).to eq 1
+            expect(subject.first.name).to eq '😀'
+            expect(subject.first.account).to eq sender
+            expect(sender.favourited?(status)).to be false
+          end
+        end
+
+        context 'when recipient is remote user' do
+          let(:recipient) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor') }
+
+          it 'does not create emoji reaction' do
+            expect(subject.count).to eq 0
+          end
+        end
+      end
+
+      context 'with custom emoji' do
+        let(:content) { ':tinking:' }
+        let(:tag) do
+          {
+            id: 'https://example.com/aaa',
+            type: 'Emoji',
+            icon: {
+              url: 'http://example.com/emoji.png',
+            },
+            name: 'tinking',
+            license: 'Everyone but Ohagi',
+          }
+        end
+
+        it 'does not create emoji reaction' do
+          expect(subject.count).to eq 0
+        end
+
+        context 'when following' do
+          let(:follow) { true }
+
+          it 'create emoji reaction' do
+            expect(subject.count).to eq 1
+            expect(subject.first.name).to eq 'tinking'
+            expect(subject.first.account).to eq sender
+            expect(subject.first.custom_emoji).to_not be_nil
+            expect(subject.first.custom_emoji.shortcode).to eq 'tinking'
+            expect(subject.first.custom_emoji.domain).to eq 'example.com'
+            expect(sender.favourited?(status)).to be false
+          end
+        end
+      end
+
+      context 'with custom emoji from non-original server account' do
+        let(:content) { ':tinking:' }
+        let(:tag) do
+          {
+            id: 'https://example.com/aaa',
+            type: 'Emoji',
+            icon: {
+              url: 'http://example.com/emoji.png',
+            },
+            name: 'tinking',
+          }
+        end
+
+        before do
+          sender.update(domain: 'ohagi.com')
+          Fabricate(:custom_emoji, domain: 'example.com', uri: 'https://example.com/aaa', shortcode: 'tinking')
+        end
+
+        it 'does not create emoji reaction' do
+          expect(subject.count).to eq 0
+        end
+
+        context 'when following' do
+          let(:follow) { true }
+
+          it 'create emoji reaction' do
+            expect(subject.count).to eq 1
+            expect(subject.first.name).to eq 'tinking'
+            expect(subject.first.account).to eq sender
+            expect(subject.first.custom_emoji).to_not be_nil
+            expect(subject.first.custom_emoji.shortcode).to eq 'tinking'
+            expect(subject.first.custom_emoji.domain).to eq 'example.com'
+            expect(sender.favourited?(status)).to be false
+          end
+        end
+      end
+    end
+
+    context 'when ng rule is existing' do
+      let(:content) { '😀' }
+
+      context 'when ng rule is match' do
+        before do
+          Fabricate(:ng_rule, account_domain: 'example.com', reaction_type: ['emoji_reaction'])
+        end
+
+        it 'does not create a reblog by sender of status' do
+          expect(subject.count).to eq 0
+        end
+      end
+
+      context 'when ng rule is not match' do
+        before do
+          Fabricate(:ng_rule, account_domain: 'foo.bar', reaction_type: ['emoji_reaction'])
+        end
+
+        it 'creates a reblog by sender of status' do
+          expect(subject.count).to eq 1
+        end
+      end
+    end
   end
 
-  describe '#perform when domain_block' do
+  describe '#perform when rejecting favourite domain block' do
     subject { described_class.new(json, sender) }
 
     before do
@@ -415,19 +666,6 @@ RSpec.describe ActivityPub::Activity::Like do
     end
 
     it 'does not create a favourite from sender to status' do
-      expect(sender.favourited?(status)).to be false
-    end
-  end
-
-  describe '#perform when account domain_block' do
-    subject { described_class.new(json, sender) }
-
-    before do
-      Fabricate(:account_domain_block, account: recipient, domain: 'example.com')
-      subject.perform
-    end
-
-    it 'does not create a favourite from sender to status', pending: 'considering spec' do
       expect(sender.favourited?(status)).to be false
     end
   end

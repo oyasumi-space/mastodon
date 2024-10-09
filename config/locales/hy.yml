@@ -1,12 +1,12 @@
+---
 hy:
   about:
-    about_mastodon_html: 'Ապագայի սոցցանցը։ Ոչ մի գովազդ, ոչ մի կորպորատիվ վերահսկողութիւն, էթիկական դիզայն, եւ ապակենտրոնացում։ Մաստադոնում դու ես քո տուեալների տէրը։'
+    about_mastodon_html: Ապագայի սոցցանցը։ Ոչ մի գովազդ, ոչ մի կորպորատիվ վերահսկողութիւն, էթիկական դիզայն, եւ ապակենտրոնացում։ Մաստադոնում դու ես քո տուեալների տէրը։
     contact_missing: Սահմանված չէ
     contact_unavailable: Ոչինչ չկա
     hosted_on: Մաստոդոնը տեղակայուած է %{domain}ում
     title: Մասին
   accounts:
-    follow: Հետևել
     followers:
       one: Հետեւորդ
       other: Հետևորդներ
@@ -30,7 +30,6 @@ hy:
       created_msg: Մոդերացիոն նոթը բարեյաջող ստեղծուեց
       destroyed_msg: Մոդերացիոն նոթը բարեյաջող վերացուեց
     accounts:
-      add_email_domain_block: Արգելափակել էլ․ փոստի տիրոյթը
       approve: Ընդունել
       approved_msg: Յաջողութեամբ հաստատուեց %{username}֊ի գրանցման յայտը
       are_you_sure: Վստա՞հ ես
@@ -60,7 +59,7 @@ hy:
       email_status: Էլ․ փոստի կարգավիճակ
       enable: Միացնել
       enabled: Միացված է
-      enabled_msg: '%{username}֊ի հաշիւը բարեյաջող ապասառեցուեց'
+      enabled_msg: "%{username}֊ի հաշիւը բարեյաջող ապասառեցուեց"
       followers: Հետևորդներ
       follows: Հետևողներ
       header: Վերնագիր
@@ -99,7 +98,7 @@ hy:
       public: Հրապարակային
       push_subscription_expires: PuSH բաժանորդագրութիւնը սպառուում է
       redownload: Թարմացնել հաշիւը
-      redownloaded_msg: '%{username}֊ի հաշիւը սկզբնաղբիւրից բարեյաջող թարմացուեց'
+      redownloaded_msg: "%{username}֊ի հաշիւը սկզբնաղբիւրից բարեյաջող թարմացուեց"
       reject: Մերժել
       rejected_msg: Յաջողութեամբ մերժուեց %{username}֊ի գրանցման յայտը
       remove_avatar: Հեռացնել աւատարը
@@ -112,7 +111,6 @@ hy:
       reset_password: Վերականգնել գաղտանաբառը
       resubscribe: Կրկին բաժանորդագրուել
       search: Որոնել
-      search_same_email_domain: Այլ օգտատէրեր նոյն էլ․ փոստի դոմէյնով
       search_same_ip: Այլ օգտատէրեր նոյն IP֊ով
       security_measures:
         only_password: Միայն ծածկագիր
@@ -135,9 +133,9 @@ hy:
       undo_sensitized: Ետարկել դիւրազգացութիւնը
       undo_silenced: Ետարկել լռեցումը
       undo_suspension: Ետարկել կասեցումը
-      unsilenced_msg: '%{username}֊ի հաշիւը բարեյաջող դարձաւ անսահմանափակ'
+      unsilenced_msg: "%{username}֊ի հաշիւը բարեյաջող դարձաւ անսահմանափակ"
       unsubscribe: Ապաբաժանորդագրուել
-      unsuspended_msg: '%{username}֊ի հաշիւ բարեյաջող ապակասեցուեց։'
+      unsuspended_msg: "%{username}֊ի հաշիւ բարեյաջող ապակասեցուեց։"
       username: Մուտքանուն
       view_domain: Տեսնել տիրոյթի ամփոփումը
       warn: Նախազգուշացում
@@ -146,21 +144,18 @@ hy:
     action_logs:
       action_types:
         assigned_to_self_report: Բողոքել
-        change_email_user: Փոխել օգտատիրոջ էլ․ հասցէն
         confirm_user: Հաստատել օգտատիրոջը
         create_account_warning: Ստեղծել զգուշացում
         create_announcement: Ստեղծել յայտարարութիւն
         create_custom_emoji: Ստեղծել սեփական էմոջիները
         create_domain_allow: Ստեղծել տիրոյթի թոյլտուութիւն
         create_domain_block: Ստեղծել տիրոյթի արգելափակում
-        create_email_domain_block: Ստեղծել էլ․ հասցէի դոմէյնի արգելափակում
         create_ip_block: Ստեղծել IP կանոն
         demote_user: Աստիճանազրկել օգտատիրոջը
         destroy_announcement: Ջնջել յայտարարութիւնը
         destroy_custom_emoji: Ջնջել էմոջին
         destroy_domain_allow: Ջնջել դոմէնի թոյլտուութիւնը
         destroy_domain_block: Ապաարգելափակել դոմէնը
-        destroy_email_domain_block: Ապաարգելափակել էլ․ հասցէի դոմէնը
         destroy_ip_block: Ջնջել IP կանոնը
         destroy_status: Ջնջել գրառումը
         disable_2fa_user: Անջատել 2FA
@@ -273,13 +268,10 @@ hy:
       view: Տեսնել տիրոյթի արգելափակումը
     email_domain_blocks:
       add_new: Ավելացնել նորը
-      created_msg: Բարեյաջող արգելափակուեց էլ․ փոստի տիրոյթ
       delete: Ջնջել
       domain: Դոմեն
       new:
         create: Ավելացնել դոմեն
-        title: Արգելափակել էլ․ փոստի նոր տիրոյթ
-      title: էլ․ փոստի արգելափակուած տիրոյթներ
     follow_recommendations:
       language: Լեզուի համար
       status: Կարգավիճակ
@@ -387,7 +379,7 @@ hy:
       add_new: Աւելացնել կանոն
       delete: Ջնջել
       edit: Խմբագրել կանոնը
-      empty: Սերուերի կանոնները դեռեւս սահմանուած չեն։ 
+      empty: Սերուերի կանոնները դեռեւս սահմանուած չեն։
       title: Սերուերի կանոնները
     settings:
       about:
@@ -432,19 +424,18 @@ hy:
         not_usable: Չի կարող օգտագործուել
         title: Թրենդային պիտակներ
         usable: Կարող է օգտագործուել
-      title: Թրենդներ
     warning_presets:
       add_new: Ավելացնել նորը
       delete: Ջնջել
   admin_mailer:
     new_report:
-      subject: 'Նոր բողոք %{instance}ի համար(#%{id})'
+      subject: Նոր բողոք %{instance}ի համար(#%{id})
     new_trends:
       new_trending_statuses:
         title: Թրենդային գրառումներ
   appearance:
     advanced_web_interface: Սյունակավոր ինտերֆեյս
-    advanced_web_interface_hint: 'Եթէ ցանկանում ես օգտագործել էկրանիդ ամբողջ լայնքը, ապա ընդլայնուած վեբ ինտերֆեյսով հնարաւոր է էկրանը բաժանել սիւնակների՝ զուգահեռ տեսնելու տարբեր տիպի ինֆորմացիա՝ տեղական հոսքը, ծանուցումները, ֆեդերացված հոսքը, և ցանկացած թվի ցուցակ ու հեշթեգ։'
+    advanced_web_interface_hint: Եթէ ցանկանում ես օգտագործել էկրանիդ ամբողջ լայնքը, ապա ընդլայնուած վեբ ինտերֆեյսով հնարաւոր է էկրանը բաժանել սիւնակների՝ զուգահեռ տեսնելու տարբեր տիպի ինֆորմացիա՝ տեղական հոսքը, ծանուցումները, ֆեդերացված հոսքը, և ցանկացած թվի ցուցակ ու հեշթեգ։
     animations_and_accessibility: Անիմացիաներ եւ հասանելիութիւն
     confirmation_dialogs: Հաստատման պատուհաններ
     discovery: Բացայայտում
@@ -453,9 +444,8 @@ hy:
       guide_link_text: Աջակցել կարող են բոլորը։
     sensitive_content: Զգայուն բովանդակութիւն
   application_mailer:
-    notification_preferences: Փոխել փոստային կարգաւորումները
     salutation: "%{name}"
-    view: 'Նայել․'
+    view: Նայել․
     view_profile: Նայել անձնական էջը
     view_status: Նայել գրառումը
   applications:
@@ -475,7 +465,6 @@ hy:
     or_log_in_with: Կամ մուտք գործել օգտագործելով՝
     privacy_policy_agreement_html: Ես կարդացել եւ ընդունել եմ <a href="%{privacy_policy_path}" target="_blank">գաղնիութեան քաղաքականութիւնը</a>
     progress:
-      confirm: Փոստի հաստատում
       details: Ձեր տուեալները
       review: Վաւերացում
       rules: Ընդունել կանոները
@@ -498,7 +487,6 @@ hy:
       title: Ստեղծի՜ր հաշիւ %{domain}-ում
     status:
       account_status: Հաշուի կարգավիճակ
-      pending: Դիմումը պէտք է քննուի մեր անձնակազմի կողմից, ինչը կարող է մի փոքր ժամանակ խլել։ Դիմումի հաստատուելու դէպքում, կտեղեկացնենք նամակով։
     use_security_key: Օգտագործել անվտանգութեան բանալի
   challenge:
     confirm: Շարունակել
@@ -507,7 +495,6 @@ hy:
   crypto:
     errors:
       invalid_key: անվաւեր Ed25519 կամ Curve25519 բանալի
-      invalid_signature: անվաւեր Ed25519 բանալի
   date:
     formats:
       default: "%b %d, %Y"
@@ -534,8 +521,6 @@ hy:
     success_msg: Հաշիւդ բարեյաջող ջնջուեց
     warning:
       username_available: Քո օգտանունը կրկին հասանելի կը դառնայ
-  domain_validator:
-    invalid_domain: անվաւէր տիրոյթի անուն
   errors:
     '404': Էջը, որը փնտրում ես գոյութիւն չունի։
     '429': Չափազանց շատ հարցումներ
@@ -608,9 +593,9 @@ hy:
       '86400': 1 օր
     expires_in_prompt: Երբեք
     generate: Գեներացնել հրաւէրի յղում
-    invited_by: 'Ձեզ հրաւիրել է՝'
+    invited_by: Ձեզ հրաւիրել է՝
     max_uses:
-      one: '%{count} կիրառում'
+      one: "%{count} կիրառում"
       other: "%{count} կիրառում"
     max_uses_prompt: Սահմանափակում չկայ
     table:
@@ -645,7 +630,7 @@ hy:
       sign_up:
         subject: "%{name}-ը գրանցուած է"
     favourite:
-      body: 'Քո գրառումը հաւանել է %{name}-ը։'
+      body: Քո գրառումը հաւանել է %{name}-ը։
       subject: "%{name} հաւանեց գրառումդ"
       title: Նոր հաւանում
     follow:
@@ -654,15 +639,15 @@ hy:
       title: Նոր հետևորդներ
     follow_request:
       action: Կառավարել հետեւելու հայցերը
-      subject: '%{name} ցանկանում է հետեւել ձեզ'
+      subject: "%{name} ցանկանում է հետեւել ձեզ"
       title: Նոր հետեւելու հայցեր
     mention:
       action: Պատասխանել
-      body: '%{name} յիշատակել է ձեզ գրառման մէջ՝'
+      body: "%{name} յիշատակել է ձեզ գրառման մէջ՝"
       subject: Ձեզ յիշատակել է %{name}
       title: Նոր յիշատակում
     reblog:
-      body: 'Քո գրառումը տարածել է %{name}-ը։'
+      body: Քո գրառումը տարածել է %{name}-ը։
       subject: "%{name} տարածեց գրառումդ"
       title: Նոր տարածում
     status:
@@ -670,8 +655,7 @@ hy:
     update:
       subject: "%{name}-ը փոխել է գրառումը"
   notifications:
-    email_events_hint: 'Ընտրիր իրադարձութիւնները, որոնց վերաբերեալ ցանկանում ես ստանալ ծանուցումներ․'
-    other_settings: Ծանուցումների այլ կարգաւորումներ
+    email_events_hint: Ընտրիր իրադարձութիւնները, որոնց վերաբերեալ ցանկանում ես ստանալ ծանուցումներ․
   number:
     human:
       decimal_units:
@@ -773,12 +757,10 @@ hy:
     delete: Հաշուի ջնջում
     development: Ծրագրավորում
     edit_profile: Խմբագրել պրոֆիլը
-    export: Տվյալների արտահանում
     featured_tags: Ընտրուած հէշթեգեր
     import: Ներմուծել
     import_and_export: Ներմուծել և արտահանել
     migrate: Հաշուի տեղափոխում
-    notifications: Ծանուցումներ
     preferences: Կարգավորումներ
     profile: Հաշիւ
     relationships: Հետեւումներ և հետեւորդներ
@@ -795,22 +777,9 @@ hy:
       video:
         one: "%{count} վիդեո"
         other: "%{count} վիդեո"
-    content_warning: 'Նախազգուշացում։ %{warning}'
+    content_warning: Նախազգուշացում։ %{warning}
     edited_at_html: Խմբագրուած՝ %{date}
-    open_in_web: Բացել վէբում
-    over_character_limit: '%{max} նիշի սահմանը գերազանցուած է'
-    poll:
-      total_people:
-        one: "%{count} մարդ"
-        other: "%{count} մարդիկ"
-      total_votes:
-        one: "%{count} ձայն"
-        other: "%{count} ձայներ"
-      vote: Քուէարկել
-    show_more: Աւելին
-    show_newer: Ցուցադրել նորերը
-    show_older: Ցուցադրել հները
-    show_thread: Բացել շղթան
+    over_character_limit: "%{max} նիշի սահմանը գերազանցուած է"
     title: '%{name}: "%{quote}"'
     visibilities:
       direct: Հասցէագրուած
@@ -862,7 +831,7 @@ hy:
     warning:
       categories:
         spam: Սպամ
-      reason: 'Պատճառ՝'
+      reason: Պատճառ՝
       subject:
         disable: Քո %{acct} հաշիւը սառեցուել է
         none: Նախազգուշացուեմ %{acct}-ին
@@ -873,13 +842,11 @@ hy:
         silence: Հաշիւը սահմանափակուած է
         suspend: Հաշիւը արգելափակուած է
     welcome:
-      edit_profile_action: Կարգաւորել հաշիւը
-      final_action: Սկսել գրել
       subject: Բարի գալուստ Մաստոդոն
       title: Բարի գալուստ նաւամատոյց, %{name}
   users:
     invalid_otp_token: Անվաւեր 2F կոդ
-    signed_in_as: 'Մոտք գործել որպէս․'
+    signed_in_as: Մոտք գործել որպէս․
   verification:
     verification: Ստուգում
   webauthn_credentials:

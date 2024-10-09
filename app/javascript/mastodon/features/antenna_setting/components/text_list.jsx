@@ -6,7 +6,8 @@ import { injectIntl } from 'react-intl';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import Button from 'mastodon/components/button';
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import { Button } from 'mastodon/components/button';
 import { Icon } from 'mastodon/components/icon';
 import { IconButton } from 'mastodon/components/icon_button';
 
@@ -14,6 +15,7 @@ class TextListItem extends PureComponent {
 
   static propTypes = {
     icon: PropTypes.string.isRequired,
+    iconComponent: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
     onRemove: PropTypes.func.isRequired,
   };
@@ -23,13 +25,13 @@ class TextListItem extends PureComponent {
   };
 
   render () {
-    const { icon, value } = this.props;
+    const { icon, iconComponent, value } = this.props;
 
     return (
       <div className='setting-text-list-item'>
-        <Icon id={icon} />
+        <Icon id={icon} icon={iconComponent} />
         <span className='label'>{value}</span>
-        <IconButton icon='trash' onClick={this.handleRemove} />
+        <IconButton icon='trash' iconComponent={DeleteIcon} onClick={this.handleRemove} />
       </div>
     );
   }
@@ -44,6 +46,7 @@ class TextList extends PureComponent {
     disabled: PropTypes.bool,
     intl: PropTypes.object.isRequired,
     icon: PropTypes.string.isRequired,
+    iconComponent: PropTypes.func.isRequired,
     label: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
@@ -65,12 +68,12 @@ class TextList extends PureComponent {
   };
 
   render () {
-    const { icon, value, values, disabled, label, title } = this.props;
+    const { icon, iconComponent, value, values, disabled, label, title } = this.props;
 
     return (
       <div className='setting-text-list'>
         {values.map((val) => (
-          <TextListItem key={val} value={val} icon={icon} onRemove={this.props.onRemove} />
+          <TextListItem key={val} value={val} icon={icon} iconComponent={iconComponent} onRemove={this.props.onRemove} />
         ))}
 
         <form className='add-text-form' onSubmit={this.handleSubmit}>

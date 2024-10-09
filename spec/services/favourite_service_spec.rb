@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe FavouriteService, type: :service do
+RSpec.describe FavouriteService do
   subject { described_class.new }
 
   let(:sender) { Fabricate(:account, username: 'alice') }
@@ -11,11 +11,9 @@ RSpec.describe FavouriteService, type: :service do
     let(:bob)    { Fabricate(:account) }
     let(:status) { Fabricate(:status, account: bob) }
 
-    before do
-      subject.call(sender, status)
-    end
-
     it 'creates a favourite' do
+      subject.call(sender, status)
+
       expect(status.favourites.first).to_not be_nil
     end
   end
@@ -26,15 +24,43 @@ RSpec.describe FavouriteService, type: :service do
 
     before do
       stub_request(:post, 'http://example.com/inbox').to_return(status: 200, body: '', headers: {})
+    end
+
+    it 'creates a favourite and sends like activity', :inline_jobs do
       subject.call(sender, status)
+
+      expect(status.favourites.first)
+        .to_not be_nil
+
+      expect(a_request(:post, 'http://example.com/inbox'))
+        .to have_been_made.once
+    end
+  end
+
+  context 'with ng rule' do
+    let(:status) { Fabricate(:status) }
+    let(:sender) { Fabricate(:account) }
+
+    context 'when rule matches' do
+      before do
+        Fabricate(:ng_rule, reaction_type: ['favourite'])
+      end
+
+      it 'does not favourite' do
+        expect { subject.call(sender, status) }.to raise_error Mastodon::ValidationError
+        expect(sender.favourited?(status)).to be false
+      end
     end
 
-    it 'creates a favourite' do
-      expect(status.favourites.first).to_not be_nil
-    end
+    context 'when rule does not match' do
+      before do
+        Fabricate(:ng_rule, account_display_name: 'else', reaction_type: ['favourite'])
+      end
 
-    it 'sends a like activity' do
-      expect(a_request(:post, 'http://example.com/inbox')).to have_been_made.once
+      it 'favourites' do
+        expect { subject.call(sender, status) }.to_not raise_error
+        expect(sender.favourited?(status)).to be true
+      end
     end
   end
 end

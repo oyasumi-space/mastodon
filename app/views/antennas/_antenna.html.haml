@@ -21,18 +21,18 @@
         - unless antenna.antenna_domains.empty?
           %li.permissions-list__item
             .permissions-list__item__icon
-              = fa_icon('sitemap')
+              = material_symbol('cloud')
             .permissions-list__item__text
               .permissions-list__item__text__title
                 = t('antennas.index.domains', count: antenna.antenna_domains.size)
               .permissions-list__item__text__type
-                - domains = antenna.antenna_domains.map { |domain| domain.name }
+                - domains = antenna.antenna_domains.map(&:name)
                 - domains = domains.take(5) + ['…'] if domains.size > 5 # TODO
                 = domains.join(', ')
         - unless antenna.antenna_accounts.empty?
           %li.permissions-list__item
             .permissions-list__item__icon
-              = fa_icon('users')
+              = material_symbol('groups')
             .permissions-list__item__text
               .permissions-list__item__text__title
                 = t('antennas.index.accounts', count: antenna.antenna_accounts.size)
@@ -40,10 +40,10 @@
                 - accounts = antenna.antenna_accounts.map { |account| account.account.domain ? "@#{account.account.username}@#{account.account.domain}" : "@#{account.account.username}" }
                 - accounts = accounts.take(5) + ['…'] if accounts.size > 5 # TODO
                 = accounts.join(', ')
-        - unless antenna.keywords.nil? || antenna.keywords.empty?
+        - if antenna.keywords.present?
           %li.permissions-list__item
             .permissions-list__item__icon
-              = fa_icon('paragraph')
+              = material_symbol('format_paragraph')
             .permissions-list__item__text
               .permissions-list__item__text__title
                 = t('antennas.index.keywords', count: antenna.keywords.size)
@@ -54,7 +54,7 @@
         - unless antenna.antenna_tags.empty?
           %li.permissions-list__item
             .permissions-list__item__icon
-              = fa_icon('hashtag')
+              = material_symbol('tag')
             .permissions-list__item__text
               .permissions-list__item__text__title
                 = t('antennas.index.tags', count: antenna.antenna_tags.size)
@@ -73,5 +73,5 @@
         = t('antennas.errors.empty_contexts')
 
     %div
-      = table_link_to 'pencil', t('antennas.edit.title'), edit_antenna_path(antenna)
-      = table_link_to 'times', t('antennas.index.delete'), antenna_path(antenna), method: :delete, data: { confirm: t('admin.accounts.are_you_sure') }
+      = table_link_to 'edit', t('antennas.edit.title'), edit_antenna_path(antenna)
+      = table_link_to 'close', t('antennas.index.delete'), antenna_path(antenna), method: :delete, data: { confirm: t('admin.accounts.are_you_sure') }

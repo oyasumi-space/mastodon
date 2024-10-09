@@ -8,13 +8,20 @@ import classNames from 'classnames';
 import { supportsPassiveEvents } from 'detect-passive-events';
 import Overlay from 'react-overlays/Overlay';
 
+import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import PublicUnlistedIcon from '@/material-icons/400-24px/cloud.svg?react';
+import LockIcon from '@/material-icons/400-24px/lock.svg?react';
+import LockOpenIcon from '@/material-icons/400-24px/no_encryption.svg?react';
+import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import { Icon }  from 'mastodon/components/icon';
+import { enabledVisibilites } from 'mastodon/initial_state';
 
-import { IconButton } from '../../../components/icon_button';
 
 const messages = defineMessages({
   public_short: { id: 'searchability.public.short', defaultMessage: 'Public' },
   public_long: { id: 'searchability.public.long', defaultMessage: 'Anyone can find' },
+  public_unlisted_short: { id: 'searchability.public_unlisted.short', defaultMessage: 'Local public' },
+  public_unlisted_long: { id: 'searchability.public_unlisted.long', defaultMessage: 'Local users and followers can find' },
   private_short: { id: 'searchability.unlisted.short', defaultMessage: 'Followers' },
   private_long: { id: 'searchability.unlisted.long', defaultMessage: 'Your followers can find' },
   direct_short: { id: 'searchability.private.short', defaultMessage: 'Reactionners' },
@@ -123,7 +130,7 @@ class SearchabilityDropdownMenu extends PureComponent {
         {items.map(item => (
           <div role='option' tabIndex='0' key={item.value} data-index={item.value} onKeyDown={this.handleKeyDown} onClick={this.handleClick} className={classNames('privacy-dropdown__option', { active: item.value === value })} aria-selected={item.value === value} ref={item.value === value ? this.setFocusRef : null}>
             <div className='privacy-dropdown__option__icon'>
-              <Icon id={item.icon} fixedWidth />
+              <Icon id={item.icon} icon={item.iconComponent} fixedWidth />
             </div>
 
             <div className='privacy-dropdown__option__content'>
@@ -222,11 +229,16 @@ class SearchabilityDropdown extends PureComponent {
     const { intl: { formatMessage } } = this.props;
 
     this.options = [
-      { icon: 'globe', value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
-      { icon: 'unlock', value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
-      { icon: 'lock', value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
-      { icon: 'at', value: 'limited', text: formatMessage(messages.limited_short), meta: formatMessage(messages.limited_long) },
+      { icon: 'globe', iconComponent: PublicIcon, value: 'public', text: formatMessage(messages.public_short), meta: formatMessage(messages.public_long) },
+      { icon: 'cloud', iconComponent: PublicUnlistedIcon, value: 'public_unlisted', text: formatMessage(messages.public_unlisted_short), meta: formatMessage(messages.public_unlisted_long) },
+      { icon: 'unlock', iconComponent: LockOpenIcon, value: 'private', text: formatMessage(messages.private_short), meta: formatMessage(messages.private_long) },
+      { icon: 'lock', iconComponent: LockIcon, value: 'direct', text: formatMessage(messages.direct_short), meta: formatMessage(messages.direct_long) },
+      { icon: 'at', iconComponent: AlternateEmailIcon, value: 'limited', text: formatMessage(messages.limited_short), meta: formatMessage(messages.limited_long) },
     ];
+
+    if (!enabledVisibilites.includes('public_unlisted')) {
+      this.options = this.options.filter((opt) => opt.value !== 'public_unlisted');
+    }
   }
 
   setTargetRef = c => {
@@ -248,29 +260,22 @@ class SearchabilityDropdown extends PureComponent {
     const valueOption = this.options.find(item => item.value === value);
 
     return (
-      <div className={classNames('privacy-dropdown', placement, { active: open })} onKeyDown={this.handleKeyDown}>
-        <div className={classNames('privacy-dropdown__value', 'searchability', { active: this.options.indexOf(valueOption) === (placement === 'bottom' ? 0 : (this.options.length - 1)) })} ref={this.setTargetRef}>
-          <IconButton
-            className='privacy-dropdown__value-icon'
-            icon={valueOption.icon}
-            title={intl.formatMessage(messages.change_searchability)}
-            size={18}
-            expanded={open}
-            active={open}
-            inverted
-            onClick={this.handleToggle}
-            onMouseDown={this.handleMouseDown}
-            onKeyDown={this.handleButtonKeyDown}
-            style={{ height: null, lineHeight: '27px' }}
-            disabled={disabled}
-          />
-          <Icon
-            className='searchability-dropdown__value-overlay'
-            id='search'
-          />
-        </div>
+      <div ref={this.setTargetRef} onKeyDown={this.handleKeyDown}>
+        <button
+          type='button'
+          title={intl.formatMessage(messages.change_searchability)}
+          aria-expanded={open}
+          onClick={this.handleToggle}
+          onMouseDown={this.handleMouseDown}
+          onKeyDown={this.handleButtonKeyDown}
+          disabled={disabled}
+          className={classNames('dropdown-button', { active: open })}
+        >
+          <Icon id={valueOption.icon} icon={valueOption.iconComponent} />
+          <span className='dropdown-button__label'>{valueOption.text}</span>
+        </button>
 
-        <Overlay show={open} placement={'bottom'} flip target={this.findTarget} container={container} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
+        <Overlay show={open} offset={[5, 5]} placement={placement} flip target={this.findTarget} container={container} popperConfig={{ strategy: 'fixed', onFirstUpdate: this.handleOverlayEnter }}>
           {({ props, placement }) => (
             <div {...props}>
               <div className={`dropdown-animation privacy-dropdown__dropdown ${placement}`}>

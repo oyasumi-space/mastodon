@@ -1,57 +1,12 @@
 - content_for :page_title do
   = t('admin.domain_blocks.edit')
 
-= simple_form_for @domain_block, url: admin_domain_block_path(@domain_block), method: :put do |f|
+= simple_form_for @domain_block, url: admin_domain_block_path(@domain_block), method: :put do |form|
   = render 'shared/error_messages', object: @domain_block
 
-  .fields-row
-    .fields-row__column.fields-row__column-6.fields-group
-      = f.input :domain, wrapper: :with_label, label: t('admin.domain_blocks.domain'), hint: t('admin.domain_blocks.new.hint'), required: true, readonly: true, disabled: true
-
-    .fields-row__column.fields-row__column-6.fields-group
-      = f.input :severity, collection: DomainBlock.severities.keys, wrapper: :with_label, include_blank: false, label_method: ->(type) { t("admin.domain_blocks.new.severity.#{type}") }, hint: t('admin.domain_blocks.new.severity.desc_html')
-
-  .fields-group
-    = f.input :reject_media, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_media'), hint: I18n.t('admin.domain_blocks.reject_media_hint')
-
-  .fields-group
-    = f.input :reject_favourite, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_favourite'), hint: I18n.t('admin.domain_blocks.reject_favourite_hint')
-
-  .fields-group
-    = f.input :reject_reply, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_reply'), hint: I18n.t('admin.domain_blocks.reject_reply_hint')
-
-  .fields-group
-    = f.input :reject_reply_exclude_followers, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_reply_exclude_followers'), hint: I18n.t('admin.domain_blocks.reject_reply_exclude_followers_hint')
-
-  .fields-group
-    = f.input :reject_send_sensitive, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_send_sensitive'), hint: I18n.t('admin.domain_blocks.reject_send_sensitive_hint')
-
-  .fields-group
-    = f.input :reject_hashtag, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_hashtag'), hint: I18n.t('admin.domain_blocks.reject_hashtag_hint')
-
-  .fields-group
-    = f.input :reject_straight_follow, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_straight_follow'), hint: I18n.t('admin.domain_blocks.reject_straight_follow_hint')
-
-  .fields-group
-    = f.input :reject_new_follow, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_new_follow'), hint: I18n.t('admin.domain_blocks.reject_new_follow_hint')
-
-  .fields-group
-    = f.input :detect_invalid_subscription, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.detect_invalid_subscription'), hint: I18n.t('admin.domain_blocks.detect_invalid_subscription_hint')
-
-  .fields-group
-    = f.input :reject_reports, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.reject_reports'), hint: I18n.t('admin.domain_blocks.reject_reports_hint')
-
-  .fields-group
-    = f.input :obfuscate, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.obfuscate'), hint: I18n.t('admin.domain_blocks.obfuscate_hint')
-
-  .field-group
-    = f.input :private_comment, wrapper: :with_label, label: I18n.t('admin.domain_blocks.private_comment'), hint: t('admin.domain_blocks.private_comment_hint'), as: :string
-
-  .field-group
-    = f.input :public_comment, wrapper: :with_label, label: I18n.t('admin.domain_blocks.public_comment'), hint: t('admin.domain_blocks.public_comment_hint'), as: :string
-
-  .fields-group
-    = f.input :hidden, as: :boolean, wrapper: :with_label, label: I18n.t('admin.domain_blocks.hidden'), hint: I18n.t('admin.domain_blocks.hidden_hint')
+  = render form
 
   .actions
-    = f.button :button, t('generic.save_changes'), type: :submit
+    = form.button :button,
+                  t('generic.save_changes'),
+                  type: :submit

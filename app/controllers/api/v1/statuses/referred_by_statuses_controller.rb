@@ -33,7 +33,7 @@ class Api::V1::Statuses::ReferredByStatusesController < Api::BaseController
     domains     = statuses.filter_map(&:account_domain).uniq
     relations   = account&.relations_map(account_ids, domains) || {}
 
-    statuses = cache_collection_paginated_by_id(
+    statuses = preload_collection_paginated_by_id(
       statuses,
       Status,
       limit_param(DEFAULT_STATUSES_LIMIT),

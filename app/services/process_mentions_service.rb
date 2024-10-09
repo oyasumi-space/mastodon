@@ -24,6 +24,10 @@ class ProcessMentionsService < BaseService
     end
   end
 
+  def mentions?
+    @current_mentions.present?
+  end
+
   private
 
   def scan_text!
@@ -53,7 +57,7 @@ class ProcessMentionsService < BaseService
 
       # If after resolving it still isn't found or isn't the right
       # protocol, then give up
-      next match if mention_undeliverable?(mentioned_account) || mentioned_account&.suspended?
+      next match if mention_undeliverable?(mentioned_account) || mentioned_account&.unavailable?
 
       mention   = @previous_mentions.find { |x| x.account_id == mentioned_account.id }
       mention ||= @current_mentions.find  { |x| x.account_id == mentioned_account.id }
@@ -101,7 +105,10 @@ class ProcessMentionsService < BaseService
   def process_mutual!
     mentioned_account_ids = @current_mentions.map(&:account_id)
 
-    @status.account.mutuals.reorder(nil).find_each do |target_account|
+    mutuals = @status.account.mutuals
+    mutuals = mutuals.where.not(domain: InstanceInfo.where(software: 'misskey').select(:domain)).or(mutuals.where(domain: nil)) if @status.account.user&.setting_reject_send_limited_to_suspects
+
+    mutuals.reorder(nil).find_each do |target_account|
       @current_mentions << @status.mentions.new(silent: true, account: target_account) unless mentioned_account_ids.include?(target_account.id)
     end
   end
@@ -112,5 +119,7 @@ class ProcessMentionsService < BaseService
     @circle.accounts.find_each do |target_account|
       @current_mentions << @status.mentions.new(silent: true, account: target_account) unless mentioned_account_ids.include?(target_account.id)
     end
+
+    @circle.statuses << @status
   end
 end

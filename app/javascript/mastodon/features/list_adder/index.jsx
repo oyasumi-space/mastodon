@@ -1,11 +1,13 @@
+// Kmyblue tracking marker: copied antenna_adder, circle_adder, bookmark_category_adder
+
 import PropTypes from 'prop-types';
 
 import { injectIntl } from 'react-intl';
 
+import { createSelector } from '@reduxjs/toolkit';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
 
 import { setupListAdder, resetListAdder } from '../../actions/lists';
 import NewListForm from '../lists/components/new_list_form';

@@ -23,13 +23,15 @@ class TagFeed < PublicFeed
   # @param [Integer] min_id
   # @return [Array<Status>]
   def get(limit, max_id = nil, since_id = nil, min_id = nil)
+    return [] if local_only? && !Setting.enable_local_timeline
+
     scope = public_search_scope
 
     scope.merge!(tagged_with_any_scope)
     scope.merge!(tagged_with_all_scope)
     scope.merge!(tagged_with_none_scope)
     scope.merge!(local_only_scope) if local_only?
-    scope.merge!(remote_only_scope) if remote_only? || hide_local_users?
+    scope.merge!(remote_only_scope) if remote_only?
     scope.merge!(account_filters_scope) if account?
     scope.merge!(media_only_scope) if media_only?
     # scope.merge!(anonymous_scope) unless account?

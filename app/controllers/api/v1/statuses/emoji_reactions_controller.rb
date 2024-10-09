@@ -3,9 +3,9 @@
 class Api::V1::Statuses::EmojiReactionsController < Api::BaseController
   include Authorization
 
-  before_action -> { doorkeeper_authorize! :write, :'write:emoji_reactions' }
+  before_action -> { doorkeeper_authorize! :write, :'write:favourites' }
   before_action :require_user!
-  before_action :set_status, only: %i(create update destroy)
+  before_action :set_status, only: %i(create update)
   before_action :set_status_without_authorize, only: [:destroy]
 
   def create
@@ -27,11 +27,13 @@ class Api::V1::Statuses::EmojiReactionsController < Api::BaseController
 
       authorize @status, :show? if emoji_reaction.nil?
 
-      UnEmojiReactService.new.call(current_account.id, @status.id, emoji_reaction) if emoji_reaction.present?
+      UnEmojiReactService.new.call(current_account, @status, emoji_reaction) if emoji_reaction.present?
+    else
+      authorize @status, :show?
     end
 
     render json: @status, serializer: REST::StatusSerializer, relationships: StatusRelationshipsPresenter.new(
-      [@status], current_account.id, emoji_reactions_map: { @status.id => false }
+      [@status], current_account.id
     )
   rescue Mastodon::NotPermittedError
     not_found

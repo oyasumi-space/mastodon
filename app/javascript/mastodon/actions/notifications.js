@@ -4,13 +4,13 @@ import { defineMessages } from 'react-intl';
 import { List as ImmutableList } from 'immutable';
 
 import { compareId } from 'mastodon/compare_id';
-import { usePendingItems as preferPendingItems } from 'mastodon/initial_state';
+import { enableEmojiReaction, usePendingItems as preferPendingItems } from 'mastodon/initial_state';
 
 import api, { getLinks } from '../api';
 import { unescapeHTML } from '../utils/html';
 import { requestNotificationPermission } from '../utils/notifications';
 
-import { fetchFollowRequests, fetchRelationships } from './accounts';
+import { fetchFollowRequests } from './accounts';
 import {
   importFetchedAccount,
   importFetchedAccounts,
@@ -18,11 +18,13 @@ import {
   importFetchedStatuses,
 } from './importer';
 import { submitMarkers } from './markers';
+import { notificationsUpdate } from "./notifications_typed";
 import { register as registerPushNotifications } from './push_notifications';
 import { saveSettings } from './settings';
 import { STATUS_EMOJI_REACTION_UPDATE } from './statuses';
 
-export const NOTIFICATIONS_UPDATE      = 'NOTIFICATIONS_UPDATE';
+export * from "./notifications_typed";
+
 export const NOTIFICATIONS_UPDATE_NOOP = 'NOTIFICATIONS_UPDATE_NOOP';
 
 export const NOTIFICATIONS_EXPAND_REQUEST = 'NOTIFICATIONS_EXPAND_REQUEST';
@@ -31,7 +33,6 @@ export const NOTIFICATIONS_EXPAND_FAIL    = 'NOTIFICATIONS_EXPAND_FAIL';
 
 export const NOTIFICATIONS_FILTER_SET = 'NOTIFICATIONS_FILTER_SET';
 
-export const NOTIFICATIONS_CLEAR        = 'NOTIFICATIONS_CLEAR';
 export const NOTIFICATIONS_SCROLL_TOP   = 'NOTIFICATIONS_SCROLL_TOP';
 export const NOTIFICATIONS_LOAD_PENDING = 'NOTIFICATIONS_LOAD_PENDING';
 
@@ -43,29 +44,40 @@ export const NOTIFICATIONS_MARK_AS_READ = 'NOTIFICATIONS_MARK_AS_READ';
 export const NOTIFICATIONS_SET_BROWSER_SUPPORT    = 'NOTIFICATIONS_SET_BROWSER_SUPPORT';
 export const NOTIFICATIONS_SET_BROWSER_PERMISSION = 'NOTIFICATIONS_SET_BROWSER_PERMISSION';
 
-defineMessages({
-  mention: { id: 'notification.mention', defaultMessage: '{name} mentioned you' },
+export const NOTIFICATION_REQUESTS_ACCEPT_REQUEST = 'NOTIFICATION_REQUESTS_ACCEPT_REQUEST';
+export const NOTIFICATION_REQUESTS_ACCEPT_SUCCESS = 'NOTIFICATION_REQUESTS_ACCEPT_SUCCESS';
+export const NOTIFICATION_REQUESTS_ACCEPT_FAIL    = 'NOTIFICATION_REQUESTS_ACCEPT_FAIL';
+
+export const NOTIFICATION_REQUESTS_DISMISS_REQUEST = 'NOTIFICATION_REQUESTS_DISMISS_REQUEST';
+export const NOTIFICATION_REQUESTS_DISMISS_SUCCESS = 'NOTIFICATION_REQUESTS_DISMISS_SUCCESS';
+export const NOTIFICATION_REQUESTS_DISMISS_FAIL    = 'NOTIFICATION_REQUESTS_DISMISS_FAIL';
+
+const messages = defineMessages({
+  // mention: { id: 'notification.mention', defaultMessage: '{name} mentioned you' },
   group: { id: 'notifications.group', defaultMessage: '{count} notifications' },
+  'message_admin.report': { id: 'notification.admin.report', defaultMessage: '{name} reported {target}' },
+  'message_admin.sign_up': { id: 'notification.admin.sign_up', defaultMessage: '{name} signed up' },
+  message_emoji_reaction: { id: 'notification.emoji_reaction', defaultMessage: '{name} reacted your post with emoji' },
+  message_favourite: { id: 'notification.favourite', defaultMessage: '{name} favorited your post' },
+  message_follow: { id: 'notification.follow', defaultMessage: '{name} followed you' },
+  message_list_status: { id: 'notification.list_status', defaultMessage: '{name} post is added to {listName}' },
+  message_mention: { id: 'notification.mention', defaultMessage: 'Mention' },
+  message_poll: { id: 'notification.poll', defaultMessage: 'A poll you voted in has ended' },
+  message_reblog: { id: 'notification.reblog', defaultMessage: '{name} boosted your post' },
+  message_status: { id: 'notification.status', defaultMessage: '{name} just posted' },
+  message_status_reference: { id: 'notification.status_reference', defaultMessage: '{name} quoted your post' },
+  message_update: { id: 'notification.update', defaultMessage: '{name} edited a post' },
 });
-
-const fetchRelatedRelationships = (dispatch, notifications) => {
-  const accountIds = notifications.filter(item => ['follow', 'follow_request', 'admin.sign_up'].indexOf(item.type) !== -1).map(item => item.account.id);
-
-  if (accountIds.length > 0) {
-    dispatch(fetchRelationships(accountIds));
-  }
-};
 
 export const loadPending = () => ({
   type: NOTIFICATIONS_LOAD_PENDING,
 });
 
-export function updateEmojiReactions(emoji_reaction, accountId) {
+export function updateEmojiReactions(emoji_reaction) {
   return (dispatch) =>
     dispatch({
       type: STATUS_EMOJI_REACTION_UPDATE,
       emoji_reaction,
-      accountId,
     });
 }
 
@@ -81,7 +93,7 @@ export function updateNotifications(notification, intlMessages, intlLocale) {
     if (['mention', 'status'].includes(notification.type) && notification.status.filtered) {
       const filters = notification.status.filtered.filter(result => result.filter.context.includes('notifications'));
 
-      if (filters.some(result => result.filter.filter_action === 'hide')) {
+      if (filters.some(result => result.filter.filter_action_ex === 'hide')) {
         return;
       }
 
@@ -105,14 +117,8 @@ export function updateNotifications(notification, intlMessages, intlLocale) {
         dispatch(importFetchedAccount(notification.report.target_account));
       }
 
-      dispatch({
-        type: NOTIFICATIONS_UPDATE,
-        notification,
-        usePendingItems: preferPendingItems,
-        meta: (playSound && !filtered) ? { sound: isAprilFools() ? 'ohoho' : 'select' } : undefined,
-      });
 
-      fetchRelatedRelationships(dispatch, [notification]);
+      dispatch(notificationsUpdate({ notification, preferPendingItems, playSound: playSound && !filtered}));
     } else if (playSound && !filtered) {
       dispatch({
         type: NOTIFICATIONS_UPDATE_NOOP,
@@ -122,7 +128,11 @@ export function updateNotifications(notification, intlMessages, intlLocale) {
 
     // Desktop notifications
     if (typeof window.Notification !== 'undefined' && showAlert && !filtered) {
-      const title = new IntlMessageFormat(intlMessages[`notification.${notification.type}`], intlLocale).format({ name: notification.account.display_name.length > 0 ? notification.account.display_name : notification.account.username });
+      const messageTemplate = intlMessages[`notification.${notification.type}`] || messages[`message_${notification.type}`] || '[NO MESSAGE DEFINITION]';
+      const title = new IntlMessageFormat(messageTemplate, intlLocale).format({
+        name: notification.account.display_name.length > 0 ? notification.account.display_name : notification.account.username,
+        listName: notification.list && notification.list.title,
+      });
       const body  = (notification.status && notification.status.spoiler_text.length > 0) ? notification.status.spoiler_text : unescapeHTML(notification.status ? notification.status.content : '');
 
       const notify = new Notification(title, { body, icon: notification.account.avatar, tag: notification.id });
@@ -148,6 +158,7 @@ const excludeTypesFromFilter = filter => {
     'mention',
     'poll',
     'status',
+    'list_status',
     'update',
     'admin.sign_up',
     'admin.report',
@@ -160,8 +171,8 @@ const noOp = () => {};
 
 let expandNotificationsController = new AbortController();
 
-export function expandNotifications({ maxId, forceLoad } = {}, done = noOp) {
-  return (dispatch, getState) => {
+export function expandNotifications({ maxId = undefined, forceLoad = false }) {
+  return async (dispatch, getState) => {
     const activeFilter = getState().getIn(['settings', 'notifications', 'quickFilter', 'active']);
     const notifications = getState().get('notifications');
     const isLoadingMore = !!maxId;
@@ -171,16 +182,20 @@ export function expandNotifications({ maxId, forceLoad } = {}, done = noOp) {
         expandNotificationsController.abort();
         expandNotificationsController = new AbortController();
       } else {
-        done();
         return;
       }
     }
 
+    let exclude_types = activeFilter === 'all'
+      ? excludeTypesFromSettings(getState())
+      : excludeTypesFromFilter(activeFilter);
+    if (!enableEmojiReaction && !exclude_types.includes('emoji_reaction')) {
+      exclude_types.push('emoji_reaction');
+    }
+
     const params = {
       max_id: maxId,
-      exclude_types: activeFilter === 'all'
-        ? excludeTypesFromSettings(getState())
-        : excludeTypesFromFilter(activeFilter),
+      exclude_types,
     };
 
     if (!params.max_id && (notifications.get('items', ImmutableList()).size + notifications.get('pendingItems', ImmutableList()).size) > 0) {
@@ -198,7 +213,8 @@ export function expandNotifications({ maxId, forceLoad } = {}, done = noOp) {
 
     dispatch(expandNotificationsRequest(isLoadingMore));
 
-    api(getState).get('/api/v1/notifications', { params, signal: expandNotificationsController.signal }).then(response => {
+    try {
+      const response = await api().get('/api/v1/notifications', { params, signal: expandNotificationsController.signal });
       const next = getLinks(response).refs.find(link => link.rel === 'next');
 
       dispatch(importFetchedAccounts(response.data.map(item => item.account)));
@@ -206,13 +222,10 @@ export function expandNotifications({ maxId, forceLoad } = {}, done = noOp) {
       dispatch(importFetchedAccounts(response.data.filter(item => item.report).map(item => item.report.target_account)));
 
       dispatch(expandNotificationsSuccess(response.data, next ? next.uri : null, isLoadingMore, isLoadingRecent, isLoadingRecent && preferPendingItems));
-      fetchRelatedRelationships(dispatch, response.data);
       dispatch(submitMarkers());
-    }).catch(error => {
+    } catch(error) {
       dispatch(expandNotificationsFail(error, isLoadingMore));
-    }).finally(() => {
-      done();
-    });
+    }
   };
 }
 
@@ -240,16 +253,6 @@ export function expandNotificationsFail(error, isLoadingMore) {
     error,
     skipLoading: !isLoadingMore,
     skipAlert: !isLoadingMore || error.name === 'AbortError',
-  };
-}
-
-export function clearNotifications() {
-  return (dispatch, getState) => {
-    dispatch({
-      type: NOTIFICATIONS_CLEAR,
-    });
-
-    api(getState).post('/api/v1/notifications/clear');
   };
 }
 

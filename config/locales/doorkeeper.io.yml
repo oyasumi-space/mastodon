@@ -1,3 +1,4 @@
+---
 io:
   activerecord:
     attributes:
@@ -59,7 +60,6 @@ io:
       error:
         title: Eroro eventis
       new:
-        prompt_html: "%{client_name} volas permiso por acesar vua konti. Ol esas externa softwaro. <strong>Se vu ne fidas, lore vu debas ne yurizar.</strong>"
         review_permissions: Kontrolez permisi
         title: Yurizo bezonesas
       show:
@@ -121,12 +121,14 @@ io:
         admin/accounts: Administrar di konti
         admin/all: Omna administrofuncioni
         admin/reports: Administro di raporti
+        all: Kompleta aceso a vua Mastodon-konto
         blocks: Restriktita
         bookmarks: Libromarki
         conversations: Konversi
         crypto: Intersequanta chifro
         favourites: Favoriziti
         filters: Filtrili
+        follow: Sequati, silencigati e blokusati
         follows: Sequati
         lists: Listi
         media: Mediatachaji
@@ -144,12 +146,12 @@ io:
       application:
         title: Yurizo di OAuth bezonesas
     scopes:
-      "admin:read": lektez omna informi di la servilo
-      "admin:read:accounts": lektez privata informo di omna konti
-      "admin:read:reports": lektez privata informo di omna raporti e raportizita konti
-      "admin:write": modifikez omna informi di la servilo
-      "admin:write:accounts": jerez konti
-      "admin:write:reports": jerez raporti
+      admin:read: lektez omna informi di la servilo
+      admin:read:accounts: lektez privata informo di omna konti
+      admin:read:reports: lektez privata informo di omna raporti e raportizita konti
+      admin:write: modifikez omna informi di la servilo
+      admin:write:accounts: jerez konti
+      admin:write:reports: jerez raporti
       crypto: uzas intersequanta chifro
       follow: follow, block, unblock and unfollow accounts
       push: ganez vua pulsavizi

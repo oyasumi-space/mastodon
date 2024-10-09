@@ -4,6 +4,7 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
   include Redisable
   include Lockable
   include JsonLdHelper
+  include NgRuleHelper
 
   def perform
     @original_status = status_from_uri(object_uri)
@@ -25,8 +26,9 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
 
   def process_favourite
     return if @account.favourited?(@original_status)
+    return unless check_invalid_reaction_for_ng_rule! @account, uri: @json['id'], reaction_type: 'favourite', recipient: @original_status.account, target_status: @original_status
 
-    favourite = @original_status.favourites.create!(account: @account)
+    favourite = @original_status.favourites.create!(account: @account, uri: @json['id'])
 
     LocalNotificationWorker.perform_async(@original_status.account_id, favourite.id, 'Favourite', 'favourite')
     Trends.statuses.register(@original_status)
@@ -34,6 +36,7 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
 
   def process_emoji_reaction
     return if !@original_status.account.local? && !Setting.receive_other_servers_emoji_reaction
+    return if (silence_domain? || @account.silenced?) && (!@original_status.local? || !@original_status.account.following?(@account))
 
     # custom emoji
     emoji = nil
@@ -42,10 +45,12 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
       return if emoji.nil?
     end
 
+    return unless check_invalid_reaction_for_ng_rule! @account, uri: @json['id'], reaction_type: 'emoji_reaction', emoji_reaction_name: emoji&.shortcode || shortcode, emoji_reaction_origin_domain: emoji&.domain, recipient: @original_status.account, target_status: @original_status
+
     reaction = nil
 
     with_redis_lock("emoji_reaction:#{@original_status.id}") do
-      return if EmojiReaction.where(account: @account, status: @original_status).count >= EmojiReaction::EMOJI_REACTION_PER_ACCOUNT_LIMIT
+      return if EmojiReaction.where(account: @account, status: @original_status).count >= EmojiReaction::EMOJI_REACTION_PER_REMOTE_ACCOUNT_LIMIT
       return if EmojiReaction.find_by(account: @account, status: @original_status, name: shortcode)
 
       reaction = @original_status.emoji_reactions.create!(account: @account, name: shortcode, custom_emoji: emoji, uri: @json['id'])
@@ -54,27 +59,9 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
     Trends.statuses.register(@original_status)
     write_stream(reaction)
 
-    if @original_status.account.local?
-      NotifyService.new.call(@original_status.account, :emoji_reaction, reaction)
-      forward_for_emoji_reaction
-      relay_for_emoji_reaction
-    end
+    NotifyService.new.call(@original_status.account, :emoji_reaction, reaction) if @original_status.account.local?
   rescue Seahorse::Client::NetworkingError, ActiveRecord::RecordInvalid
     nil
-  end
-
-  def forward_for_emoji_reaction
-    return if @json['signature'].blank?
-
-    ActivityPub::RawDistributionWorker.perform_async(Oj.dump(@json), @original_status.account.id, [@account.preferred_inbox_url])
-  end
-
-  def relay_for_emoji_reaction
-    return unless @json['signature'].present? && @original_status.public_visibility?
-
-    ActivityPub::DeliveryWorker.push_bulk(Relay.enabled.pluck(:inbox_url)) do |inbox_url|
-      [Oj.dump(@json), @original_status.account.id, inbox_url]
-    end
   end
 
   def shortcode
@@ -122,6 +109,7 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
       emoji.image_remote_url = custom_emoji_parser.image_remote_url
       emoji.license = custom_emoji_parser.license
       emoji.is_sensitive = custom_emoji_parser.is_sensitive
+      emoji.aliases = custom_emoji_parser.aliases
       emoji.save
     rescue Seahorse::Client::NetworkingError => e
       Rails.logger.warn "Error storing emoji: #{e}"
@@ -142,11 +130,18 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
   end
 
   def skip_download?(domain)
-    DomainBlock.reject_media?(domain)
+    return true if DomainBlock.reject_media?(domain)
+    return false if @account.domain == domain
+
+    DomainBlock.blocked?(domain) || (DomainBlock.silence?(domain) && !@original_status.account.following?(@account))
   end
 
   def block_domain?
     DomainBlock.blocked?(@account.domain)
+  end
+
+  def silence_domain?
+    DomainBlock.silence?(@account.domain)
   end
 
   def misskey_favourite?
@@ -165,7 +160,7 @@ class ActivityPub::Activity::Like < ActivityPub::Activity
     emoji_group = @original_status.emoji_reactions_grouped_by_name(nil, force: true)
                                   .find { |reaction_group| reaction_group['name'] == emoji_reaction.name && (!reaction_group.key?(:domain) || reaction_group['domain'] == emoji_reaction.custom_emoji&.domain) }
     emoji_group['status_id'] = @original_status.id.to_s
-    DeliveryEmojiReactionWorker.perform_async(render_emoji_reaction(emoji_group), @original_status.id, emoji_reaction.account_id) if @original_status.local? || Setting.streaming_other_servers_emoji_reaction
+    DeliveryEmojiReactionWorker.perform_async(render_emoji_reaction(emoji_group), @original_status.id, emoji_reaction.account_id) if @original_status.local? ? Setting.streaming_local_emoji_reaction : Setting.streaming_other_servers_emoji_reaction
   end
 
   def render_emoji_reaction(emoji_group)

@@ -114,7 +114,7 @@ RSpec.describe Status do
     end
   end
 
-  describe '#searchability' do
+  describe '#compute_searchability' do
     subject { Fabricate(:status, account: account, searchability: status_searchability) }
 
     let(:account_searchability) { :public }
@@ -134,6 +134,27 @@ RSpec.describe Status do
 
       it 'returns private' do
         expect(subject.compute_searchability).to eq 'private'
+      end
+    end
+
+    context 'when public-public_unlisted but silenced' do
+      let(:silenced_at) { Time.now.utc }
+      let(:status_searchability) { :public_unlisted }
+
+      it 'returns private' do
+        expect(subject.compute_searchability).to eq 'private'
+      end
+    end
+
+    context 'when public-public_unlisted' do
+      let(:status_searchability) { :public_unlisted }
+
+      it 'returns public' do
+        expect(subject.compute_searchability).to eq 'public'
+      end
+
+      it 'returns public_unlisted for local' do
+        expect(subject.compute_searchability_local).to eq 'public_unlisted'
       end
     end
 
@@ -215,6 +236,57 @@ RSpec.describe Status do
         expect(subject.compute_searchability).to eq 'public'
       end
     end
+
+    context 'when public-public_unlisted of local account' do
+      let(:account_searchability) { :public }
+      let(:account_domain) { nil }
+      let(:status_searchability) { :public_unlisted }
+
+      it 'returns public' do
+        expect(subject.compute_searchability).to eq 'public'
+      end
+
+      it 'returns public_unlisted for local' do
+        expect(subject.compute_searchability_local).to eq 'public_unlisted'
+      end
+
+      it 'returns private for activitypub' do
+        expect(subject.compute_searchability_activitypub).to eq 'private'
+      end
+    end
+  end
+
+  describe '#quote' do
+    let(:target_status) { Fabricate(:status) }
+    let(:quote) { true }
+
+    before do
+      Fabricate(:status_reference, status: subject, target_status: target_status, quote: quote)
+    end
+
+    context 'when quoting single' do
+      it 'get quote' do
+        expect(subject.quote).to_not be_nil
+        expect(subject.quote.id).to eq target_status.id
+      end
+    end
+
+    context 'when multiple quotes' do
+      it 'get quote' do
+        target2 = Fabricate(:status)
+        Fabricate(:status_reference, status: subject, quote: quote)
+        expect(subject.quote).to_not be_nil
+        expect([target_status.id, target2.id].include?(subject.quote.id)).to be true
+      end
+    end
+
+    context 'when no quote but reference' do
+      let(:quote) { false }
+
+      it 'get quote' do
+        expect(subject.quote).to be_nil
+      end
+    end
   end
 
   describe '#content' do
@@ -269,7 +341,7 @@ RSpec.describe Status do
 
   describe '#replies_count' do
     it 'is the number of replies' do
-      reply = Fabricate(:status, account: bob, thread: subject)
+      Fabricate(:status, account: bob, thread: subject)
       expect(subject.replies_count).to eq 1
     end
 
@@ -308,6 +380,83 @@ RSpec.describe Status do
     end
   end
 
+  describe '#reported?' do
+    context 'when the status is not reported' do
+      it 'returns false' do
+        expect(subject.reported?).to be false
+      end
+    end
+
+    context 'when the status is part of an open report' do
+      before do
+        Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
+      end
+
+      it 'returns true' do
+        expect(subject.reported?).to be true
+      end
+    end
+
+    context 'when the status is part of a closed report with an account warning mentioning the account' do
+      before do
+        report = Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
+        report.resolve!(Fabricate(:account))
+        Fabricate(:account_warning, target_account: subject.account, status_ids: [subject.id], report: report)
+      end
+
+      it 'returns true' do
+        expect(subject.reported?).to be true
+      end
+    end
+
+    context 'when the status is part of a closed report with an account warning not mentioning the account' do
+      before do
+        report = Fabricate(:report, target_account: subject.account, status_ids: [subject.id])
+        report.resolve!(Fabricate(:account))
+        Fabricate(:account_warning, target_account: subject.account, report: report)
+      end
+
+      it 'returns false' do
+        expect(subject.reported?).to be false
+      end
+    end
+  end
+
+  describe '#ordered_media_attachments' do
+    let(:status) { Fabricate(:status) }
+
+    let(:first_attachment) { Fabricate(:media_attachment) }
+    let(:second_attachment) { Fabricate(:media_attachment) }
+    let(:last_attachment) { Fabricate(:media_attachment) }
+    let(:extra_attachment) { Fabricate(:media_attachment) }
+
+    before do
+      stub_const('Status::MEDIA_ATTACHMENTS_LIMIT', 3)
+
+      # Add attachments out of order
+      status.media_attachments << second_attachment
+      status.media_attachments << last_attachment
+      status.media_attachments << extra_attachment
+      status.media_attachments << first_attachment
+    end
+
+    context 'when ordered_media_attachment_ids is not set' do
+      it 'returns up to MEDIA_ATTACHMENTS_LIMIT attachments' do
+        expect(status.ordered_media_attachments.size).to eq Status::MEDIA_ATTACHMENTS_LIMIT
+      end
+    end
+
+    context 'when ordered_media_attachment_ids is set' do
+      before do
+        status.update!(ordered_media_attachment_ids: [first_attachment.id, second_attachment.id, last_attachment.id, extra_attachment.id])
+      end
+
+      it 'returns up to MEDIA_ATTACHMENTS_LIMIT attachments in the expected order' do
+        expect(status.ordered_media_attachments).to eq [first_attachment, second_attachment, last_attachment]
+      end
+    end
+  end
+
   describe '.mutes_map' do
     subject { described_class.mutes_map([status.conversation.id], account) }
 
@@ -321,6 +470,38 @@ RSpec.describe Status do
     it 'contains true value' do
       account.mute_conversation!(status.conversation)
       expect(subject[status.conversation.id]).to be true
+    end
+  end
+
+  describe '.blocks_map' do
+    subject { described_class.blocks_map([status.account.id], account) }
+
+    let(:status)  { Fabricate(:status) }
+    let(:account) { Fabricate(:account) }
+
+    it 'returns a hash' do
+      expect(subject).to be_a Hash
+    end
+
+    it 'contains true value' do
+      account.block!(status.account)
+      expect(subject[status.account.id]).to be true
+    end
+  end
+
+  describe '.domain_blocks_map' do
+    subject { described_class.domain_blocks_map([status.account.domain], account) }
+
+    let(:status)  { Fabricate(:status, account: Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/status')) }
+    let(:account) { Fabricate(:account) }
+
+    it 'returns a hash' do
+      expect(subject).to be_a Hash
+    end
+
+    it 'contains true value' do
+      account.block_domain!(status.account.domain)
+      expect(subject[status.account.domain]).to be true
     end
   end
 
@@ -356,6 +537,30 @@ RSpec.describe Status do
     end
   end
 
+  describe '.available_features_map' do
+    subject { described_class.available_features_map(domains) }
+
+    let(:domains) { %w(features_available.com mastodon.com misskey.com) }
+
+    before do
+      Fabricate(:instance_info, domain: 'features_available.com', software: 'mastodon', data: { metadata: { features: ['emoji_reaction'] } })
+      Fabricate(:instance_info, domain: 'mastodon.com', software: 'mastodon')
+      Fabricate(:instance_info, domain: 'misskey.com', software: 'misskey')
+    end
+
+    it 'availables if features contains emoji_reaction' do
+      expect(subject['features_available.com'][:emoji_reaction]).to be true
+    end
+
+    it 'unavailables if mastodon server' do
+      expect(subject['mastodon.com'][:emoji_reaction]).to be false
+    end
+
+    it 'availables if misskey server' do
+      expect(subject['misskey.com'][:emoji_reaction]).to be true
+    end
+  end
+
   describe '.tagged_with' do
     let(:tag_cats) { Fabricate(:tag, name: 'cats') }
     let(:tag_dogs) { Fabricate(:tag, name: 'dogs') }
@@ -368,17 +573,29 @@ RSpec.describe Status do
 
     context 'when given one tag' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with([tag_cats.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_with_all_tags.id)
-        expect(described_class.tagged_with([tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_dogs.id, status_with_all_tags.id)
-        expect(described_class.tagged_with([tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_tagged_with_zebras.id, status_with_all_tags.id)
+        expect(described_class.tagged_with([tag_cats.id]))
+          .to include(status_with_tag_cats, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with([tag_dogs.id]))
+          .to include(status_with_tag_dogs, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with([tag_zebras.id]))
+          .to include(status_tagged_with_zebras, status_with_all_tags)
+          .and not_include(status_without_tags)
       end
     end
 
     context 'when given multiple tags' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with([tag_cats.id, tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_with_tag_dogs.id, status_with_all_tags.id)
-        expect(described_class.tagged_with([tag_cats.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_tagged_with_zebras.id, status_with_all_tags.id)
-        expect(described_class.tagged_with([tag_dogs.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_dogs.id, status_tagged_with_zebras.id, status_with_all_tags.id)
+        expect(described_class.tagged_with([tag_cats.id, tag_dogs.id]))
+          .to include(status_with_tag_cats, status_with_tag_dogs, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with([tag_cats.id, tag_zebras.id]))
+          .to include(status_with_tag_cats, status_tagged_with_zebras, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with([tag_dogs.id, tag_zebras.id]))
+          .to include(status_with_tag_dogs, status_tagged_with_zebras, status_with_all_tags)
+          .and not_include(status_without_tags)
       end
     end
   end
@@ -395,17 +612,26 @@ RSpec.describe Status do
 
     context 'when given one tag' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with_all([tag_cats.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_with_all_tags.id)
-        expect(described_class.tagged_with_all([tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_dogs.id, status_with_all_tags.id)
-        expect(described_class.tagged_with_all([tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_tagged_with_zebras.id)
+        expect(described_class.tagged_with_all([tag_cats.id]))
+          .to include(status_with_tag_cats, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with_all([tag_dogs.id]))
+          .to include(status_with_tag_dogs, status_with_all_tags)
+          .and not_include(status_without_tags)
+        expect(described_class.tagged_with_all([tag_zebras.id]))
+          .to include(status_tagged_with_zebras)
+          .and not_include(status_without_tags)
       end
     end
 
     context 'when given multiple tags' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with_all([tag_cats.id, tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_all_tags.id)
-        expect(described_class.tagged_with_all([tag_cats.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to eq []
-        expect(described_class.tagged_with_all([tag_dogs.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to eq []
+        expect(described_class.tagged_with_all([tag_cats.id, tag_dogs.id]))
+          .to include(status_with_all_tags)
+        expect(described_class.tagged_with_all([tag_cats.id, tag_zebras.id]))
+          .to eq []
+        expect(described_class.tagged_with_all([tag_dogs.id, tag_zebras.id]))
+          .to eq []
       end
     end
   end
@@ -422,17 +648,29 @@ RSpec.describe Status do
 
     context 'when given one tag' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with_none([tag_cats.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_dogs.id, status_tagged_with_zebras.id, status_without_tags.id)
-        expect(described_class.tagged_with_none([tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_tagged_with_zebras.id, status_without_tags.id)
-        expect(described_class.tagged_with_none([tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_with_tag_dogs.id, status_without_tags.id)
+        expect(described_class.tagged_with_none([tag_cats.id]))
+          .to include(status_with_tag_dogs, status_tagged_with_zebras, status_without_tags)
+          .and not_include(status_with_all_tags)
+        expect(described_class.tagged_with_none([tag_dogs.id]))
+          .to include(status_with_tag_cats, status_tagged_with_zebras, status_without_tags)
+          .and not_include(status_with_all_tags)
+        expect(described_class.tagged_with_none([tag_zebras.id]))
+          .to include(status_with_tag_cats, status_with_tag_dogs, status_without_tags)
+          .and not_include(status_with_all_tags)
       end
     end
 
     context 'when given multiple tags' do
       it 'returns the expected statuses' do
-        expect(described_class.tagged_with_none([tag_cats.id, tag_dogs.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_tagged_with_zebras.id, status_without_tags.id)
-        expect(described_class.tagged_with_none([tag_cats.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_dogs.id, status_without_tags.id)
-        expect(described_class.tagged_with_none([tag_dogs.id, tag_zebras.id]).reorder(:id).pluck(:id).uniq).to contain_exactly(status_with_tag_cats.id, status_without_tags.id)
+        expect(described_class.tagged_with_none([tag_cats.id, tag_dogs.id]))
+          .to include(status_tagged_with_zebras, status_without_tags)
+          .and not_include(status_with_all_tags)
+        expect(described_class.tagged_with_none([tag_cats.id, tag_zebras.id]))
+          .to include(status_with_tag_dogs, status_without_tags)
+          .and not_include(status_with_all_tags)
+        expect(described_class.tagged_with_none([tag_dogs.id, tag_zebras.id]))
+          .to include(status_with_tag_cats, status_without_tags)
+          .and not_include(status_with_all_tags)
       end
     end
   end
@@ -448,6 +686,16 @@ RSpec.describe Status do
 
     it 'creates new conversation for stand-alone status' do
       expect(described_class.create(account: alice, text: 'First').conversation_id).to_not be_nil
+    end
+
+    it 'creates new owned-conversation for stand-alone status' do
+      expect(described_class.create(account: alice, text: 'First').owned_conversation.id).to_not be_nil
+    end
+
+    it 'creates new owned-conversation and linked for stand-alone status' do
+      status = described_class.create(account: alice, text: 'First')
+      expect(status.owned_conversation.ancestor_status_id).to eq status.id
+      expect(status.conversation.ancestor_status_id).to eq status.id
     end
 
     it 'keeps conversation of parent node' do

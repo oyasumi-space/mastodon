@@ -34,7 +34,8 @@ module Admin
       UpdateStatusService.new.call(
         @status,
         edit_status_account_id,
-        no_history: true
+        no_history: true,
+        bypass_validation: true
       )
       log_action(:remove_history, @status)
       redirect_to admin_account_status_path
@@ -46,7 +47,8 @@ module Admin
         @status,
         edit_status_account_id,
         media_ids: [],
-        media_attributes: []
+        media_attributes: [],
+        bypass_validation: true
       )
       log_action(:remove_media, @status)
       redirect_to admin_account_status_path
@@ -57,7 +59,8 @@ module Admin
       UpdateStatusService.new.call(
         @status,
         edit_status_account_id,
-        sensitive: true
+        sensitive: true,
+        bypass_validation: true
       )
       log_action(:force_sensitive, @status)
       redirect_to admin_account_status_path
@@ -68,7 +71,8 @@ module Admin
       UpdateStatusService.new.call(
         @status,
         edit_status_account_id,
-        spoiler_text: 'CW'
+        spoiler_text: 'CW',
+        bypass_validation: true
       )
       log_action(:force_cw, @status)
       redirect_to admin_account_status_path
@@ -85,6 +89,11 @@ module Admin
     end
 
     private
+
+    def batched_ordered_status_edits
+      @status.edits.includes(:account, status: [:account]).find_each(order: :asc)
+    end
+    helper_method :batched_ordered_status_edits
 
     def admin_status_batch_action_params
       params.require(:admin_status_batch_action).permit(status_ids: [])
@@ -116,7 +125,7 @@ module Admin
       return @edit_account_id || @account.id if @edit_account_checked
 
       @edit_account_checked = true
-      @edit_account_id = Account.local.find_by(username: 'official')&.id || @account.id
+      @edit_account_id = Account.representative.id
     end
 
     def filter_params

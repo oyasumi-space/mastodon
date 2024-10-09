@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe Api::V1::ListsController do
+RSpec.describe Api::V1::ListsController do
   render_views
 
   let(:user) { Fabricate(:user) }
@@ -29,7 +29,7 @@ describe Api::V1::ListsController do
         get :index
         expect(response).to have_http_status(200)
 
-        list_ids = body_as_json.pluck(:id)
+        list_ids = response.parsed_body.pluck(:id)
         expect(list_ids.size).to eq 1
         expect(list_ids).to include list_id
       end

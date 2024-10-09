@@ -7,6 +7,7 @@ import PrivacyDropdown from '../components/privacy_dropdown';
 
 const mapStateToProps = state => ({
   value: state.getIn(['compose', 'privacy']),
+  replyToLimited: state.getIn(['compose', 'reply_to_limited']),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -16,11 +17,11 @@ const mapDispatchToProps = dispatch => ({
   },
 
   isUserTouching,
-  onModalOpen: props => dispatch(openModal({
+  onModalOpen: props => dispatch(openModal({  // kmyblue: Do not remove
     modalType: 'ACTIONS',
     modalProps: props,
   })),
-  onModalClose: () => dispatch(closeModal({
+  onModalClose: () => dispatch(closeModal({  // kmyblue: Do not remove
     modalType: undefined,
     ignoreFocus: false,
   })),

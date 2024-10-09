@@ -1,0 +1,29 @@
+---
+Metrics/AbcSize:
+  Exclude:
+    - 'app/serializers/initial_state_serializer.rb'
+    - lib/mastodon/cli/*.rb
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'app/lib/feed_manager.rb'
+    - 'app/policies/status_policy.rb'
+    - 'app/services/activitypub/process_account_service.rb'
+    - 'app/services/delivery_antenna_service.rb'
+    - 'app/services/post_status_service.rb'
+    - lib/mastodon/cli/*.rb
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false

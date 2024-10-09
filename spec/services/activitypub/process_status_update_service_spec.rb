@@ -2,29 +2,31 @@
 
 require 'rails_helper'
 
-def poll_option_json(name, votes)
-  { type: 'Note', name: name, replies: { type: 'Collection', totalItems: votes } }
-end
-
-RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
+RSpec.describe ActivityPub::ProcessStatusUpdateService do
   subject { described_class.new }
 
-  let!(:status) { Fabricate(:status, text: 'Hello world', account: Fabricate(:account, domain: 'example.com')) }
+  let(:thread) { nil }
+  let!(:status) { Fabricate(:status, text: 'Hello world', account: Fabricate(:account, domain: 'example.com'), thread: thread) }
+  let(:json_tags) do
+    [
+      { type: 'Hashtag', name: 'hoge' },
+      { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+    ]
+  end
+  let(:content) { 'Hello universe' }
   let(:payload) do
     {
       '@context': 'https://www.w3.org/ns/activitystreams',
       id: 'foo',
       type: 'Note',
       summary: 'Show more',
-      content: 'Hello universe',
+      content: content,
       updated: '2021-09-08T22:39:25Z',
-      tag: [
-        { type: 'Hashtag', name: 'hoge' },
-        { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
-      ],
+      tag: json_tags,
     }
   end
-  let(:json) { Oj.load(Oj.dump(payload)) }
+  let(:payload_override) { {} }
+  let(:json) { Oj.load(Oj.dump(payload.merge(payload_override))) }
 
   let(:alice) { Fabricate(:account) }
   let(:bob) { Fabricate(:account) }
@@ -40,14 +42,13 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
   end
 
   describe '#call' do
-    it 'updates text' do
+    it 'updates text and content warning' do
       subject.call(status, json, json)
-      expect(status.reload.text).to eq 'Hello universe'
-    end
-
-    it 'updates content warning' do
-      subject.call(status, json, json)
-      expect(status.reload.spoiler_text).to eq 'Show more'
+      expect(status.reload)
+        .to have_attributes(
+          text: eq('Hello universe'),
+          spoiler_text: eq('Show more')
+        )
     end
 
     context 'when the changes are only in sanitized-out HTML' do
@@ -67,12 +68,9 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits and does not mark status edited' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.edited?).to be false
+        expect(status).to_not be_edited
       end
     end
 
@@ -90,15 +88,9 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits, mark status edited, or update text' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.reload.edited?).to be false
-      end
-
-      it 'does not update the text' do
+        expect(status.reload).to_not be_edited
         expect(status.reload.text).to eq 'Hello world'
       end
     end
@@ -137,19 +129,10 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits, mark status edited, update text but does update tallies' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.reload.edited?).to be false
-      end
-
-      it 'does not update the text' do
+        expect(status.reload).to_not be_edited
         expect(status.reload.text).to eq 'Hello world'
-      end
-
-      it 'updates tallies' do
         expect(status.poll.reload.cached_tallies).to eq [4, 3]
       end
     end
@@ -189,19 +172,10 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits, mark status edited, update text, or update tallies' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.reload.edited?).to be false
-      end
-
-      it 'does not update the text' do
+        expect(status.reload).to_not be_edited
         expect(status.reload.text).to eq 'Hello world'
-      end
-
-      it 'does not update tallies' do
         expect(status.poll.reload.cached_tallies).to eq [0, 0]
       end
     end
@@ -213,12 +187,10 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         status.snapshot!(rate_limit: false)
       end
 
-      it 'does not create any edits' do
-        expect { subject.call(status, json, json) }.to_not(change { status.reload.edits.pluck(&:id) })
-      end
-
-      it 'does not update the text, spoiler_text or edited_at' do
-        expect { subject.call(status, json, json) }.to_not(change { s = status.reload; [s.text, s.spoiler_text, s.edited_at] })
+      it 'does not create any edits or update relevant attributes' do
+        expect { subject.call(status, json, json) }
+          .to not_change { status.reload.edits.pluck(&:id) }
+          .and(not_change { status.reload.attributes.slice('text', 'spoiler_text', 'edited_at').values })
       end
     end
 
@@ -236,12 +208,9 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits or mark status edited' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.edited?).to be false
+        expect(status).to_not be_edited
       end
     end
 
@@ -260,12 +229,9 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         subject.call(status, json, json)
       end
 
-      it 'does not create any edits' do
+      it 'does not create any edits or mark status edited' do
         expect(status.reload.edits).to be_empty
-      end
-
-      it 'does not mark status as edited' do
-        expect(status.edited?).to be false
+        expect(status).to_not be_edited
       end
     end
 
@@ -305,6 +271,44 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
       end
     end
 
+    context 'when reject tags by domain-block' do
+      let(:tags) { [Fabricate(:tag, name: 'hoge'), Fabricate(:tag, name: 'ohagi')] }
+
+      before do
+        Fabricate(:domain_block, domain: 'example.com', severity: :noop, reject_hashtag: true)
+        subject.call(status, json, json)
+      end
+
+      it 'updates tags' do
+        expect(status.tags.reload.map(&:name)).to eq []
+      end
+    end
+
+    context 'when reject mentions to stranger by domain-block' do
+      let(:json_tags) do
+        [
+          { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+        ]
+      end
+
+      before do
+        Fabricate(:domain_block, domain: 'example.com', reject_reply_exclude_followers: true, severity: :noop)
+      end
+
+      it 'updates mentions' do
+        subject.call(status, json, json)
+
+        expect(status.mentions.reload.map(&:account_id)).to eq []
+      end
+
+      it 'updates mentions when follower' do
+        alice.follow!(status.account)
+        subject.call(status, json, json)
+
+        expect(status.mentions.reload.map(&:account_id)).to eq [alice.id]
+      end
+    end
+
     context 'when originally without mentions' do
       before do
         subject.call(status, json, json)
@@ -330,7 +334,6 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
     context 'when originally without media attachments' do
       before do
         stub_request(:get, 'https://example.com/foo.png').to_return(body: attachment_fixture('emojo.png'))
-        subject.call(status, json, json)
       end
 
       let(:payload) do
@@ -346,19 +349,18 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         }
       end
 
-      it 'updates media attachments' do
-        media_attachment = status.reload.ordered_media_attachments.first
+      it 'updates media attachments, fetches attachment, records media change in edit' do
+        subject.call(status, json, json)
 
-        expect(media_attachment).to_not be_nil
-        expect(media_attachment.remote_url).to eq 'https://example.com/foo.png'
-      end
+        expect(status.reload.ordered_media_attachments.first)
+          .to be_present
+          .and(have_attributes(remote_url: 'https://example.com/foo.png'))
 
-      it 'fetches the attachment' do
-        expect(a_request(:get, 'https://example.com/foo.png')).to have_been_made
-      end
+        expect(a_request(:get, 'https://example.com/foo.png'))
+          .to have_been_made
 
-      it 'records media change in edit' do
-        expect(status.edits.reload.last.ordered_media_attachment_ids).to_not be_empty
+        expect(status.edits.reload.last.ordered_media_attachment_ids)
+          .to_not be_empty
       end
     end
 
@@ -380,27 +382,26 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
 
       before do
         allow(RedownloadMediaWorker).to receive(:perform_async)
+      end
+
+      it 'updates the existing media attachment in-place, does not queue redownload, updates media, records media change' do
         subject.call(status, json, json)
-      end
 
-      it 'updates the existing media attachment in-place' do
-        media_attachment = status.media_attachments.reload.first
+        expect(status.media_attachments.ordered.reload.first)
+          .to be_present
+          .and have_attributes(
+            remote_url: 'https://example.com/foo.png',
+            description: 'A picture'
+          )
 
-        expect(media_attachment).to_not be_nil
-        expect(media_attachment.remote_url).to eq 'https://example.com/foo.png'
-        expect(media_attachment.description).to eq 'A picture'
-      end
+        expect(RedownloadMediaWorker)
+          .to_not have_received(:perform_async)
 
-      it 'does not queue redownload for the existing media attachment' do
-        expect(RedownloadMediaWorker).to_not have_received(:perform_async)
-      end
+        expect(status.ordered_media_attachments.map(&:remote_url))
+          .to eq %w(https://example.com/foo.png)
 
-      it 'updates media attachments' do
-        expect(status.ordered_media_attachments.map(&:remote_url)).to eq %w(https://example.com/foo.png)
-      end
-
-      it 'records media change in edit' do
-        expect(status.edits.reload.last.ordered_media_attachment_ids).to_not be_empty
+        expect(status.edits.reload.last.ordered_media_attachment_ids)
+          .to_not be_empty
       end
     end
 
@@ -408,14 +409,12 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
       before do
         poll = Fabricate(:poll, status: status)
         status.update(preloadable_poll: poll)
+      end
+
+      it 'removes poll and records media change in edit' do
         subject.call(status, json, json)
-      end
 
-      it 'removes poll' do
         expect(status.reload.poll).to be_nil
-      end
-
-      it 'records media change in edit' do
         expect(status.edits.reload.last.poll_options).to be_nil
       end
     end
@@ -437,30 +436,302 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService, type: :service do
         }
       end
 
-      before do
+      it 'creates a poll and records media change in edit' do
         subject.call(status, json, json)
-      end
 
-      it 'creates a poll' do
-        poll = status.reload.poll
+        expect(status.reload.poll)
+          .to be_present
+          .and have_attributes(options: %w(Foo Bar Baz))
 
-        expect(poll).to_not be_nil
-        expect(poll.options).to eq %w(Foo Bar Baz)
-      end
-
-      it 'records media change in edit' do
         expect(status.edits.reload.last.poll_options).to eq %w(Foo Bar Baz)
       end
     end
 
-    it 'creates edit history' do
+    it 'creates edit history and sets edit timestamp' do
       subject.call(status, json, json)
-      expect(status.edits.reload.map(&:text)).to eq ['Hello world', 'Hello universe']
+      expect(status.edits.reload.map(&:text))
+        .to eq ['Hello world', 'Hello universe']
+      expect(status.reload.edited_at.to_s)
+        .to eq '2021-09-08 22:39:25 UTC'
     end
 
-    it 'sets edited timestamp' do
-      subject.call(status, json, json)
-      expect(status.reload.edited_at.to_s).to eq '2021-09-08 22:39:25 UTC'
+    describe 'ng word is set' do
+      let(:json_tags) { [] }
+
+      context 'when hit ng words' do
+        let(:content) { 'ng word test' }
+
+        it 'update status' do
+          Fabricate(:ng_word, keyword: 'test', stranger: false)
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+        end
+      end
+
+      context 'when not hit ng words' do
+        let(:content) { 'ng word aiueo' }
+
+        it 'update status' do
+          Fabricate(:ng_word, keyword: 'test', stranger: false)
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+        end
+      end
+
+      context 'when hit ng words for mention to local stranger' do
+        let(:json_tags) do
+          [
+            { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+          ]
+        end
+        let(:content) { 'ng word test' }
+
+        it 'update status' do
+          Form::AdminSettings.new(stranger_mention_from_local_ng: '1').save
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+          expect(status.mentioned_accounts.pluck(:id)).to_not include alice.id
+        end
+
+        it 'update status when following' do
+          Form::AdminSettings.new(stranger_mention_from_local_ng: '1').save
+          Fabricate(:ng_word, keyword: 'test')
+          alice.follow!(status.account)
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+          expect(status.mentioned_accounts.pluck(:id)).to include alice.id
+        end
+      end
+
+      context 'when hit ng words for mention but local posts are not checked' do
+        let(:json_tags) do
+          [
+            { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+          ]
+        end
+        let(:content) { 'ng word test' }
+
+        it 'update status' do
+          Form::AdminSettings.new(stranger_mention_from_local_ng: '0').save
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+          expect(status.mentioned_accounts.pluck(:id)).to_not include alice.id
+        end
+      end
+
+      context 'when hit ng words for mention to follower' do
+        let(:json_tags) do
+          [
+            { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+          ]
+        end
+        let(:content) { 'ng word test' }
+
+        before do
+          alice.follow!(status.account)
+        end
+
+        it 'update status' do
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+          expect(status.mentioned_accounts.pluck(:id)).to include alice.id
+        end
+      end
+
+      context 'when hit ng words for reply' do
+        let(:json_tags) do
+          [
+            { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+          ]
+        end
+        let(:content) { 'ng word test' }
+        let(:thread) { Fabricate(:status, account: alice) }
+
+        it 'update status' do
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+          expect(status.mentioned_accounts.pluck(:id)).to_not include alice.id
+        end
+      end
+
+      context 'when hit ng words for reply to follower' do
+        let(:json_tags) do
+          [
+            { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+          ]
+        end
+        let(:content) { 'ng word test' }
+        let(:thread) { Fabricate(:status, account: alice) }
+
+        before do
+          alice.follow!(status.account)
+        end
+
+        it 'update status' do
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+          expect(status.mentioned_accounts.pluck(:id)).to include alice.id
+        end
+      end
+
+      context 'when hit ng words for reference' do
+        let!(:target_status) { Fabricate(:status, account: alice) }
+        let(:payload_override) do
+          {
+            references: {
+              id: 'target_status',
+              type: 'Collection',
+              first: {
+                type: 'CollectionPage',
+                next: nil,
+                partOf: 'target_status',
+                items: [
+                  ActivityPub::TagManager.instance.uri_for(target_status),
+                ],
+              },
+            },
+          }
+        end
+        let(:content) { 'ng word test' }
+
+        it 'update status' do
+          Form::AdminSettings.new(stranger_mention_from_local_ng: '1').save
+          Fabricate(:ng_word, keyword: 'test')
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+          expect(status.references.pluck(:id)).to_not include target_status.id
+        end
+
+        context 'when alice follows sender' do
+          before do
+            alice.follow!(status.account)
+          end
+
+          it 'update status' do
+            Fabricate(:ng_word, keyword: 'test')
+
+            subject.call(status, json, json)
+            expect(status.reload.text).to eq content
+            expect(status.references.pluck(:id)).to include target_status.id
+          end
+        end
+      end
+
+      context 'when using hashtag under limit' do
+        let(:json_tags) do
+          [
+            { type: 'Hashtag', name: 'a' },
+            { type: 'Hashtag', name: 'b' },
+          ]
+        end
+        let(:content) { 'ohagi is good' }
+
+        it 'update status' do
+          Form::AdminSettings.new(post_hash_tags_max: 2).save
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+        end
+      end
+
+      context 'when using hashtag over limit' do
+        let(:json_tags) do
+          [
+            { type: 'Hashtag', name: 'a' },
+            { type: 'Hashtag', name: 'b' },
+            { type: 'Hashtag', name: 'c' },
+          ]
+        end
+        let(:content) { 'ohagi is good' }
+
+        it 'update status' do
+          Form::AdminSettings.new(post_hash_tags_max: 2).save
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to_not eq content
+        end
+      end
     end
+
+    describe 'ng rule is set' do
+      context 'when ng rule is match' do
+        before do
+          Fabricate(:ng_rule, account_domain: 'example.com', status_text: 'universe')
+          subject.call(status, json, json)
+        end
+
+        it 'does not update text' do
+          expect(status.reload.text).to eq 'Hello world'
+          expect(status.edits.reload.map(&:text)).to eq []
+        end
+      end
+
+      context 'when ng rule is not match' do
+        before do
+          Fabricate(:ng_rule, account_domain: 'foo.bar', status_text: 'universe')
+          subject.call(status, json, json)
+        end
+
+        it 'updates text' do
+          expect(status.reload.text).to eq 'Hello universe'
+          expect(status.edits.reload.map(&:text)).to eq ['Hello world', 'Hello universe']
+        end
+      end
+    end
+
+    describe 'sensitive word is set' do
+      let(:payload) do
+        {
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          id: 'foo',
+          type: 'Note',
+          content: content,
+          updated: '2021-09-08T22:39:25Z',
+          tag: json_tags,
+        }
+      end
+
+      context 'when hit sensitive words' do
+        let(:content) { 'ng word aiueo' }
+
+        it 'update status' do
+          Fabricate(:sensitive_word, keyword: 'test', remote: true, spoiler: false)
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+          expect(status.spoiler_text).to eq ''
+        end
+      end
+
+      context 'when not hit sensitive words' do
+        let(:content) { 'ng word test' }
+
+        it 'update status' do
+          Fabricate(:sensitive_word, keyword: 'test', remote: true, spoiler: false)
+
+          subject.call(status, json, json)
+          expect(status.reload.text).to eq content
+          expect(status.spoiler_text).to_not eq ''
+        end
+      end
+    end
+  end
+
+  def poll_option_json(name, votes)
+    { type: 'Note', name: name, replies: { type: 'Collection', totalItems: votes } }
   end
 end

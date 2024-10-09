@@ -3,6 +3,8 @@
 class REST::StatusSerializer < ActiveModel::Serializer
   include FormattingHelper
 
+  # Please update `app/javascript/mastodon/api_types/statuses.ts` when making changes to the attributes
+
   attributes :id, :created_at, :in_reply_to_id, :in_reply_to_account_id,
              :sensitive, :spoiler_text, :visibility, :visibility_ex, :limited_scope, :language,
              :uri, :url, :replies_count, :reblogs_count, :searchability, :markdown,
@@ -16,6 +18,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   attribute :pinned, if: :pinnable?
   attribute :reactions, if: :reactions?
   attribute :expires_at, if: :will_expire?
+  attribute :quote_id, if: :quote?
   has_many :filtered, serializer: REST::FilterResultSerializer, if: :current_user?
 
   attribute :content, unless: :source_requested?
@@ -32,6 +35,23 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   has_one :preview_card, key: :card, serializer: REST::PreviewCardSerializer
   has_one :preloadable_poll, key: :poll, serializer: REST::PollSerializer
+
+  class QuotedStatusSerializer < REST::StatusSerializer
+    attribute :quote_muted, if: :current_user?
+
+    def quote
+      nil
+    end
+
+    def quote_muted
+      if relationships
+        muted || relationships.blocks_map[object.account_id] || relationships.domain_blocks_map[object.account.domain] || false
+      else
+        muted || current_user.account.blocking?(object.account_id) || current_user.account.domain_blocking?(object.account.domain)
+      end
+    end
+  end
+  belongs_to :quote, if: :quote?, serializer: QuotedStatusSerializer, relationships: -> { relationships }
 
   def id
     object.id.to_s
@@ -75,7 +95,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   end
 
   def searchability
-    object.compute_searchability
+    object.compute_searchability_local
   end
 
   def sensitive
@@ -103,9 +123,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   end
 
   def status_references_count
-    return status_reference_ids.size if status_reference_ids.any?
-
-    Rails.cache.exist?("status_reference:#{object.id}") ? 1 : 0
+    status_reference_ids.size
   end
 
   def reblogs_count
@@ -158,6 +176,12 @@ class REST::StatusSerializer < ActiveModel::Serializer
       end
     end
   end
+
+  def quote_id
+    object.quote_of_id.to_s
+  end
+
+  delegate :quote?, to: :object
 
   def reblogged
     if relationships

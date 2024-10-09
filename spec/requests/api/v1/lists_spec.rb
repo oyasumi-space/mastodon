@@ -19,6 +19,7 @@ RSpec.describe 'Lists' do
         Fabricate(:list, account: user.account, title: 'second list', replies_policy: :list),
         Fabricate(:list, account: user.account, title: 'third list', replies_policy: :none),
         Fabricate(:list, account: user.account, title: 'fourth list', exclusive: true),
+        Fabricate(:list, account: user.account, title: 'fifth list', notify: true),
       ]
     end
 
@@ -29,18 +30,8 @@ RSpec.describe 'Lists' do
           title: list.title,
           replies_policy: list.replies_policy,
           exclusive: list.exclusive,
-        }
-      end
-    end
-
-    let(:expected_response_with_antennas) do
-      lists.map do |list|
-        {
-          id: list.id.to_s,
-          title: list.title,
-          replies_policy: list.replies_policy,
-          exclusive: list.exclusive,
           antennas: list.antennas,
+          notify: list.notify,
         }
       end
     end
@@ -51,16 +42,13 @@ RSpec.describe 'Lists' do
 
     it_behaves_like 'forbidden for wrong scope', 'write write:lists'
 
-    it 'returns http success' do
+    it 'returns the expected lists', :aggregate_failures do
       subject
 
       expect(response).to have_http_status(200)
-    end
-
-    it 'returns the expected lists' do
-      subject
-
-      expect(body_as_json).to match_array(expected_response_with_antennas)
+      expect(response.content_type)
+        .to start_with('application/json')
+      expect(response.parsed_body).to match_array(expected_response)
     end
   end
 
@@ -73,21 +61,19 @@ RSpec.describe 'Lists' do
 
     it_behaves_like 'forbidden for wrong scope', 'write write:lists'
 
-    it 'returns http success' do
+    it 'returns the requested list correctly', :aggregate_failures do
       subject
 
       expect(response).to have_http_status(200)
-    end
-
-    it 'returns the requested list correctly' do
-      subject
-
-      expect(body_as_json).to eq({
+      expect(response.content_type)
+        .to start_with('application/json')
+      expect(response.parsed_body).to match({
         id: list.id.to_s,
         title: list.title,
         replies_policy: list.replies_policy,
         exclusive: list.exclusive,
         antennas: list.antennas,
+        notify: list.notify,
       })
     end
 
@@ -98,6 +84,8 @@ RSpec.describe 'Lists' do
         subject
 
         expect(response).to have_http_status(404)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
 
@@ -106,6 +94,8 @@ RSpec.describe 'Lists' do
         get '/api/v1/lists/-1', headers: headers
 
         expect(response).to have_http_status(404)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
   end
@@ -119,21 +109,13 @@ RSpec.describe 'Lists' do
 
     it_behaves_like 'forbidden for wrong scope', 'read read:lists'
 
-    it 'returns http success' do
+    it 'returns the new list', :aggregate_failures do
       subject
 
       expect(response).to have_http_status(200)
-    end
-
-    it 'returns the new list' do
-      subject
-
-      expect(body_as_json).to match(a_hash_including(title: 'my list', replies_policy: 'none', exclusive: true))
-    end
-
-    it 'creates a list' do
-      subject
-
+      expect(response.content_type)
+        .to start_with('application/json')
+      expect(response.parsed_body).to match(a_hash_including(title: 'my list', replies_policy: 'none', exclusive: true))
       expect(List.where(account: user.account).count).to eq(1)
     end
 
@@ -144,6 +126,8 @@ RSpec.describe 'Lists' do
         subject
 
         expect(response).to have_http_status(422)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
 
@@ -154,6 +138,8 @@ RSpec.describe 'Lists' do
         subject
 
         expect(response).to have_http_status(422)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
   end
@@ -168,36 +154,37 @@ RSpec.describe 'Lists' do
 
     it_behaves_like 'forbidden for wrong scope', 'read read:lists'
 
-    it 'returns http success' do
-      subject
+    it 'returns the updated list and updates values', :aggregate_failures do
+      expect { subject }
+        .to change_list_title
+        .and change_list_replies_policy
+        .and change_list_exclusive
 
       expect(response).to have_http_status(200)
-    end
-
-    it 'returns the updated list' do
-      subject
-
+      expect(response.content_type)
+        .to start_with('application/json')
       list.reload
 
-      expect(body_as_json).to eq({
+      expect(response.parsed_body).to match({
         id: list.id.to_s,
         title: list.title,
         replies_policy: list.replies_policy,
         exclusive: list.exclusive,
         antennas: list.antennas,
+        notify: list.notify,
       })
     end
 
-    it 'updates the list title' do
-      expect { subject }.to change { list.reload.title }.from('my list').to('list')
+    def change_list_title
+      change { list.reload.title }.from('my list').to('list')
     end
 
-    it 'updates the list replies_policy' do
-      expect { subject }.to change { list.reload.replies_policy }.from('list').to('followed')
+    def change_list_replies_policy
+      change { list.reload.replies_policy }.from('list').to('followed')
     end
 
-    it 'updates the list exclusive' do
-      expect { subject }.to change { list.reload.exclusive }.from(false).to(true)
+    def change_list_exclusive
+      change { list.reload.exclusive }.from(false).to(true)
     end
 
     context 'when the list does not exist' do
@@ -205,6 +192,8 @@ RSpec.describe 'Lists' do
         put '/api/v1/lists/-1', headers: headers, params: params
 
         expect(response).to have_http_status(404)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
 
@@ -215,6 +204,8 @@ RSpec.describe 'Lists' do
         subject
 
         expect(response).to have_http_status(404)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
   end
@@ -228,15 +219,12 @@ RSpec.describe 'Lists' do
 
     it_behaves_like 'forbidden for wrong scope', 'read read:lists'
 
-    it 'returns http success' do
+    it 'deletes the list', :aggregate_failures do
       subject
 
       expect(response).to have_http_status(200)
-    end
-
-    it 'deletes the list' do
-      subject
-
+      expect(response.content_type)
+        .to start_with('application/json')
       expect(List.where(id: list.id)).to_not exist
     end
 
@@ -255,6 +243,8 @@ RSpec.describe 'Lists' do
         subject
 
         expect(response).to have_http_status(404)
+        expect(response.content_type)
+          .to start_with('application/json')
       end
     end
   end

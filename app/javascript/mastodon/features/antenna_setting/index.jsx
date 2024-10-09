@@ -3,7 +3,9 @@ import { PureComponent } from 'react';
 
 import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
 
+
 import { Helmet } from 'react-helmet';
+import { withRouter } from 'react-router-dom';
 
 import { List as ImmutableList, Map as ImmutableMap } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -12,6 +14,12 @@ import { connect } from 'react-redux';
 import Select, { NonceProvider } from 'react-select';
 import Toggle from 'react-toggle';
 
+import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
+import DomainIcon from '@/material-icons/400-24px/dns.svg?react';
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
+import HashtagIcon from '@/material-icons/400-24px/tag.svg?react';
+import KeywordIcon from '@/material-icons/400-24px/title.svg?react';
+import AntennaIcon from '@/material-icons/400-24px/wifi.svg?react';
 import {
   fetchAntenna,
   deleteAntenna,
@@ -35,12 +43,14 @@ import {
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { fetchLists } from 'mastodon/actions/lists';
 import { openModal } from 'mastodon/actions/modal';
-import Button from 'mastodon/components/button';
+import { Button } from 'mastodon/components/button';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
 import { Icon }  from 'mastodon/components/icon';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import BundleColumnError from 'mastodon/features/ui/components/bundle_column_error';
+import { enableLocalTimeline } from 'mastodon/initial_state';
+import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import RadioPanel from './components/radio_panel';
 import TextList from './components/text_list';
@@ -74,10 +84,6 @@ const mapStateToProps = (state, props) => ({
 
 class AntennaSetting extends PureComponent {
 
-  static contextTypes = {
-    router: PropTypes.object,
-  };
-
   static propTypes = {
     params: PropTypes.object.isRequired,
     dispatch: PropTypes.func.isRequired,
@@ -89,6 +95,7 @@ class AntennaSetting extends PureComponent {
     keywords: ImmutablePropTypes.map,
     tags: ImmutablePropTypes.map,
     intl: PropTypes.object.isRequired,
+    ...WithRouterPropTypes,
   };
 
   state = {
@@ -109,7 +116,7 @@ class AntennaSetting extends PureComponent {
       dispatch(removeColumn(columnId));
     } else {
       dispatch(addColumn('ANTENNA', { id: this.props.params.id }));
-      this.context.router.history.push('/');
+      this.props.history.push('/');
     }
   };
 
@@ -167,7 +174,7 @@ class AntennaSetting extends PureComponent {
 
   handleEditAntennaClick = () => {
     window.open(`/antennas/${this.props.params.id}/edit`, '_blank');
-  }
+  };
 
   handleDeleteClick = () => {
     const { dispatch, columnId, intl } = this.props;
@@ -184,7 +191,7 @@ class AntennaSetting extends PureComponent {
           if (columnId) {
             dispatch(removeColumn(columnId));
           } else {
-            this.context.router.history.push('/antennasw');
+            this.props.history.push('/antennasw');
           }
         },
       },
@@ -192,8 +199,8 @@ class AntennaSetting extends PureComponent {
   };
 
   handleTimelineClick = () => {
-    this.context.router.history.push(`/antennast/${this.props.params.id}`);
-  }
+    this.props.history.push(`/antennast/${this.props.params.id}`);
+  };
 
   onStlToggle = ({ target }) => {
     const { dispatch } = this.props;
@@ -322,21 +329,25 @@ class AntennaSetting extends PureComponent {
     if (!isStl && !isLtl) {
       columnSettings = (
         <>
-          <div className='setting-toggle'>
-            <Toggle id={`antenna-${id}-mediaonly`} defaultChecked={isMediaOnly} onChange={this.onMediaOnlyToggle} />
-            <label htmlFor={`antenna-${id}-mediaonly`} className='setting-toggle__label'>
-              <FormattedMessage id='antennas.media_only' defaultMessage='Media only' />
-            </label>
-          </div>
+          <section className='similar-row'>
+            <div className='setting-toggle'>
+              <Toggle id={`antenna-${id}-mediaonly`} checked={isMediaOnly} onChange={this.onMediaOnlyToggle} />
+              <label htmlFor={`antenna-${id}-mediaonly`} className='setting-toggle__label'>
+                <FormattedMessage id='antennas.media_only' defaultMessage='Media only' />
+              </label>
+            </div>
+          </section>
 
-          <div className='setting-toggle'>
-            <Toggle id={`antenna-${id}-ignorereblog`} defaultChecked={isIgnoreReblog} onChange={this.onIgnoreReblogToggle} />
-            <label htmlFor={`antenna-${id}-ignorereblog`} className='setting-toggle__label'>
-              <FormattedMessage id='antennas.ignore_reblog' defaultMessage='Exclude boosts' />
-            </label>
-          </div>
+          <section className='similar-row'>
+            <div className='setting-toggle'>
+              <Toggle id={`antenna-${id}-ignorereblog`} checked={isIgnoreReblog} onChange={this.onIgnoreReblogToggle} />
+              <label htmlFor={`antenna-${id}-ignorereblog`} className='setting-toggle__label'>
+                <FormattedMessage id='antennas.ignore_reblog' defaultMessage='Exclude boosts' />
+              </label>
+            </div>
+          </section>
         </>
-      )
+      );
     }
 
     let stlAlert;
@@ -369,13 +380,17 @@ class AntennaSetting extends PureComponent {
     const contentRadioAlert = antenna.get(contentRadioValue.get('value') === 'tags' ? 'keywords_count' : 'tags_count') > 0;
 
     const listOptions = lists.toArray().filter((list) => list.length >= 2 && list[1]).map((list) => {
-      return { value: list[1].get('id'), label: list[1].get('title') }
+      return { value: list[1].get('id'), label: list[1].get('title') };
     });
+
+    const isShowStlToggle = !isLtl && (enableLocalTimeline || isStl);
+    const isShowLtlToggle = !isStl && (enableLocalTimeline || isLtl);
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={title}>
         <ColumnHeader
           icon='wifi'
+          iconComponent={AntennaIcon}
           title={title}
           onPin={this.handlePin}
           onMove={this.handleMove}
@@ -383,46 +398,54 @@ class AntennaSetting extends PureComponent {
           pinned={pinned}
           multiColumn={multiColumn}
         >
-          <div className='column-settings__row column-header__links'>
-            <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleEditAntennaClick}>
-              <Icon id='pencil' /> <FormattedMessage id='antennas.edit_static' defaultMessage='Edit antenna' />
-            </button>
+          <div className='column-settings'>
+            <section className='column-header__links'>
+              <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleEditAntennaClick}>
+                <Icon id='pencil' icon={EditIcon} /> <FormattedMessage id='antennas.edit_static' defaultMessage='Edit antenna' />
+              </button>
 
-            <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleDeleteClick}>
-              <Icon id='trash' /> <FormattedMessage id='antennas.delete' defaultMessage='Delete antenna' />
-            </button>
+              <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleDeleteClick}>
+                <Icon id='trash' icon={DeleteIcon} /> <FormattedMessage id='antennas.delete' defaultMessage='Delete antenna' />
+              </button>
 
-            <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleTimelineClick}>
-              <Icon id='wifi' /> <FormattedMessage id='antennas.go_timeline' defaultMessage='Go to antenna timeline' />
-            </button>
+              <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleTimelineClick}>
+                <Icon id='wifi' icon={AntennaIcon} /> <FormattedMessage id='antennas.go_timeline' defaultMessage='Go to antenna timeline' />
+              </button>
+            </section>
+
+            {isShowStlToggle && (
+              <section>
+                <div className='setting-toggle'>
+                  <Toggle id={`antenna-${id}-stl`} checked={isStl} onChange={this.onStlToggle} />
+                  <label htmlFor={`antenna-${id}-stl`} className='setting-toggle__label'>
+                    <FormattedMessage id='antennas.stl' defaultMessage='STL mode' />
+                  </label>
+                </div>
+              </section>
+            )}
+
+            {isShowLtlToggle && (
+              <section className={isShowStlToggle && 'similar-row'}>
+                <div className='setting-toggle'>
+                  <Toggle id={`antenna-${id}-ltl`} checked={isLtl} onChange={this.onLtlToggle} />
+                  <label htmlFor={`antenna-${id}-ltl`} className='setting-toggle__label'>
+                    <FormattedMessage id='antennas.ltl' defaultMessage='LTL mode' />
+                  </label>
+                </div>
+              </section>
+            )}
+
+            <section className={(isShowStlToggle || isShowLtlToggle) && 'similar-row'}>
+              <div className='setting-toggle'>
+                <Toggle id={`antenna-${id}-noinsertfeeds`} checked={isInsertFeeds} onChange={this.onNoInsertFeedsToggle} />
+                <label htmlFor={`antenna-${id}-noinsertfeeds`} className='setting-toggle__label'>
+                  <FormattedMessage id='antennas.insert_feeds' defaultMessage='Insert to feeds' />
+                </label>
+              </div>
+            </section>
+
+            {columnSettings}
           </div>
-
-          {!isLtl && (
-            <div className='setting-toggle'>
-              <Toggle id={`antenna-${id}-stl`} defaultChecked={isStl} onChange={this.onStlToggle} />
-              <label htmlFor={`antenna-${id}-stl`} className='setting-toggle__label'>
-                <FormattedMessage id='antennas.stl' defaultMessage='STL mode' />
-              </label>
-            </div>
-          )}
-
-          {!isStl && (
-            <div className='setting-toggle'>
-              <Toggle id={`antenna-${id}-ltl`} defaultChecked={isLtl} onChange={this.onLtlToggle} />
-              <label htmlFor={`antenna-${id}-ltl`} className='setting-toggle__label'>
-                <FormattedMessage id='antennas.ltl' defaultMessage='LTL mode' />
-              </label>
-            </div>
-          )}
-
-          <div className='setting-toggle'>
-            <Toggle id={`antenna-${id}-noinsertfeeds`} defaultChecked={isInsertFeeds} onChange={this.onNoInsertFeedsToggle} />
-            <label htmlFor={`antenna-${id}-noinsertfeeds`} className='setting-toggle__label'>
-              <FormattedMessage id='antennas.insert_feeds' defaultMessage='Insert to feeds' />
-            </label>
-          </div>
-
-          {columnSettings}
         </ColumnHeader>
 
         {stlAlert}
@@ -468,9 +491,10 @@ class AntennaSetting extends PureComponent {
                   value={this.state.domainName}
                   values={domains.get('domains') || ImmutableList()}
                   icon='sitemap'
+                  iconComponent={DomainIcon}
                   label={intl.formatMessage(messages.addDomainLabel)}
                   title={intl.formatMessage(messages.addDomainTitle)}
-                  />
+                />
               )}
 
               {rangeRadioAlert && <div className='alert'><FormattedMessage id='antennas.warnings.range_radio' defaultMessage='Simultaneous account and domain designation is not recommended.' /></div>}
@@ -485,9 +509,10 @@ class AntennaSetting extends PureComponent {
                   value={this.state.tagName}
                   values={tags.get('tags') || ImmutableList()}
                   icon='hashtag'
+                  iconComponent={HashtagIcon}
                   label={intl.formatMessage(messages.addTagLabel)}
                   title={intl.formatMessage(messages.addTagTitle)}
-                  />
+                />
               )}
 
               {contentRadioValue.get('value') === 'keywords' && (
@@ -498,9 +523,10 @@ class AntennaSetting extends PureComponent {
                   value={this.state.keywordName}
                   values={keywords.get('keywords') || ImmutableList()}
                   icon='paragraph'
+                  iconComponent={KeywordIcon}
                   label={intl.formatMessage(messages.addKeywordLabel)}
                   title={intl.formatMessage(messages.addKeywordTitle)}
-                  />
+                />
               )}
 
               {contentRadioAlert && <div className='alert'><FormattedMessage id='antennas.warnings.content_radio' defaultMessage='Simultaneous keyword and tag designation is not recommended.' /></div>}
@@ -516,9 +542,10 @@ class AntennaSetting extends PureComponent {
                 value={this.state.excludeDomainName}
                 values={domains.get('exclude_domains') || ImmutableList()}
                 icon='sitemap'
+                iconComponent={DomainIcon}
                 label={intl.formatMessage(messages.addDomainLabel)}
                 title={intl.formatMessage(messages.addDomainTitle)}
-                />
+              />
               <h3><FormattedMessage id='antennas.exclude_keywords' defaultMessage='Exclude keywords' /></h3>
               <TextList
                 onChange={this.onExcludeKeywordNameChanged}
@@ -527,20 +554,22 @@ class AntennaSetting extends PureComponent {
                 value={this.state.excludeKeywordName}
                 values={keywords.get('exclude_keywords') || ImmutableList()}
                 icon='paragraph'
+                iconComponent={KeywordIcon}
                 label={intl.formatMessage(messages.addKeywordLabel)}
                 title={intl.formatMessage(messages.addKeywordTitle)}
-                />
-                <h3><FormattedMessage id='antennas.exclude_tags' defaultMessage='Exclude tags' /></h3>
-                <TextList
-                  onChange={this.onExcludeTagNameChanged}
-                  onAdd={this.onExcludeTagAdd}
-                  onRemove={this.onExcludeTagRemove}
-                  value={this.state.excludeTagName}
-                  values={tags.get('exclude_tags') || ImmutableList()}
-                  icon='hashtag'
-                  label={intl.formatMessage(messages.addTagLabel)}
-                  title={intl.formatMessage(messages.addTagTitle)}
-                  />
+              />
+              <h3><FormattedMessage id='antennas.exclude_tags' defaultMessage='Exclude tags' /></h3>
+              <TextList
+                onChange={this.onExcludeTagNameChanged}
+                onAdd={this.onExcludeTagAdd}
+                onRemove={this.onExcludeTagRemove}
+                value={this.state.excludeTagName}
+                values={tags.get('exclude_tags') || ImmutableList()}
+                icon='hashtag'
+                iconComponent={HashtagIcon}
+                label={intl.formatMessage(messages.addTagLabel)}
+                title={intl.formatMessage(messages.addTagTitle)}
+              />
             </>
           )}
         </div>
@@ -555,4 +584,4 @@ class AntennaSetting extends PureComponent {
 
 }
 
-export default connect(mapStateToProps)(injectIntl(AntennaSetting));
+export default withRouter(connect(mapStateToProps)(injectIntl(AntennaSetting)));

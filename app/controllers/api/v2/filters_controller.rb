@@ -35,7 +35,7 @@ class Api::V2::FiltersController < Api::BaseController
   private
 
   def set_filters
-    @filters = current_account.custom_filters.includes(:keywords)
+    @filters = current_account.custom_filters.includes(:keywords, :statuses)
   end
 
   def set_filter
@@ -43,6 +43,6 @@ class Api::V2::FiltersController < Api::BaseController
   end
 
   def resource_params
-    params.permit(:title, :expires_in, :filter_action, :exclude_follows, :exclude_localusers, context: [], keywords_attributes: [:id, :keyword, :whole_word, :_destroy])
+    params.permit(:title, :expires_in, :filter_action, :exclude_follows, :exclude_localusers, :with_quote, :with_profile, context: [], keywords_attributes: [:id, :keyword, :whole_word, :_destroy])
   end
 end

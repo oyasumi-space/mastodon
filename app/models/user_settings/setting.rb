@@ -15,6 +15,12 @@ class UserSettings::Setting
     self
   end
 
+  def array_inverse_of(name, arr)
+    @inverse_of_array = name.to_sym
+    @reverse_array = arr
+    self
+  end
+
   def value_for(name, original_value)
     value = begin
       if original_value.nil?
@@ -24,11 +30,19 @@ class UserSettings::Setting
       end
     end
 
+    value = value.compact_blank if value.is_a?(Array)
+
     if !@inverse_of.nil? && @inverse_of == name.to_sym
       !value
+    elsif !@inverse_of_array.nil? && @inverse_of_array == name.to_sym
+      reverse_array(value)
     else
       value
     end
+  end
+
+  def reverse_array(value)
+    @reverse_array.clone.filter { |v| value.exclude?(v) }
   end
 
   def default_value
@@ -39,10 +53,18 @@ class UserSettings::Setting
     end
   end
 
+  def array_type?
+    default_value.is_a?(Array) || default_value == []
+  end
+
   def type
+    return ActiveRecord::Type.lookup(:string, array: true) if array_type?
+
     case default_value
     when TrueClass, FalseClass
       ActiveModel::Type::Boolean.new
+    when Integer
+      ActiveModel::Type::Integer.new
     else
       ActiveModel::Type::String.new
     end
@@ -62,7 +84,7 @@ class UserSettings::Setting
 
   def key
     if namespace
-      "#{namespace}.#{name}".to_sym
+      :"#{namespace}.#{name}"
     else
       name
     end

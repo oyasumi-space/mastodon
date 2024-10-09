@@ -3,20 +3,47 @@
 require 'rails_helper'
 
 RSpec.describe Account do
+  include_examples 'Reviewable'
+
   context 'with an account record' do
     subject { Fabricate(:account) }
 
     let(:bob) { Fabricate(:account, username: 'bob') }
 
-    describe '#suspend!' do
-      it 'marks the account as suspended' do
-        subject.suspend!
-        expect(subject.suspended?).to be true
+    describe '#suspended_locally?' do
+      context 'when the account is not suspended' do
+        it 'returns false' do
+          expect(subject.suspended_locally?).to be false
+        end
       end
 
-      it 'creates a deletion request' do
-        subject.suspend!
-        expect(AccountDeletionRequest.where(account: subject).exists?).to be true
+      context 'when the account is suspended locally' do
+        before do
+          subject.update!(suspended_at: 1.day.ago, suspension_origin: :local)
+        end
+
+        it 'returns true' do
+          expect(subject.suspended_locally?).to be true
+        end
+      end
+
+      context 'when the account is suspended remotely' do
+        before do
+          subject.update!(suspended_at: 1.day.ago, suspension_origin: :remote)
+        end
+
+        it 'returns false' do
+          expect(subject.suspended_locally?).to be false
+        end
+      end
+    end
+
+    describe '#suspend!' do
+      it 'marks the account as suspended and creates a deletion request' do
+        expect { subject.suspend! }
+          .to change(subject, :suspended?).from(false).to(true)
+          .and change(subject, :suspended_locally?).from(false).to(true)
+          .and(change { AccountDeletionRequest.exists?(account: subject) }.from(false).to(true))
       end
 
       context 'when the account is of a local user' do
@@ -209,9 +236,13 @@ RSpec.describe Account do
         expect(account.refresh!).to be_nil
       end
 
-      it 'calls not ResolveAccountService#call' do
-        expect_any_instance_of(ResolveAccountService).to_not receive(:call).with(acct)
+      it 'does not call ResolveAccountService#call' do
+        service = instance_double(ResolveAccountService, call: nil)
+        allow(ResolveAccountService).to receive(:new).and_return(service)
+
         account.refresh!
+
+        expect(service).to_not have_received(:call).with(acct)
       end
     end
 
@@ -219,8 +250,12 @@ RSpec.describe Account do
       let(:domain) { 'example.com' }
 
       it 'calls ResolveAccountService#call' do
-        expect_any_instance_of(ResolveAccountService).to receive(:call).with(acct).once
+        service = instance_double(ResolveAccountService, call: nil)
+        allow(ResolveAccountService).to receive(:new).and_return(service)
+
         account.refresh!
+
+        expect(service).to have_received(:call).with(acct).once
       end
     end
   end
@@ -248,7 +283,8 @@ RSpec.describe Account do
 
   describe '#allow_emoji_reaction?' do
     let(:policy) { :allow }
-    let(:reactioned) { Fabricate(:user, settings: { emoji_reaction_policy: policy }).account }
+    let(:allow_local) { false }
+    let(:reactioned) { Fabricate(:user, settings: { emoji_reaction_policy: policy, slip_local_emoji_reaction: allow_local }).account }
     let(:followee) { Fabricate(:account) }
     let(:follower) { Fabricate(:account) }
     let(:mutual) { Fabricate(:account) }
@@ -261,147 +297,62 @@ RSpec.describe Account do
       reactioned.follow!(mutual)
     end
 
-    context 'when policy is arrow' do
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be true
-      end
+    shared_examples 'with policy' do |override_policy, permitted|
+      context "when policy is #{override_policy}" do
+        let(:policy) { override_policy }
 
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be true
-      end
+        it 'allows anyone' do
+          expect(reactioned.allow_emoji_reaction?(anyone)).to be permitted.include?(:anyone)
+        end
 
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be true
-      end
+        it 'allows followee' do
+          expect(reactioned.allow_emoji_reaction?(followee)).to be permitted.include?(:following)
+        end
 
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
-      end
+        it 'allows follower' do
+          expect(reactioned.allow_emoji_reaction?(follower)).to be permitted.include?(:followers)
+        end
 
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
-      end
-    end
+        it 'allows mutual' do
+          expect(reactioned.allow_emoji_reaction?(mutual)).to be permitted.include?(:mutuals)
+        end
 
-    context 'when policy is following_only' do
-      let(:policy) { :following_only }
-
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
-      end
-
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be true
-      end
-
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be false
-      end
-
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
-      end
-
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+        it 'allows self' do
+          expect(reactioned.allow_emoji_reaction?(reactioned)).to be permitted.include?(:self)
+        end
       end
     end
 
-    context 'when policy is followers_only' do
-      let(:policy) { :followers_only }
+    it_behaves_like 'with policy', :allow, %i(anyone following followers mutuals self)
+    it_behaves_like 'with policy', :outside_only, %i(following followers mutuals self)
+    it_behaves_like 'with policy', :following_only, %i(following mutuals self)
+    it_behaves_like 'with policy', :followers_only, %i(followers mutuals self)
+    it_behaves_like 'with policy', :mutuals_only, %i(mutuals self)
+    it_behaves_like 'with policy', :block, %i()
 
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
-      end
+    shared_examples 'allow local only' do |override_policy|
+      context "when policy is #{override_policy} but allow local only" do
+        let(:policy) { override_policy }
+        let(:allow_local) { true }
+        let(:local) { Fabricate(:user).account }
+        let(:remote) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
 
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be false
-      end
+        before do
+          local.follow!(remote) if override_policy == :following_only
+        end
 
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be true
-      end
+        it 'does not allow remote' do
+          expect(reactioned.allow_emoji_reaction?(remote)).to be false
+        end
 
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
-      end
-
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
-      end
-    end
-
-    context 'when policy is mutuals_only' do
-      let(:policy) { :mutuals_only }
-
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
-      end
-
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be false
-      end
-
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be false
-      end
-
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
-      end
-
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
+        it 'allows local' do
+          expect(reactioned.allow_emoji_reaction?(local)).to be true
+        end
       end
     end
 
-    context 'when policy is outside_only' do
-      let(:policy) { :outside_only }
-
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
-      end
-
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be true
-      end
-
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be true
-      end
-
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be true
-      end
-
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be true
-      end
-    end
-
-    context 'when policy is block' do
-      let(:policy) { :block }
-
-      it 'allows anyone' do
-        expect(reactioned.allow_emoji_reaction?(anyone)).to be false
-      end
-
-      it 'allows followee' do
-        expect(reactioned.allow_emoji_reaction?(followee)).to be false
-      end
-
-      it 'allows follower' do
-        expect(reactioned.allow_emoji_reaction?(follower)).to be false
-      end
-
-      it 'allows mutual' do
-        expect(reactioned.allow_emoji_reaction?(mutual)).to be false
-      end
-
-      it 'allows self' do
-        expect(reactioned.allow_emoji_reaction?(reactioned)).to be false
-      end
-    end
+    it_behaves_like 'allow local only', :following_only
+    it_behaves_like 'allow local only', :block
 
     context 'when reactioned is remote user' do
       let(:reactioned) { Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/actor', settings: { emoji_reaction_policy: :following_only }) }
@@ -444,6 +395,85 @@ RSpec.describe Account do
           expect(reactioned.allow_emoji_reaction?(anyone)).to be true
         end
       end
+    end
+  end
+
+  describe '#emoji_reaction_policy' do
+    subject { account.emoji_reaction_policy }
+
+    let(:domains) { 'example.com' }
+    let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
+
+    before do
+      Form::AdminSettings.new(emoji_reaction_disallow_domains: domains).save
+    end
+
+    it 'blocked if target domain' do
+      expect(subject).to eq :block
+    end
+
+    context 'when other domain' do
+      let(:account) { Fabricate(:account, domain: 'allow.example.com', uri: 'https://allow.example.com/actor') }
+
+      it 'allowed if target domain' do
+        expect(subject).to_not eq :block
+      end
+    end
+  end
+
+  describe '#public_settings_for_local' do
+    subject { account.public_settings_for_local }
+
+    let(:account) { Fabricate(:user, settings: { allow_quote: true, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+
+    shared_examples 'some settings' do |permitted, emoji_reaction_policy|
+      it 'allow_quote is allowed' do
+        expect(subject['allow_quote']).to be permitted.include?(:allow_quote)
+      end
+
+      it 'hide_statuses_count is allowed' do
+        expect(subject['hide_statuses_count']).to be permitted.include?(:hide_statuses_count)
+      end
+
+      it 'hide_following_count is disallowed' do
+        expect(subject['hide_following_count']).to be permitted.include?(:hide_following_count)
+      end
+
+      it 'emoji_reaction is allowed followers' do
+        expect(subject['emoji_reaction_policy']).to eq emoji_reaction_policy
+      end
+    end
+
+    it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
+
+    context 'when default true setting is set false' do
+      let(:account) { Fabricate(:user, settings: { allow_quote: false, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+
+      it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
+    end
+
+    context 'when remote user' do
+      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', settings: { 'allow_quote' => true, 'hide_statuses_count' => true, 'emoji_reaction_policy' => 'followers_only' }) }
+
+      it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
+    end
+
+    context 'when remote user by server other_settings is not supported' do
+      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
+
+      it_behaves_like 'some settings', %i(allow_quote), 'allow'
+    end
+  end
+
+  describe '#approve_remote!' do
+    it 'calls worker' do
+      account = Fabricate(:account, suspended_at: Time.now.utc, suspension_origin: :local, remote_pending: true)
+      allow(ActivateRemoteAccountWorker).to receive(:perform_async)
+
+      account.approve_remote!
+      expect(account.remote_pending).to be false
+      expect(account.suspended?).to be false
+      expect(ActivateRemoteAccountWorker).to have_received(:perform_async).with(account.id)
     end
   end
 
@@ -532,9 +562,11 @@ RSpec.describe Account do
 
       results = account.excluded_from_timeline_account_ids
       expect(results.size).to eq 3
-      expect(results).to include(block.target_account.id)
-      expect(results).to include(mute.target_account.id)
-      expect(results).to include(block_by.account.id)
+      expect(results).to include(
+        block.target_account.id,
+        mute.target_account.id,
+        block_by.account.id
+      )
     end
   end
 
@@ -557,7 +589,7 @@ RSpec.describe Account do
     end
 
     it 'does not return suspended users' do
-      match = Fabricate(
+      Fabricate(
         :account,
         display_name: 'Display Name',
         username: 'username',
@@ -643,10 +675,11 @@ RSpec.describe Account do
       expect(results).to eq [match]
     end
 
-    it 'limits by 10 by default' do
-      11.times.each { Fabricate(:account, display_name: 'Display Name') }
+    it 'limits via constant by default' do
+      stub_const('Account::Search::DEFAULT_LIMIT', 1)
+      2.times.each { Fabricate(:account, display_name: 'Display Name') }
       results = described_class.search_for('display')
-      expect(results.size).to eq 10
+      expect(results.size).to eq 1
     end
 
     it 'accepts arbitrary limits' do
@@ -684,7 +717,7 @@ RSpec.describe Account do
       end
 
       it 'does not return non-followed accounts' do
-        match = Fabricate(
+        Fabricate(
           :account,
           display_name: 'A & l & i & c & e',
           username: 'username',
@@ -696,7 +729,7 @@ RSpec.describe Account do
       end
 
       it 'does not return suspended users' do
-        match = Fabricate(
+        Fabricate(
           :account,
           display_name: 'Display Name',
           username: 'username',
@@ -735,8 +768,35 @@ RSpec.describe Account do
       end
     end
 
+    context 'when limiting search to follower accounts' do
+      it 'accepts ?, \, : and space as delimiter' do
+        match = Fabricate(
+          :account,
+          display_name: 'A & l & i & c & e',
+          username: 'username',
+          domain: 'example.com'
+        )
+        match.follow!(account)
+
+        results = described_class.advanced_search_for('A?l\i:c e', account, limit: 10, follower: true)
+        expect(results).to eq [match]
+      end
+
+      it 'does not return non-follower accounts' do
+        Fabricate(
+          :account,
+          display_name: 'A & l & i & c & e',
+          username: 'username',
+          domain: 'example.com'
+        )
+
+        results = described_class.advanced_search_for('A?l\i:c e', account, limit: 10, follower: true)
+        expect(results).to eq []
+      end
+    end
+
     it 'does not return suspended users' do
-      match = Fabricate(
+      Fabricate(
         :account,
         display_name: 'Display Name',
         username: 'username',
@@ -786,10 +846,11 @@ RSpec.describe Account do
       expect(results).to eq [match]
     end
 
-    it 'limits by 10 by default' do
-      11.times { Fabricate(:account, display_name: 'Display Name') }
+    it 'limits result count by default value' do
+      stub_const('Account::Search::DEFAULT_LIMIT', 1)
+      2.times { Fabricate(:account, display_name: 'Display Name') }
       results = described_class.advanced_search_for('display', account)
-      expect(results.size).to eq 10
+      expect(results.size).to eq 1
     end
 
     it 'accepts arbitrary limits' do
@@ -871,7 +932,7 @@ RSpec.describe Account do
   end
 
   describe 'MENTION_RE' do
-    subject { Account::MENTION_RE }
+    subject { described_class::MENTION_RE }
 
     it 'matches usernames in the middle of a sentence' do
       expect(subject.match('Hello to @alice from me')[1]).to eq 'alice'
@@ -914,24 +975,89 @@ RSpec.describe Account do
     end
   end
 
-  describe 'validations' do
-    it 'is invalid without a username' do
-      account = Fabricate.build(:account, username: nil)
-      account.valid?
-      expect(account).to model_have_error_on_field(:username)
+  describe '#prepare_contents' do
+    subject { Fabricate.build :account, domain: domain, note: '  padded note  ', display_name: '  padded name  ' }
+
+    context 'with local account' do
+      let(:domain) { nil }
+
+      it 'strips values' do
+        expect { subject.valid? }
+          .to change(subject, :note).to('padded note')
+          .and(change(subject, :display_name).to('padded name'))
+      end
     end
 
-    it 'squishes the username before validation' do
-      account = Fabricate(:account, domain: nil, username: " \u3000bob \t \u00a0 \n ")
-      expect(account.username).to eq 'bob'
+    context 'with remote account' do
+      let(:domain) { 'host.example' }
+
+      it 'preserves values' do
+        expect { subject.valid? }
+          .to not_change(subject, :note)
+          .and(not_change(subject, :display_name))
+      end
     end
+  end
+
+  describe '#can_be_attributed_from?' do
+    subject { Fabricate(:account, attribution_domains: %w(example.com)) }
+
+    it 'returns true for a matching domain' do
+      expect(subject.can_be_attributed_from?('example.com')).to be true
+    end
+
+    it 'returns true for a subdomain of a domain' do
+      expect(subject.can_be_attributed_from?('foo.example.com')).to be true
+    end
+
+    it 'returns false for a non-matching domain' do
+      expect(subject.can_be_attributed_from?('hoge.com')).to be false
+    end
+  end
+
+  describe '#attribution_domains_as_text=' do
+    subject { Fabricate(:account) }
+
+    it 'sets attribution_domains accordingly' do
+      subject.attribution_domains_as_text = "hoge.com\nexample.com"
+
+      expect(subject.attribution_domains).to contain_exactly('hoge.com', 'example.com')
+    end
+
+    it 'strips leading "*."' do
+      subject.attribution_domains_as_text = "hoge.com\n*.example.com"
+
+      expect(subject.attribution_domains).to contain_exactly('hoge.com', 'example.com')
+    end
+
+    it 'strips the protocol if present' do
+      subject.attribution_domains_as_text = "http://hoge.com\nhttps://example.com"
+
+      expect(subject.attribution_domains).to contain_exactly('hoge.com', 'example.com')
+    end
+
+    it 'strips a combination of leading "*." and protocol' do
+      subject.attribution_domains_as_text = "http://*.hoge.com\nhttps://*.example.com"
+
+      expect(subject.attribution_domains).to contain_exactly('hoge.com', 'example.com')
+    end
+  end
+
+  describe 'Normalizations' do
+    describe 'username' do
+      it { is_expected.to normalize(:username).from(" \u3000bob \t \u00a0 \n ").to('bob') }
+    end
+  end
+
+  describe 'validations' do
+    it { is_expected.to validate_presence_of(:username) }
 
     context 'when is local' do
       it 'is invalid if the username is not unique in case-insensitive comparison among local accounts' do
-        account_1 = Fabricate(:account, username: 'the_doctor')
-        account_2 = Fabricate.build(:account, username: 'the_Doctor')
-        account_2.valid?
-        expect(account_2).to model_have_error_on_field(:username)
+        _account = Fabricate(:account, username: 'the_doctor')
+        non_unique_account = Fabricate.build(:account, username: 'the_Doctor')
+        non_unique_account.valid?
+        expect(non_unique_account).to model_have_error_on_field(:username)
       end
 
       it 'is invalid if the username is reserved' do
@@ -947,14 +1073,14 @@ RSpec.describe Account do
       end
 
       it 'is valid if we are creating an instance actor account with a period' do
-        account = Fabricate.build(:account, id: -99, actor_type: 'Application', locked: true, username: 'example.com')
+        account = Fabricate.build(:account, id: described_class::INSTANCE_ACTOR_ID, actor_type: 'Application', locked: true, username: 'example.com')
         expect(account.valid?).to be true
       end
 
       it 'is valid if we are creating a possibly-conflicting instance actor account' do
-        account_1 = Fabricate(:account, username: 'examplecom')
-        account_2 = Fabricate.build(:account, id: -99, actor_type: 'Application', locked: true, username: 'example.com')
-        expect(account_2.valid?).to be true
+        _account = Fabricate(:account, username: 'examplecom')
+        instance_account = Fabricate.build(:account, id: described_class::INSTANCE_ACTOR_ID, actor_type: 'Application', locked: true, username: 'example.com')
+        expect(instance_account.valid?).to be true
       end
 
       it 'is invalid if the username doesn\'t only contains letters, numbers and underscores' do
@@ -969,20 +1095,20 @@ RSpec.describe Account do
         expect(account).to model_have_error_on_field(:username)
       end
 
-      it 'is invalid if the username is longer than 30 characters' do
-        account = Fabricate.build(:account, username: Faker::Lorem.characters(number: 31))
+      it 'is invalid if the username is longer than the character limit' do
+        account = Fabricate.build(:account, username: username_over_limit)
         account.valid?
         expect(account).to model_have_error_on_field(:username)
       end
 
-      it 'is invalid if the display name is longer than 30 characters' do
-        account = Fabricate.build(:account, display_name: Faker::Lorem.characters(number: 31))
+      it 'is invalid if the display name is longer than the character limit' do
+        account = Fabricate.build(:account, display_name: display_name_over_limit)
         account.valid?
         expect(account).to model_have_error_on_field(:display_name)
       end
 
-      it 'is invalid if the note is longer than 500 characters' do
-        account = Fabricate.build(:account, note: Faker::Lorem.characters(number: 501))
+      it 'is invalid if the note is longer than the character limit' do
+        account = Fabricate.build(:account, note: account_note_over_limit)
         account.valid?
         expect(account).to model_have_error_on_field(:note)
       end
@@ -1015,27 +1141,83 @@ RSpec.describe Account do
         expect(account).to model_have_error_on_field(:username)
       end
 
-      it 'is valid even if the username is longer than 30 characters' do
-        account = Fabricate.build(:account, domain: 'domain', username: Faker::Lorem.characters(number: 31))
+      it 'is valid even if the username is longer than the character limit' do
+        account = Fabricate.build(:account, domain: 'domain', username: username_over_limit)
         account.valid?
         expect(account).to_not model_have_error_on_field(:username)
       end
 
-      it 'is valid even if the display name is longer than 30 characters' do
-        account = Fabricate.build(:account, domain: 'domain', display_name: Faker::Lorem.characters(number: 31))
+      it 'is valid even if the display name is longer than the character limit' do
+        account = Fabricate.build(:account, domain: 'domain', display_name: display_name_over_limit)
         account.valid?
         expect(account).to_not model_have_error_on_field(:display_name)
       end
 
-      it 'is valid even if the note is longer than 500 characters' do
-        account = Fabricate.build(:account, domain: 'domain', note: Faker::Lorem.characters(number: 501))
+      it 'is valid even if the note is longer than the character limit' do
+        account = Fabricate.build(:account, domain: 'domain', note: account_note_over_limit)
         account.valid?
         expect(account).to_not model_have_error_on_field(:note)
       end
     end
+
+    def username_over_limit
+      'a' * described_class::USERNAME_LENGTH_LIMIT * 2
+    end
+
+    def display_name_over_limit
+      'a' * described_class::DISPLAY_NAME_LENGTH_LIMIT * 2
+    end
+
+    def account_note_over_limit
+      'a' * described_class::NOTE_LENGTH_LIMIT * 2
+    end
   end
 
   describe 'scopes' do
+    describe 'matches_uri_prefix' do
+      let!(:alice) { Fabricate :account, domain: 'host.example', uri: 'https://host.example/user/a' }
+      let!(:bob) { Fabricate :account, domain: 'top-level.example', uri: 'https://top-level.example' }
+
+      it 'returns accounts which start with the value' do
+        results = described_class.matches_uri_prefix('https://host.example')
+
+        expect(results.size)
+          .to eq(1)
+        expect(results)
+          .to include(alice)
+          .and not_include(bob)
+      end
+
+      it 'returns accounts which equal the value' do
+        results = described_class.matches_uri_prefix('https://top-level.example')
+
+        expect(results.size)
+          .to eq(1)
+        expect(results)
+          .to include(bob)
+          .and not_include(alice)
+      end
+    end
+
+    describe 'auditable' do
+      let!(:alice) { Fabricate :account }
+      let!(:bob) { Fabricate :account }
+
+      before do
+        2.times { Fabricate :action_log, account: alice }
+      end
+
+      it 'returns distinct accounts with action log records' do
+        results = described_class.auditable
+
+        expect(results.size)
+          .to eq(1)
+        expect(results)
+          .to include(alice)
+          .and not_include(bob)
+      end
+    end
+
     describe 'alphabetic' do
       it 'sorts by alphabetic order of domain and username' do
         matches = [
@@ -1045,25 +1227,25 @@ RSpec.describe Account do
           { username: 'b', domain: 'b' },
         ].map(&method(:Fabricate).curry(2).call(:account))
 
-        expect(described_class.where('id > 0').alphabetic).to eq matches
+        expect(described_class.without_internal.alphabetic).to eq matches
       end
     end
 
     describe 'matches_display_name' do
       it 'matches display name which starts with the given string' do
         match = Fabricate(:account, display_name: 'pattern and suffix')
-        account = Fabricate(:account, display_name: 'prefix and pattern')
+        Fabricate(:account, display_name: 'prefix and pattern')
 
-        expect(described_class.matches_display_name('pattern')).to contain_exactly(match, account)
+        expect(described_class.matches_display_name('pattern')).to eq [match]
       end
     end
 
     describe 'matches_username' do
       it 'matches display name which starts with the given string' do
         match = Fabricate(:account, username: 'pattern_and_suffix')
-        account = Fabricate(:account, username: 'prefix_and_pattern')
+        Fabricate(:account, username: 'prefix_and_pattern')
 
-        expect(described_class.matches_username('pattern')).to contain_exactly(match, account)
+        expect(described_class.matches_username('pattern')).to eq [match]
       end
     end
 
@@ -1086,17 +1268,17 @@ RSpec.describe Account do
 
     describe 'remote' do
       it 'returns an array of accounts who have a domain' do
-        account_1 = Fabricate(:account, domain: nil)
-        account_2 = Fabricate(:account, domain: 'example.com')
-        expect(described_class.remote).to contain_exactly(account_2)
+        _account = Fabricate(:account, domain: nil)
+        account_with_domain = Fabricate(:account, domain: 'example.com')
+        expect(described_class.remote).to contain_exactly(account_with_domain)
       end
     end
 
     describe 'local' do
       it 'returns an array of accounts who do not have a domain' do
-        account_1 = Fabricate(:account, domain: nil)
-        account_2 = Fabricate(:account, domain: 'example.com')
-        expect(described_class.where('id > 0').local).to contain_exactly(account_1)
+        local_account = Fabricate(:account, domain: nil)
+        _account_with_domain = Fabricate(:account, domain: 'example.com')
+        expect(described_class.without_internal.local).to contain_exactly(local_account)
       end
     end
 
@@ -1107,30 +1289,30 @@ RSpec.describe Account do
           matches[index] = Fabricate(:account, domain: matches[index])
         end
 
-        expect(described_class.where('id > 0').partitioned).to match_array(matches)
+        expect(described_class.without_internal.partitioned).to match_array(matches)
       end
     end
 
     describe 'recent' do
       it 'returns a relation of accounts sorted by recent creation' do
         matches = Array.new(2) { Fabricate(:account) }
-        expect(described_class.where('id > 0').recent).to match_array(matches)
+        expect(described_class.without_internal.recent).to match_array(matches)
       end
     end
 
     describe 'silenced' do
       it 'returns an array of accounts who are silenced' do
-        account_1 = Fabricate(:account, silenced: true)
-        account_2 = Fabricate(:account, silenced: false)
-        expect(described_class.silenced).to contain_exactly(account_1)
+        silenced_account = Fabricate(:account, silenced: true)
+        _account = Fabricate(:account, silenced: false)
+        expect(described_class.silenced).to contain_exactly(silenced_account)
       end
     end
 
     describe 'suspended' do
       it 'returns an array of accounts who are suspended' do
-        account_1 = Fabricate(:account, suspended: true)
-        account_2 = Fabricate(:account, suspended: false)
-        expect(described_class.suspended).to contain_exactly(account_1)
+        suspended_account = Fabricate(:account, suspended: true)
+        _account = Fabricate(:account, suspended: false)
+        expect(described_class.suspended).to contain_exactly(suspended_account)
       end
     end
 
@@ -1153,6 +1335,7 @@ RSpec.describe Account do
 
       it 'returns every usable non-suspended account' do
         expect(described_class.searchable).to contain_exactly(silenced_local, silenced_remote, local_account, remote_account)
+        expect(described_class.searchable).to_not include(suspended_local, suspended_remote, unconfirmed, unapproved)
       end
 
       it 'does not mess with previously-applied scopes' do
@@ -1163,21 +1346,26 @@ RSpec.describe Account do
 
   context 'when is local' do
     it 'generates keys' do
-      account = described_class.create!(domain: nil, username: Faker::Internet.user_name(separators: ['_']))
-      expect(account.keypair).to be_private
-      expect(account.keypair).to be_public
+      account = described_class.create!(domain: nil, username: 'user_without_keys')
+
+      expect(account)
+        .to be_private_key
+        .and be_public_key
+      expect(account.keypair)
+        .to be_private
+        .and be_public
     end
   end
 
   context 'when is remote' do
     it 'does not generate keys' do
       key = OpenSSL::PKey::RSA.new(1024).public_key
-      account = described_class.create!(domain: 'remote', uri: 'https://remote/actor', username: Faker::Internet.user_name(separators: ['_']), public_key: key.to_pem)
+      account = described_class.create!(domain: 'remote', uri: 'https://remote/actor', username: 'remote_user_with_public', public_key: key.to_pem)
       expect(account.keypair.params).to eq key.params
     end
 
     it 'normalizes domain' do
-      account = described_class.create!(domain: 'にゃん', uri: 'https://xn--r9j5b5b/actor', username: Faker::Internet.user_name(separators: ['_']))
+      account = described_class.create!(domain: 'にゃん', uri: 'https://xn--r9j5b5b/actor', username: 'remote_user_with_idn_domain')
       expect(account.domain).to eq 'xn--r9j5b5b'
     end
   end
@@ -1191,18 +1379,9 @@ RSpec.describe Account do
     it 'increments the count in multi-threaded an environment when account_stat is not yet initialized' do
       subject
 
-      increment_by   = 15
-      wait_for_start = true
-
-      threads = Array.new(increment_by) do
-        Thread.new do
-          true while wait_for_start
-          described_class.find(subject.id).increment_count!(:followers_count)
-        end
+      multi_threaded_execution(15) do
+        described_class.find(subject.id).increment_count!(:followers_count)
       end
-
-      wait_for_start = false
-      threads.each(&:join)
 
       expect(subject.reload.followers_count).to eq 15
     end

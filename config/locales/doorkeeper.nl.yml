@@ -1,3 +1,4 @@
+---
 nl:
   activerecord:
     attributes:
@@ -59,7 +60,7 @@ nl:
       error:
         title: Er is een fout opgetreden
       new:
-        prompt_html: "%{client_name} heeft toestemming nodig om toegang te krijgen tot jouw account. Het betreft een third-party-toepassing.<strong>Als je dit niet vertrouwt, moet je geen toestemming verlenen.</strong>"
+        prompt_html: "%{client_name} vraagt om toegang tot je account. <strong>Keur dit verzoek alleen goed als je deze bron herkent en vertrouwt.</strong>"
         review_permissions: Toestemmingen beoordelen
         title: Autorisatie vereist
       show:
@@ -82,6 +83,7 @@ nl:
         access_denied: De resource-eigenaar of autorisatie-server weigerde het verzoek.
         credential_flow_not_configured: De wachtwoordgegevens-flow van de resource-eigenaar is mislukt omdat Doorkeeper.configure.resource_owner_from_credentials niet is ingesteld.
         invalid_client: Clientverificatie is mislukt door een onbekende client, ontbrekende client-authenticatie of een niet ondersteunde authenticatie-methode.
+        invalid_code_challenge_method: De code challenge method moet S256 zijn, plain wordt niet ondersteund.
         invalid_grant: De verstrekte autorisatie is ongeldig, verlopen, ingetrokken, komt niet overeen met de redirect-URI die is opgegeven of werd uitgegeven aan een andere client.
         invalid_redirect_uri: De opgegeven redirect-URI is ongeldig.
         invalid_request:
@@ -128,12 +130,13 @@ nl:
         crypto: End-to-end-encryptie
         favourites: Favorieten
         filters: Filters
-        follow: Volgers, genegeerde en geblokkeerde gebruikers
+        follow: Gevolgde, genegeerde en geblokkeerde gebruikers
         follows: Volgend
         lists: Lijsten
         media: Mediabijlagen
         mutes: Negeren
         notifications: Meldingen
+        profile: Jouw Mastodonprofiel
         push: Pushmeldingen
         reports: Rapportages
         search: Zoeken
@@ -146,24 +149,25 @@ nl:
       application:
         title: OAuth-autorisatie vereist
     scopes:
-      "admin:read": alle gegevens op de server lezen
-      "admin:read:accounts": gevoelige informatie van alle accounts lezen
-      "admin:read:canonical_email_blocks": gevoelige informatie van alle canoniek geblokkeerde e-mailadressen lezen
-      "admin:read:domain_allows": gevoelige informatie van alle toegestane domeinen lezen
-      "admin:read:domain_blocks": gevoelige informatie van alle geblokkeerde domeinen lezen
-      "admin:read:email_domain_blocks": gevoelige informatie van alle geblokkeerde e-maildomeinen lezen
-      "admin:read:ip_blocks": gevoelige informatie van alle geblokkeerde IP-adressen lezen
-      "admin:read:reports": gevoelige informatie van alle rapportages en gerapporteerde accounts lezen
-      "admin:write": wijzig alle gegevens op de server
-      "admin:write:accounts": moderatieacties op accounts uitvoeren
-      "admin:write:canonical_email_blocks": moderatieacties op canoniek geblokkeerde e-mailadressen uitvoeren
-      "admin:write:domain_allows": moderatieacties op toegestane domeinen uitvoeren
-      "admin:write:domain_blocks": moderatieacties op geblokkeerde domeinen uitvoeren
-      "admin:write:email_domain_blocks": moderatieacties op geblokkeerde e-maildomeinen uitvoeren
-      "admin:write:ip_blocks": moderatieacties op geblokkeerde IP-adressen uitvoeren
-      "admin:write:reports": moderatieacties op rapportages uitvoeren
+      admin:read: alle gegevens op de server lezen
+      admin:read:accounts: gevoelige informatie van alle accounts lezen
+      admin:read:canonical_email_blocks: gevoelige informatie van alle canoniek geblokkeerde e-mailadressen lezen
+      admin:read:domain_allows: gevoelige informatie van alle toegestane domeinen lezen
+      admin:read:domain_blocks: gevoelige informatie van alle geblokkeerde domeinen lezen
+      admin:read:email_domain_blocks: gevoelige informatie van alle geblokkeerde e-maildomeinen lezen
+      admin:read:ip_blocks: gevoelige informatie van alle geblokkeerde IP-adressen lezen
+      admin:read:reports: gevoelige informatie van alle rapportages en gerapporteerde accounts lezen
+      admin:write: wijzig alle gegevens op de server
+      admin:write:accounts: moderatieacties op accounts uitvoeren
+      admin:write:canonical_email_blocks: moderatieacties op canoniek geblokkeerde e-mailadressen uitvoeren
+      admin:write:domain_allows: moderatieacties op toegestane domeinen uitvoeren
+      admin:write:domain_blocks: moderatieacties op geblokkeerde domeinen uitvoeren
+      admin:write:email_domain_blocks: moderatieacties op geblokkeerde e-maildomeinen uitvoeren
+      admin:write:ip_blocks: moderatieacties op geblokkeerde IP-adressen uitvoeren
+      admin:write:reports: moderatieacties op rapportages uitvoeren
       crypto: end-to-end-encryptie gebruiken
-      follow: relaties tussen accounts bewerken
+      follow: volgrelaties tussen accounts bewerken
+      profile: alleen de profielgegevens van jouw account lezen
       push: jouw pushmeldingen ontvangen
       read: alle gegevens van jouw account lezen
       read:accounts: informatie accounts bekijken

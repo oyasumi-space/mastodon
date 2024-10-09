@@ -1,20 +1,26 @@
 # frozen_string_literal: true
 
 class Auth::ConfirmationsController < Devise::ConfirmationsController
-  include CaptchaConcern
+  include Auth::CaptchaConcern
+  include RegistrationLimitationHelper
 
   layout 'auth'
 
-  before_action :set_body_classes
   before_action :set_confirmation_user!, only: [:show, :confirm_captcha]
-  before_action :require_unconfirmed!
+  before_action :redirect_confirmed_user, if: :signed_in_confirmed_user?
 
   before_action :extend_csp_for_captcha!, only: [:show, :confirm_captcha]
   before_action :require_captcha_if_needed!, only: [:show]
 
+  skip_before_action :check_self_destruct!
   skip_before_action :require_functional!
 
   def show
+    if reach_registrations_limit? && !current_user&.valid_invitation?
+      render :limitation_error
+      return
+    end
+
     old_session_values = session.to_hash
     reset_session
     session.update old_session_values.except('session_id')
@@ -38,6 +44,12 @@ class Auth::ConfirmationsController < Devise::ConfirmationsController
     show
   end
 
+  def redirect_to_app?
+    truthy_param?(:redirect_to_app)
+  end
+
+  helper_method :redirect_to_app?
+
   private
 
   def require_captcha_if_needed!
@@ -55,17 +67,15 @@ class Auth::ConfirmationsController < Devise::ConfirmationsController
   end
 
   def captcha_user_bypass?
-    return true if @confirmation_user.nil? || @confirmation_user.confirmed?
+    @confirmation_user.nil? || @confirmation_user.confirmed?
   end
 
-  def require_unconfirmed!
-    if user_signed_in? && current_user.confirmed? && current_user.unconfirmed_email.blank?
-      redirect_to(current_user.approved? ? root_path : edit_user_registration_path)
-    end
+  def redirect_confirmed_user
+    redirect_to(current_user.approved? ? root_path : edit_user_registration_path)
   end
 
-  def set_body_classes
-    @body_classes = 'lighter'
+  def signed_in_confirmed_user?
+    user_signed_in? && current_user.confirmed? && current_user.unconfirmed_email.blank?
   end
 
   def after_resending_confirmation_instructions_path_for(_resource_name)
@@ -81,7 +91,7 @@ class Auth::ConfirmationsController < Devise::ConfirmationsController
   end
 
   def after_confirmation_path_for(_resource_name, user)
-    if user.created_by_application && truthy_param?(:redirect_to_app)
+    if user.created_by_application && redirect_to_app?
       user.created_by_application.confirmation_redirect_uri
     elsif user_signed_in?
       web_url('start')

@@ -1,3 +1,4 @@
+---
 hu:
   activerecord:
     attributes:
@@ -19,7 +20,7 @@ hu:
     applications:
       buttons:
         authorize: Hitelesítés
-        cancel: Mégsem
+        cancel: Mégse
         destroy: Törlés
         edit: Szerkesztés
         submit: Elküldés
@@ -30,19 +31,19 @@ hu:
       form:
         error: Hoppá! Ellenőrizd az űrlapot az esetleges hibák miatt
       help:
-        native_redirect_uri: '%{native_redirect_uri} használata a helyi tesztekhez'
+        native_redirect_uri: "%{native_redirect_uri} használata a helyi tesztekhez"
         redirect_uri: Egy sor URI-nként
         scopes: A hatóköröket szóközzel válaszd el. Hagyd üresen az alapértelmezett hatókörök használatához.
       index:
         application: Alkalmazás
         callback_url: Visszahívási URL
         delete: Eltávolítás
-        empty: Nincsenek saját alkalmazások.
+        empty: Nincsenek saját alkalmazásaid.
         name: Név
         new: Új alkalmazás
         scopes: Hatókörök
         show: Megjelenítés
-        title: Alkalmazásaid
+        title: Saját alkalmazások
       new:
         title: Új alkalmazás
       show:
@@ -50,20 +51,20 @@ hu:
         application_id: Ügyfélkulcs
         callback_urls: Visszahívási URL-ek
         scopes: Hatáskörök
-        secret: Ügyfél titkos kulcs
+        secret: Ügyféltitok
         title: 'Alkalmazás: %{name}'
     authorizations:
       buttons:
-        authorize: Hitelesítés
+        authorize: Engedélyezés
         deny: Tiltás
       error:
         title: Hiba történt
       new:
-        prompt_html: "%{client_name} szeretné elérni a fiókodat. Ez egy harmadik féltől származó alkalmazás. <strong>Ha nem bízol meg benne, ne addj felhatalmazást neki.</strong>"
+        prompt_html: A(z) %{client_name} engedélyt kér hogy hozzáférjen a fiókodhoz. <strong>Csak akkor engedélyezd ezt a kérést, ha felismered és megbízol ebben a forrásban.</strong>
         review_permissions: Jogosultságok áttekintése
-        title: Hitelesítés szükséges
+        title: Engedélyezés szükséges
       show:
-        title: Másold le ezt az engedélyező kódot és írd be az alkalmazásba.
+        title: Másold le ezt az engedélyezési kódot és írd be az alkalmazásba.
     authorized_applications:
       buttons:
         revoke: Visszavonás
@@ -76,12 +77,13 @@ hu:
         never_used: Soha sem volt használva
         scopes: Jogosultságok
         superapp: Belső
-        title: Hitelesített alkalmazásaid
+        title: Hitelesített saját alkalmazások
     errors:
       messages:
         access_denied: Az erőforrás tulajdonosa vagy az engedélyező kiszolgáló elutasította a kérést.
         credential_flow_not_configured: Az erőforrás tulajdonos jelszóadatainak átadása megszakadt, mert a Doorkeeper.configure.resource_owner_from_credentials beállítatlan.
         invalid_client: A kliens hitelesítése megszakadt, mert ismeretlen a kliens, a kliens nem küldött hitelesítést, vagy a hitelesítés módja nem támogatott.
+        invalid_code_challenge_method: A kódkihívási módszernek S256-nak kell lennie, az egyszerű kód nem támogatott.
         invalid_grant: A biztosított hitelesítés érvénytelen, lejárt, visszavont, vagy nem egyezik a hitelesítési kérésben használt URI-val, vagy más kliensnek címezték.
         invalid_redirect_uri: Az átirányító URI nem valós.
         invalid_request:
@@ -128,12 +130,13 @@ hu:
         crypto: Végpontok közti titkosítás
         favourites: Kedvencek
         filters: Szűrők
-        follow: Követések, Némítások és Letiltások
+        follow: Követések, némítások és letiltások
         follows: Követések
         lists: Listák
         media: Médiamellékletek
         mutes: Némítások
         notifications: Értesítések
+        profile: Saját Mastodon-profil
         push: Push értesítések
         reports: Bejelentések
         search: Keresés
@@ -146,24 +149,25 @@ hu:
       application:
         title: OAuth engedély szükséges
     scopes:
-      "admin:read": a kiszolgáló összes adatának olvasása
-      "admin:read:accounts": minden kényes fiókadat olvasása
-      "admin:read:canonical_email_blocks": kanonikus emailblokkok érzékeny információinak olvasása
-      "admin:read:domain_allows": minden domainengedély érzékeny információinak olvasása
-      "admin:read:domain_blocks": minden domaintiltás érzékeny információinak olvasása
-      "admin:read:email_domain_blocks": minden email-domainblokk érzékeny információinak olvasása
-      "admin:read:ip_blocks": minden IP-blokk érzékeny információinak olvasása
-      "admin:read:reports": minden bejelentés és bejelentett fiók kényes adatainak olvasása
-      "admin:write": a kiszolgáló összes adatának módosítása
-      "admin:write:accounts": moderációs műveletek végzése fiókokon
-      "admin:write:canonical_email_blocks": moderáció végrehajtása kanonikus emailblokkokon
-      "admin:write:domain_allows": moderáció végrehajtása domainengedélyeken
-      "admin:write:domain_blocks": moderáció végrehajtása domaintiltásokon
-      "admin:write:email_domain_blocks": moderáció végrehajtása email-domainblokkokon
-      "admin:write:ip_blocks": moderáció végrehajtása IP-blokkokon
-      "admin:write:reports": moderációs műveletek végzése bejelentéseken
+      admin:read: a kiszolgáló összes adatának olvasása
+      admin:read:accounts: minden kényes fiókadat olvasása
+      admin:read:canonical_email_blocks: kanonikus emailblokkok érzékeny információinak olvasása
+      admin:read:domain_allows: minden domainengedély érzékeny információinak olvasása
+      admin:read:domain_blocks: minden domaintiltás érzékeny információinak olvasása
+      admin:read:email_domain_blocks: minden email-domainblokk érzékeny információinak olvasása
+      admin:read:ip_blocks: minden IP-blokk érzékeny információinak olvasása
+      admin:read:reports: minden bejelentés és bejelentett fiók kényes adatainak olvasása
+      admin:write: a kiszolgáló összes adatának módosítása
+      admin:write:accounts: moderációs műveletek végzése fiókokon
+      admin:write:canonical_email_blocks: moderáció végrehajtása kanonikus emailblokkokon
+      admin:write:domain_allows: moderáció végrehajtása domainengedélyeken
+      admin:write:domain_blocks: moderáció végrehajtása domaintiltásokon
+      admin:write:email_domain_blocks: moderáció végrehajtása email-domainblokkokon
+      admin:write:ip_blocks: moderáció végrehajtása IP-blokkokon
+      admin:write:reports: moderációs műveletek végzése bejelentéseken
       crypto: végpontok közti titkosítás használata
       follow: fiókkapcsolatok módosítása
+      profile: csak a saját profil alapvető adatainak olvasása
       push: push értesítések fogadása
       read: saját fiók adatainak olvasása
       read:accounts: fiók adatainak megtekintése

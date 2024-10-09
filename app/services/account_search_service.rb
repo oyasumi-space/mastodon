@@ -23,13 +23,12 @@ class AccountSearchService < BaseService
               query: {
                 bool: {
                   must: must_clauses,
+                  must_not: must_not_clauses,
                 },
               },
 
               functions: [
-                reputation_score_function,
                 followers_score_function,
-                time_distance_function,
               ],
             },
           },
@@ -49,6 +48,10 @@ class AccountSearchService < BaseService
       else
         [core_query]
       end
+    end
+
+    def must_not_clauses
+      []
     end
 
     def should_clauses
@@ -86,45 +89,12 @@ class AccountSearchService < BaseService
       }
     end
 
-    def boost_follower_query
-      {
-        terms: {
-          id: follower_ids,
-          boost: 100,
-        },
-      }
-    end
-
-    # This function deranks accounts that follow more people than follow them
-    def reputation_score_function
-      {
-        script_score: {
-          script: {
-            source: "(Math.max(doc['followers_count'].value, 0) + 0.0) / (Math.max(doc['followers_count'].value, 0) + Math.max(doc['following_count'].value, 0) + 1)",
-          },
-        },
-      }
-    end
-
     # This function promotes accounts that have more followers
     def followers_score_function
       {
         script_score: {
           script: {
-            source: "(Math.max(doc['followers_count'].value, 0) / (Math.max(doc['followers_count'].value, 0) + 1))",
-          },
-        },
-      }
-    end
-
-    # This function deranks accounts that haven't posted in a long time
-    def time_distance_function
-      {
-        gauss: {
-          last_status_at: {
-            scale: '30d',
-            offset: '30d',
-            decay: 0.3,
+            source: "Math.log10((Math.max(doc['followers_count'].value, 0) + 1))",
           },
         },
       }
@@ -144,10 +114,24 @@ class AccountSearchService < BaseService
 
     def core_query
       {
-        multi_match: {
-          query: @query,
-          type: 'bool_prefix',
-          fields: %w(username^2 username.*^2 display_name display_name.*),
+        dis_max: {
+          queries: [
+            {
+              multi_match: {
+                query: @query,
+                type: 'most_fields',
+                fields: %w(username username.*),
+              },
+            },
+
+            {
+              multi_match: {
+                query: @query,
+                type: 'most_fields',
+                fields: %w(display_name display_name.*),
+              },
+            },
+          ],
         },
       }
     end
@@ -160,7 +144,7 @@ class AccountSearchService < BaseService
       {
         multi_match: {
           query: @query,
-          type: 'most_fields',
+          type: 'best_fields',
           fields: %w(username^2 display_name^2 text text.*),
           operator: 'and',
         },
@@ -169,13 +153,23 @@ class AccountSearchService < BaseService
   end
 
   def call(query, account = nil, options = {})
-    @query   = query&.strip&.gsub(/\A@/, '')
-    @limit   = options[:limit].to_i
-    @offset  = options[:offset].to_i
-    @options = options
-    @account = account
+    MastodonOTELTracer.in_span('AccountSearchService#call') do |span|
+      @query   = query&.strip&.gsub(/\A@/, '')
+      @limit   = options[:limit].to_i
+      @offset  = options[:offset].to_i
+      @options = options
+      @account = account
 
-    search_service_results.compact.uniq
+      span.add_attributes(
+        'search.offset' => @offset,
+        'search.limit' => @limit,
+        'search.backend' => Chewy.enabled? ? 'elasticsearch' : 'database'
+      )
+
+      search_service_results.compact.uniq.tap do |results|
+        span.set_attribute('search.results.count', results.size)
+      end
+    end
   end
 
   private

@@ -4,29 +4,26 @@
 #
 # Table name: domain_blocks
 #
-#  id                                   :bigint(8)        not null, primary key
-#  domain                               :string           default(""), not null
-#  created_at                           :datetime         not null
-#  updated_at                           :datetime         not null
-#  severity                             :integer          default("silence")
-#  reject_media                         :boolean          default(FALSE), not null
-#  reject_reports                       :boolean          default(FALSE), not null
-#  private_comment                      :text
-#  public_comment                       :text
-#  obfuscate                            :boolean          default(FALSE), not null
-#  reject_favourite                     :boolean          default(FALSE), not null
-#  reject_reply                         :boolean          default(FALSE), not null
-#  reject_send_not_public_searchability :boolean          default(FALSE), not null
-#  reject_send_public_unlisted          :boolean          default(FALSE), not null
-#  reject_send_dissubscribable          :boolean          default(FALSE), not null
-#  reject_send_media                    :boolean          default(FALSE), not null
-#  reject_send_sensitive                :boolean          default(FALSE), not null
-#  reject_hashtag                       :boolean          default(FALSE), not null
-#  reject_straight_follow               :boolean          default(FALSE), not null
-#  reject_new_follow                    :boolean          default(FALSE), not null
-#  hidden                               :boolean          default(FALSE), not null
-#  detect_invalid_subscription          :boolean          default(FALSE), not null
-#  reject_reply_exclude_followers       :boolean          default(FALSE), not null
+#  id                             :bigint(8)        not null, primary key
+#  domain                         :string           default(""), not null
+#  created_at                     :datetime         not null
+#  updated_at                     :datetime         not null
+#  severity                       :integer          default("silence")
+#  reject_media                   :boolean          default(FALSE), not null
+#  reject_reports                 :boolean          default(FALSE), not null
+#  private_comment                :text
+#  public_comment                 :text
+#  obfuscate                      :boolean          default(FALSE), not null
+#  reject_favourite               :boolean          default(FALSE), not null
+#  reject_send_sensitive          :boolean          default(FALSE), not null
+#  reject_hashtag                 :boolean          default(FALSE), not null
+#  reject_straight_follow         :boolean          default(FALSE), not null
+#  reject_new_follow              :boolean          default(FALSE), not null
+#  hidden                         :boolean          default(FALSE), not null
+#  detect_invalid_subscription    :boolean          default(FALSE), not null
+#  reject_reply_exclude_followers :boolean          default(FALSE), not null
+#  reject_friend                  :boolean          default(FALSE), not null
+#  block_trends                   :boolean          default(FALSE), not null
 #
 
 class DomainBlock < ApplicationRecord
@@ -34,17 +31,25 @@ class DomainBlock < ApplicationRecord
   include DomainNormalizable
   include DomainMaterializable
 
-  enum severity: { silence: 0, suspend: 1, noop: 2 }
+  enum :severity, { silence: 0, suspend: 1, noop: 2 }
 
   validates :domain, presence: true, uniqueness: true, domain: true
 
-  has_many :accounts, foreign_key: :domain, primary_key: :domain, inverse_of: false
+  has_many :accounts, foreign_key: :domain, primary_key: :domain, inverse_of: false, dependent: nil
   delegate :count, to: :accounts, prefix: true
 
-  scope :matches_domain, ->(value) { where(arel_table[:domain].matches("%#{value}%")) }
   scope :with_user_facing_limitations, -> { where(hidden: false) }
-  scope :with_limitations, -> { where(severity: [:silence, :suspend]).or(where(reject_media: true)).or(where(reject_favourite: true)).or(where(reject_reply: true)).or(where(reject_reply_exclude_followers: true)).or(where(reject_new_follow: true)).or(where(reject_straight_follow: true)) }
-  scope :by_severity, -> { order(Arel.sql('(CASE severity WHEN 0 THEN 1 WHEN 1 THEN 2 WHEN 2 THEN 0 END), domain')) }
+  scope :with_limitations, lambda {
+    where(severity: [:silence, :suspend])
+      .or(where(reject_media: true))
+      .or(where(reject_favourite: true))
+      .or(where(reject_reply_exclude_followers: true))
+      .or(where(reject_new_follow: true))
+      .or(where(reject_straight_follow: true))
+      .or(where(reject_friend: true))
+      .or(where(block_trends: true))
+  }
+  scope :by_severity, -> { in_order_of(:severity, %w(noop silence suspend)).order(:domain) }
 
   def to_log_human_identifier
     domain
@@ -57,12 +62,13 @@ class DomainBlock < ApplicationRecord
       [severity.to_sym,
        reject_media? ? :reject_media : nil,
        reject_favourite? ? :reject_favourite : nil,
-       reject_reply? ? :reject_reply : nil,
        reject_reply_exclude_followers? ? :reject_reply_exclude_followers : nil,
        reject_send_sensitive? ? :reject_send_sensitive : nil,
        reject_hashtag? ? :reject_hashtag : nil,
        reject_straight_follow? ? :reject_straight_follow : nil,
        reject_new_follow? ? :reject_new_follow : nil,
+       reject_friend? ? :reject_friend : nil,
+       block_trends? ? :block_trends : nil,
        detect_invalid_subscription? ? :detect_invalid_subscription : nil,
        reject_reports? ? :reject_reports : nil].reject { |policy| policy == :noop || policy.nil? }
     end
@@ -85,10 +91,6 @@ class DomainBlock < ApplicationRecord
       !!rule_for(domain)&.reject_favourite?
     end
 
-    def reject_reply?(domain)
-      !!rule_for(domain)&.reject_reply?
-    end
-
     def reject_reply_exclude_followers?(domain)
       !!rule_for(domain)&.reject_reply_exclude_followers?
     end
@@ -103,6 +105,14 @@ class DomainBlock < ApplicationRecord
 
     def reject_new_follow?(domain)
       !!rule_for(domain)&.reject_new_follow?
+    end
+
+    def reject_friend?(domain)
+      !!rule_for(domain)&.reject_friend?
+    end
+
+    def block_trends?(domain)
+      !!rule_for(domain)&.block_trends?
     end
 
     def detect_invalid_subscription?(domain)
@@ -122,7 +132,7 @@ class DomainBlock < ApplicationRecord
       segments = uri.normalized_host.split('.')
       variants = segments.map.with_index { |_, i| segments[i..].join('.') }
 
-      where(domain: variants).order(Arel.sql('char_length(domain) desc')).first
+      where(domain: variants).by_domain_length.first
     rescue Addressable::URI::InvalidURIError, IDN::Idna::IdnaError
       nil
     end
@@ -133,12 +143,7 @@ class DomainBlock < ApplicationRecord
     return false if other_block.suspend? && (silence? || noop?)
     return false if other_block.silence? && noop?
 
-    (reject_media || !other_block.reject_media) && (reject_favourite || !other_block.reject_favourite) && (reject_reply || !other_block.reject_reply) && (reject_reply_exclude_followers || !other_block.reject_reply_exclude_followers) && (reject_reports || !other_block.reject_reports)
-  end
-
-  def affected_accounts_count
-    scope = suspend? ? accounts.where(suspended_at: created_at) : accounts.where(silenced_at: created_at)
-    scope.count
+    (reject_media || !other_block.reject_media) && (reject_favourite || !other_block.reject_favourite) && (reject_reply_exclude_followers || !other_block.reject_reply_exclude_followers) && (reject_reports || !other_block.reject_reports)
   end
 
   def public_domain

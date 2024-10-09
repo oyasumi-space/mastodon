@@ -1,3 +1,4 @@
+---
 br:
   devise:
     confirmations:
@@ -7,10 +8,10 @@ br:
     failure:
       already_authenticated: Kennasket oc'h dija.
       inactive: N'eo ket gweredekaet ho kont c'hoazh.
-      invalid: '%{authentication_keys} pe ger-tremen diwiriek.'
+      invalid: "%{authentication_keys} pe ger-tremen diwiriek."
       last_attempt: Un esae a chom deoc'h a-raok ma vefe prennet ho kont.
       locked: Prennet eo ho kont.
-      not_found_in_database: '%{authentication_keys} pe ger-tremen diwiriek.'
+      not_found_in_database: "%{authentication_keys} pe ger-tremen diwiriek."
       pending: O vezañ asantet eo ho kont.
       timeout: Ho talc'h a zo aet da dermen. Mar plij, kit-tre c'hoazh evit kenderc'hel.
       unauthenticated: Ret eo deoc'h mont-tre pe e em enskrivañ araok kenderc'hel.
@@ -18,7 +19,7 @@ br:
     mailer:
       confirmation_instructions:
         action: Gwiriekaat ar chomlec'h postel
-        action_with_app: Kadarnaat ha distroiñ da %{app}
+        action_with_app: Kadarnaat ha distreiñ da %{app}
         explanation: Krouet ho peus ur c'hont war %{host} gant ar chomlec'h-postel-mañ. N'eus nemet ur c'hlik evit bevaat anezhañ. Ma ne oa ket krouet ganeoc'h, dianavezit ar postel-se.
         explanation_when_pending: Enskrivañ ho peus d'ur c'hemennad da %{host} gant ar chomlec'h-postel-se. Pa vo kadarnaet ho chomlec'h-postel, hoc'h enskrivadur a vo asantet. Gallout a rit mont-tre evit kemmañ munudoù ho kont pe skarzhañ anezhañ, met ne c'hellit ket implijout ul lod eus an aezamantoù par ma n'eo ket asantet ho kont. Ma vefe hoc'h enskrivadur nac'het, ho keloù a vefe skarzhet, neuze ne vo ket ret deoc'h ober netra ken. Ma ne oa ket ac'hanoc'h, dianavezit ar postel-se.
         extra_html: Mar plij, gwiriit ivez <a href="%{terms_path}"> reolennoù ar servijer</a> ha <a href="%{policy_path}"> hon divizoù-implij</a>.
@@ -46,11 +47,9 @@ br:
         subject: 'Mastodon: Adkorañ kemennoù ar ger-tremen'
         title: Adderaouekaat ar ger-tremen
       two_factor_disabled:
-        explanation: Dilesadur dre eil-elfenn a zo bet nac'het. Gallout a reer mont-tre en ur implijout nemet ur chomlec'h-postel hag ur ger-tremen.
         subject: 'Mastodon: dilesadur dre eil-elfenn nac''het'
         title: 2FA diweredekaet
       two_factor_enabled:
-        explanation: Dilesadur dre eil-elfenn a zo aotreet evit ho kont. Ret a vo implij ur jedouer krouet gant an app TOTP koublet evit mont-tre.
         subject: 'Mastodon: dilesadur dre eil-elfenn aotreet'
         title: 2FA gweredekaet
       two_factor_recovery_codes_changed:
@@ -69,11 +68,9 @@ br:
           subject: 'Mastodon: alc''hwezioù surentez dilamet'
           title: Unan eus hoc'h alc'hwezioù surentez a zo bet dilamet
       webauthn_disabled:
-        explanation: Dilezadur dre alc'hwezioù surentel a zo bet nac'het evit ho kont. Gallout a reer mont-tre en ur implijout ar jedouer krouet gant app TOTP koublet.
         subject: 'Mastodon: dilesadur dre alc''hwezioù surentez nac''het'
         title: Alc'hwezioù surentez nac'het
       webauthn_enabled:
-        explanation: Dilesadur dre alc'hwez surentez a zo bet aotreet evit ho kont. Hoc'h alc'hwez surentez a c'hell bezañ implijet evit mont-tre.
         subject: 'Mastodon: dilesadur dre alc''hwezioù surentez aotreet'
         title: Alc'hwezioù surentez aotreet
     omniauth_callbacks:
@@ -110,8 +107,8 @@ br:
       not_found: digavet
       not_locked: ne oa ket prennet
       not_saved:
-        one: '1 faot en deus miret ouzh %{resource} da vezañ gwarezet:'
-        two: "%{count} faot en deus miret ouzh %{resource} da vezañ gwarezet:"
         few: "%{count} faot en deus miret ouzh %{resource} da vezañ gwarezet:"
         many: "%{count} faot en deus miret ouzh %{resource} da vezañ gwarezet:"
+        one: '1 faot en deus miret ouzh %{resource} da vezañ gwarezet:'
         other: "%{count} faot en deus miret ouzh %{resource} da vezañ gwarezet:"
+        two: "%{count} faot en deus miret ouzh %{resource} da vezañ gwarezet:"

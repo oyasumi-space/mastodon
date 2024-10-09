@@ -4,11 +4,12 @@ import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
 
+import { createSelector } from '@reduxjs/toolkit';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
 
+import AntennaIcon from '@/material-icons/400-24px/wifi.svg?react';
 import { fetchAntennas } from 'mastodon/actions/antennas';
 import Column from 'mastodon/components/column';
 import ColumnHeader from 'mastodon/components/column_header';
@@ -67,7 +68,7 @@ class Antennas extends ImmutablePureComponent {
 
     return (
       <Column bindToDocument={!multiColumn} label={intl.formatMessage(messages.heading)}>
-        <ColumnHeader title={intl.formatMessage(messages.heading)} icon='wifi' multiColumn={multiColumn} />
+        <ColumnHeader title={intl.formatMessage(messages.heading)} icon='wifi' iconComponent={AntennaIcon} multiColumn={multiColumn} />
 
         <NewAntennaForm />
 
@@ -78,8 +79,8 @@ class Antennas extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {antennas.map(antenna => (
-            <ColumnLink key={antenna.get('id')} to={`/antennast/${antenna.get('id')}`} icon='wifi' text={antenna.get('title')}
-                        badge={antenna.get('insert_feeds') ? intl.formatMessage(antenna.get('list') ? messages.insert_list : messages.insert_home) : undefined} />
+            <ColumnLink key={antenna.get('id')} to={`/antennast/${antenna.get('id')}`} icon='wifi' iconComponent={AntennaIcon} text={antenna.get('title')}
+              badge={antenna.get('insert_feeds') ? intl.formatMessage(antenna.get('list') ? messages.insert_list : messages.insert_home) : undefined} />
           ))}
         </ScrollableList>
 

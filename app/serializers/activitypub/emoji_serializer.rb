@@ -3,9 +3,9 @@
 class ActivityPub::EmojiSerializer < ActivityPub::Serializer
   include RoutingHelper
 
-  context_extensions :emoji
+  context_extensions :emoji, :license, :keywords
 
-  attributes :id, :type, :name, :is_sensitive, :updated
+  attributes :id, :type, :name, :keywords, :is_sensitive, :updated
 
   attribute :license, if: -> { object.license.present? }
 
@@ -17,6 +17,10 @@ class ActivityPub::EmojiSerializer < ActivityPub::Serializer
 
   def type
     'Emoji'
+  end
+
+  def keywords
+    object.aliases
   end
 
   def icon

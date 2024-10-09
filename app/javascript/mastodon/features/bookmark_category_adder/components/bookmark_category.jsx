@@ -2,10 +2,14 @@ import PropTypes from 'prop-types';
 
 import { defineMessages, injectIntl } from 'react-intl';
 
+
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
+import AddIcon from '@/material-icons/400-24px/add.svg?react';
+import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg?react';
+import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import { Icon }  from 'mastodon/components/icon';
 
 import { removeFromBookmarkCategoryAdder, addToBookmarkCategoryAdder } from '../../../actions/bookmark_categories';
@@ -46,16 +50,16 @@ class BookmarkCategory extends ImmutablePureComponent {
     let button;
 
     if (added) {
-      button = <IconButton icon='times' title={intl.formatMessage(messages.remove)} onClick={onRemove} />;
+      button = <IconButton icon='times' iconComponent={CloseIcon} title={intl.formatMessage(messages.remove)} onClick={onRemove} />;
     } else {
-      button = <IconButton icon='plus' title={intl.formatMessage(messages.add)} onClick={onAdd} />;
+      button = <IconButton icon='plus' iconComponent={AddIcon} title={intl.formatMessage(messages.add)} onClick={onAdd} />;
     }
 
     return (
       <div className='list'>
         <div className='list__wrapper'>
           <div className='list__display-name'>
-            <Icon id='bookmark' className='column-link__icon' fixedWidth />
+            <Icon id='bookmark' icon={BookmarkIcon} className='column-link__icon' fixedWidth />
             {bookmarkCategory.get('title')}
           </div>
 

@@ -2,18 +2,24 @@
 
 module Mastodon
   module Version
+    KMYBLUE_API_VERSION = 1
+
     module_function
 
+    # If you change the version number, also change the image version in docker-compose.yml.
+
     def kmyblue_major
-      5
+      15
     end
 
     def kmyblue_minor
-      24
+      0
     end
 
     def kmyblue_flag
       'LTS'
+      # 'dev'
+      # nil
     end
 
     def major
@@ -21,11 +27,11 @@ module Mastodon
     end
 
     def minor
-      2
+      3
     end
 
     def patch
-      12
+      0
     end
 
     def default_prerelease
@@ -80,8 +86,23 @@ module Mastodon
                        end
     end
 
+    def lts?
+      kmyblue_flag == 'LTS'
+    end
+
+    def dev?
+      kmyblue_flag == 'dev'
+    end
+
+    def api_versions
+      {
+        mastodon: 2,
+        kmyblue: KMYBLUE_API_VERSION,
+      }
+    end
+
     def repository
-      ENV.fetch('GITHUB_REPOSITORY', 'oyasumi-space/mastodon')
+      ENV.fetch('GITHUB_REPOSITORY', 'kmycode/mastodon')
     end
 
     def source_base_url
@@ -102,7 +123,7 @@ module Mastodon
     end
 
     def user_agent
-      @user_agent ||= "#{HTTP::Request::USER_AGENT} (Mastodon/#{Version}; +http#{Rails.configuration.x.use_https ? 's' : ''}://#{Rails.configuration.x.web_domain}/)"
+      @user_agent ||= "Mastodon/#{Version} (#{HTTP::Request::USER_AGENT}; +http#{Rails.configuration.x.use_https ? 's' : ''}://#{Rails.configuration.x.web_domain}/)"
     end
   end
 end
