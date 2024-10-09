@@ -21,23 +21,19 @@ RSpec.describe UpdateAccountService do
       FollowService.new.call(bob, account)
       FollowService.new.call(eve, account)
       FollowService.new.call(ohagi, account)
+    end
 
+    it 'auto accepts pending follow requests from appropriate accounts' do
       subject.call(account, { locked: false })
-    end
 
-    it 'auto-accepts pending follow requests' do
-      expect(alice.following?(account)).to be true
-      expect(alice.requested?(account)).to be false
-    end
+      expect(alice).to be_following(account)
+      expect(alice).to_not be_requested(account)
 
-    it 'does not auto-accept pending follow requests from silenced users' do
-      expect(bob.following?(account)).to be false
-      expect(bob.requested?(account)).to be true
-    end
+      expect(bob).to_not be_following(account)
+      expect(bob).to be_requested(account)
 
-    it 'auto-accepts pending follow requests from muted users so as to not leak mute' do
-      expect(eve.following?(account)).to be true
-      expect(eve.requested?(account)).to be false
+      expect(eve).to be_following(account)
+      expect(eve).to_not be_requested(account)
     end
 
     it 'does not auto-accept pending follow requests from blocking straight follow domains' do
