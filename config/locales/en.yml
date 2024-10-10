@@ -472,15 +472,8 @@ en:
       reject_reply_exclude_followers_hint: Reject replies exclude followers in the future
       reject_reports: Reject reports
       reject_reports_hint: Ignore all reports coming from this domain. Irrelevant for suspensions
-<<<<<<< HEAD
-      reject_send_sensitive: センシティブな投稿を配送しない
-      reject_send_sensitive_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
-      reject_send_unlisted_dissubscribable: 購読拒否アカウントの未収載投稿を配送しない
-      reject_send_unlisted_dissubscribable_hint: 相手サーバーからのフェッチは防げません。停止とは無関係です
-=======
       reject_send_sensitive: Do not deliver sensitive postings
       reject_send_sensitive_hint: Fetches from the other server may not be prevented. It has nothing to do with outages.
->>>>>>> kb15.0-lts
       reject_straight_follow: Reject straight follow
       reject_straight_follow_hint: The server accounts must be authenticated when follow our accounts
       undo: Undo domain block
@@ -2139,15 +2132,10 @@ en:
     visibilities:
       circle: Circle-only
       direct: Direct
-<<<<<<< HEAD
-      login: Login only
-      login_long: Only show to logined users
-=======
       limited: Limited
       login: Login-only
       login_long: Only logined users
       mutual: Mutual-only
->>>>>>> kb15.0-lts
       private: Followers-only
       private_long: Only show to followers
       public: Public
@@ -2352,11 +2340,7 @@ en:
     invalid_otp_token: Invalid two-factor code
     otp_lost_help_html: If you lost access to both, you may get in touch with %{email}
     rate_limited: Too many authentication attempts, try again later.
-<<<<<<< HEAD
-    seamless_external_login: You are logged in via an external service, so password and e-mail settings are not available.
-=======
     seamless_external_login: You are logged in via an external service, so password and email settings are not available.
->>>>>>> kb15.0-lts
     signed_in_as: 'Signed in as:'
   verification:
     extra_instructions_html: <strong>Tip:</strong> The link on your website can be invisible. The important part is <code>rel="me"</code> which prevents impersonation on websites with user-generated content. You can even use a <code>link</code> tag in the header of the page instead of <code>a</code>, but the HTML must be accessible without executing JavaScript.
