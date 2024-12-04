@@ -590,10 +590,11 @@ class Notification extends ImmutablePureComponent {
       return this.renderStatusReference(notification, link);
     case 'status':
       return this.renderStatus(notification, link);
-    case 'list_status':
+    case 'list_status': {
       const list = notification.get('list');
       const listLink = <bdi><Link className='notification__display-name' href={`/lists/${list.get('id')}`} title={list.get('title')} to={`/lists/${list.get('id')}`}>{list.get('title')}</Link></bdi>;
       return this.renderListStatus(notification, listLink, link);
+    }
     case 'update':
       return this.renderUpdate(notification, link);
     case 'poll':

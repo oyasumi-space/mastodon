@@ -21,6 +21,7 @@ ia:
       one: Message
       other: Messages
     posts_tab_heading: Messages
+    self_follow_error: Sequer tu proprie conto non es permittite
   admin:
     account_actions:
       action: Exequer action
@@ -186,6 +187,7 @@ ia:
         create_domain_block: Crear blocada de dominio
         create_email_domain_block: Crear blocada de dominio de e-mail
         create_ip_block: Crear un regula IP
+        create_relay: Crear repetitor
         create_unavailable_domain: Crear dominio indisponibile
         create_user_role: Crear un rolo
         demote_user: Degradar usator
@@ -197,14 +199,17 @@ ia:
         destroy_email_domain_block: Deler blocada de dominio de e-mail
         destroy_instance: Purgar dominio
         destroy_ip_block: Deler le regula IP
+        destroy_relay: Deler repetitor
         destroy_status: Deler message
         destroy_unavailable_domain: Deler dominio indisponibile
         destroy_user_role: Destruer rolo
         disable_2fa_user: Disactivar A2F
         disable_custom_emoji: Disactivar emoji personalisate
+        disable_relay: Disactivar repetitor
         disable_sign_in_token_auth_user: Disactivar le authentication per token de e-mail pro le usator
         disable_user: Disactivar le usator
         enable_custom_emoji: Activar emoji personalisate
+        enable_relay: Activar repetitor
         enable_sign_in_token_auth_user: Activar le authentication per token de e-mail pro le usator
         enable_user: Activar le usator
         memorialize_account: Converter conto in memorial
@@ -246,6 +251,7 @@ ia:
         create_domain_block_html: "%{name} blocava dominio %{target}"
         create_email_domain_block_html: "%{name} blocava le dominio de e-mail %{target}"
         create_ip_block_html: "%{name} creava regula pro IP %{target}"
+        create_relay_html: "%{name} ha create un repetitor %{target}"
         create_unavailable_domain_html: "%{name} stoppava livration al dominio %{target}"
         create_user_role_html: "%{name} creava rolo de %{target}"
         demote_user_html: "%{name} degradava usator %{target}"
@@ -257,14 +263,17 @@ ia:
         destroy_email_domain_block_html: "%{name} disblocava le dominio de e-mail %{target}"
         destroy_instance_html: "%{name} purgava le dominio %{target}"
         destroy_ip_block_html: "%{name} deleva le regula pro IP %{target}"
+        destroy_relay_html: "%{name} ha delite le repetitor %{target}"
         destroy_status_html: "%{name} removeva un message de %{target}"
         destroy_unavailable_domain_html: "%{name} reprendeva le livration al dominio %{target}"
         destroy_user_role_html: "%{name} deleva le rolo %{target}"
         disable_2fa_user_html: "%{name} disactivava le authentication a duo factores pro le usator %{target}"
         disable_custom_emoji_html: "%{name} disactivava le emoji %{target}"
+        disable_relay_html: "%{name} ha disactivate le repetitor %{target}"
         disable_sign_in_token_auth_user_html: "%{name} disactivava le authentication per token de e-mail pro %{target}"
         disable_user_html: "%{name} disactivava le apertura de session pro le usator %{target}"
         enable_custom_emoji_html: "%{name} activava le emoji %{target}"
+        enable_relay_html: "%{name} ha activate le repetitor %{target}"
         enable_sign_in_token_auth_user_html: "%{name} activava le authentication per token de e-mail pro %{target}"
         enable_user_html: "%{name} activava le apertura de session pro le usator %{target}"
         memorialize_account_html: "%{name} converteva le conto de %{target} in un pagina commemorative"
@@ -817,8 +826,10 @@ ia:
       back_to_account: Retornar al pagina del conto
       back_to_report: Retro al pagina de reporto
       batch:
+        add_to_report: 'Adder al reporto #%{id}'
         remove_from_report: Remover del reporto
         report: Reporto
+      contents: Contento
       deleted: Delite
       favourites: Favorites
       history: Historia de versiones
@@ -827,13 +838,17 @@ ia:
       media:
         title: Multimedia
       metadata: Metadatos
+      no_history: Iste message non ha essite modificate
       no_status_selected: Necun message ha essite cambiate perque necun ha essite seligite
       open: Aperir message
       original_status: Message original
       reblogs: Republicationes
+      replied_to_html: Respondite a %{acct_link}
       status_changed: Message cambiate
-      title: Messages del conto
+      status_title: Message de @%{name}
+      title: Messages del conto – @%{name}
       trending: Tendentias
+      view_publicly: Vider publicamente
       visibility: Visibilitate
       with_media: Con multimedia
     strikes:
@@ -1117,7 +1132,7 @@ ia:
     migrate_account: Migrar a un altere conto
     migrate_account_html: Si tu vole rediriger iste conto a un altere, tu pote <a href="%{path}">configurar lo hic</a>.
     or_log_in_with: O aperi session con
-    privacy_policy_agreement_html: Io ha legite e accepta le <a href="<a href="%{privacy_policy_path}" target="_blank">politica de confidentialitate</a>
+    privacy_policy_agreement_html: Io ha legite e accepta le <a href="%{privacy_policy_path}" target="_blank">politica de confidentialitate</a>
     progress:
       confirm: Confirmar e-mail
       details: Tu detalios
@@ -1165,8 +1180,11 @@ ia:
     use_security_key: Usar clave de securitate
   author_attribution:
     example_title: Texto de exemplo
+    hint_html: Scribe tu articulos de novas o de blog foras de Mastodon? Controla le maniera in que tu recipe attribution quando on los condivide sur Mastodon.
+    instructions: 'Assecura te que iste codice appare in le HTML de tu articulo:'
     more_from_html: Plus de %{name}
     s_blog: Blog de %{name}
+    then_instructions: Postea, adde le nomine de dominio del publication in le campo sequente.
     title: Attribution de autor
   challenge:
     confirm: Continuar
@@ -1365,19 +1383,43 @@ ia:
       overwrite: Superscriber
       overwrite_long: Reimplaciar registros actual con le noves
     overwrite_preambles:
-      blocking_html: Tu es sur le puncto de <strong>reimplaciar tu lista de blocadas</strong> per usque a <strong>%{total_items} contos</strong> proveniente de <strong>%{filename}</strong>.
-      bookmarks_html: Tu es sur le puncto de <strong>reimplaciar tu marcapaginas</strong> per usque a <strong>%{total_items} messages</strong> desde <strong>%{filename}</strong>.
-      domain_blocking_html: Tu es sur le puncto de <strong>reimplaciar tu lista de blocadas de dominio</strong> per usque a <strong>%{total_items} dominios</strong> proveniente de <strong>%{filename}</strong>.
-      following_html: Tu es sur le puncto de <strong>sequer</strong> usque a <strong>%{total_items} contos</strong> de <strong>%{filename}</strong> e <strong>cessar de sequer tote le alteres</strong>.
-      lists_html: Tu es sur le puncto de <strong>reimplaciar tu listas</strong> per le contento de <strong>%{filename}</strong>. Usque a <strong>%{total_items} contos</strong> essera addite a nove listas.
-      muting_html: Tu es sur le puncto de <strong>reimplaciar tu lista de contos silentiate</strong> con usque a <strong>%{total_items} contos</strong> desde <strong>%{filename}</strong>.
+      blocking_html:
+        one: Tu va <strong>reimplaciar tu lista de blocada</strong> con usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>reimplaciar tu lista de blocada</strong> con usque <strong>%{count} contos</strong> ab <strong>%{filename}</strong>.
+      bookmarks_html:
+        one: Tu va <strong>reimplaciar tu marcapaginas</strong> con usque <strong>%{count} message</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>reimplaciar tu marcapaginas</strong> con usque <strong>%{count} messages</strong> ab <strong>%{filename}</strong>.
+      domain_blocking_html:
+        one: Tu va <strong>reimplaciar tu blocada lista de dominios blocate</strong> con usque <strong>%{count} dominio</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>reimplaciar tu lista de dominios blocate</strong> con usque <strong>%{count} dominios</strong> ab <strong>%{filename}</strong>.
+      following_html:
+        one: Tu va <strong>sequer</strong> usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong> e <strong>cessar de sequer ulle altere</strong>.
+        other: Tu va <strong>sequer</strong> usque <strong>%{count} contos</strong> ab <strong>%{filename}</strong> e <strong>cessar de sequer ulle altere</strong>.
+      lists_html:
+        one: Tu va <strong>reimplaciar tu listas</strong> con contentos ab <strong>%{filename}</strong>. Usque <strong>%{count} conto</strong> sera addite al nove listas.
+        other: Tu va <strong>reimplaciar tu listas</strong> con contentos ab <strong>%{filename}</strong>. Usque <strong>%{count} contos</strong> sera addite a nove listas.
+      muting_html:
+        one: Tu va <strong>reimplaciar tu lista de conto silentiate</strong> con usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>reimplaciar tu lista de contos silentiate</strong> con usque <strong>%{count} contos</strong> ab <strong>%{filename}</strong>.
     preambles:
-      blocking_html: Tu es sur le puncto de <strong>blocar</strong> usque a <strong>%{total_items} contos</strong> a partir de <strong>%{filename}</strong>.
-      bookmarks_html: Tu es sur le puncto de adder usque a <strong>%{total_items} messages</strong> desde <strong>%{filename}</strong> a tu <strong>marcapaginas</strong>.
-      domain_blocking_html: Tu es sur le puncto de <strong>blocar</strong> usque a <strong>%{total_items} dominios</strong> a partir de <strong>%{filename}</strong>.
-      following_html: Tu es sur le puncto de <strong>sequer</strong> usque a <strong>%{total_items} contos</strong> desde <strong>%{filename}</strong>.
-      lists_html: Tu es sur le puncto de adder usque <strong>%{total_items} contos</strong> desde <strong>%{filename}</strong> a tu <strong>listas</strong>. Nove listas essera create si il non ha un lista al qual adder los.
-      muting_html: Tu es sur le puncto de <strong>silentiar</strong> usque a <strong>%{total_items} contos</strong> desde <strong>%{filename}</strong>.
+      blocking_html:
+        one: Tu va <strong>blocar</strong> usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>blocar</strong> usque <strong>%{count} contos</strong> de <strong>%{filename}</strong>.
+      bookmarks_html:
+        one: Tu va adder usque <strong>%{count} message</strong> ab <strong>%{filename}</strong> a tu <strong>marcapaginas</strong>.
+        other: Tu va adder usque <strong>%{count} messages</strong> ab <strong>%{filename}</strong> a tu <strong>marcapaginas</strong>.
+      domain_blocking_html:
+        one: Tu va <strong>blocar</strong> usque <strong>%{count} dominio</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>blocar</strong> usque <strong>%{count} dominios</strong> ab <strong>%{filename}</strong>.
+      following_html:
+        one: Tu va <strong>sequer</strong> usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>sequer</strong> usque <strong>%{count} contos</strong> de <strong>%{filename}</strong>.
+      lists_html:
+        one: Tu va adder usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong> a tu <strong>lista</strong>. Nove listas sera create si il non ha lista a adder.
+        other: Tu va adder usque <strong>%{count} contos</strong> ab <strong>%{filename}</strong> a tu <strong>lista</strong>. Nove listas sera create si il non ha lista a adder.
+      muting_html:
+        one: Tu va <strong>silentiar</strong> usque <strong>%{count} conto</strong> ab <strong>%{filename}</strong>.
+        other: Tu va <strong>silentiar</strong> usque <strong>%{count} contos</strong> ab <strong>%{filename}</strong>.
     preface: Tu pote importar datos que tu ha exportate de un altere servitor, como un lista de personas que tu seque o bloca.
     recent_imports: Importationes recente
     states:

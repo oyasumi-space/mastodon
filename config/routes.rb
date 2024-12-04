@@ -28,8 +28,7 @@ Rails.application.routes.draw do
     /public/remote
     /conversations
     /lists/(*any)
-    /antennasw/(*any)
-    /antennast/(*any)
+    /antennas/(*any)
     /circles/(*any)
     /links/(*any)
     /notifications/(*any)
@@ -71,6 +70,13 @@ Rails.application.routes.draw do
                 tokens: 'oauth/tokens'
   end
 
+  namespace :oauth do
+    # As this is borrowed from OpenID, the specification says we must also support
+    # POST for the userinfo endpoint:
+    # https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+    match 'userinfo', via: [:get, :post], to: 'userinfo#show', defaults: { format: 'json' }
+  end
+
   scope path: '.well-known' do
     scope module: :well_known do
       get 'oauth-authorization-server', to: 'oauth_metadata#show', as: :oauth_metadata, defaults: { format: 'json' }
@@ -87,6 +93,7 @@ Rails.application.routes.draw do
   get 'manifest', to: 'manifests#show', defaults: { format: 'json' }
   get 'intent', to: 'intents#show'
   get 'custom.css', to: 'custom_css#show', as: :custom_css
+  get 'system.css', to: 'system_css#show', as: :system_css
   get 'user_custom.css', to: 'user_custom_css#show', as: :user_custom_css
 
   get 'remote_interaction_helper', to: 'remote_interaction_helper#index'
@@ -205,7 +212,6 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :antennas, except: [:show]
 
   resource :relationships, only: [:show, :update]
   resources :severed_relationships, only: [:index] do

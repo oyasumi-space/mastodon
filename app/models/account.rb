@@ -69,6 +69,8 @@ class Account < ApplicationRecord
   )
 
   BACKGROUND_REFRESH_INTERVAL = 1.week.freeze
+  REFRESH_DEADLINE = 6.hours
+  STALE_THRESHOLD = 1.day
   DEFAULT_FIELDS_SIZE = 6
   INSTANCE_ACTOR_ID = -99
 
@@ -92,9 +94,12 @@ class Account < ApplicationRecord
   include Account::Interactions
   include Account::Merging
   include Account::Search
+  include Account::Sensitizes
+  include Account::Silences
   include Account::StatusesSearch
   include Account::OtherSettings
   include Account::MasterSettings
+  include Account::Suspensions
   include Account::AttributionDomains
   include DomainMaterializable
   include DomainNormalizable
@@ -133,12 +138,6 @@ class Account < ApplicationRecord
   scope :remote, -> { where.not(domain: nil) }
   scope :local, -> { where(domain: nil) }
   scope :partitioned, -> { order(Arel.sql('row_number() over (partition by domain)')) }
-  scope :silenced, -> { where.not(silenced_at: nil) }
-  scope :suspended, -> { where.not(suspended_at: nil) }
-  scope :remote_pending, -> { where(remote_pending: true).where.not(suspended_at: nil) }
-  scope :sensitized, -> { where.not(sensitized_at: nil) }
-  scope :without_suspended, -> { where(suspended_at: nil) }
-  scope :without_silenced, -> { where(silenced_at: nil) }
   scope :without_instance_actor, -> { where.not(id: INSTANCE_ACTOR_ID) }
   scope :recent, -> { reorder(id: :desc) }
   scope :bots, -> { where(actor_type: AUTOMATED_ACTOR_TYPES) }
@@ -258,93 +257,17 @@ class Account < ApplicationRecord
   end
 
   def possibly_stale?
-    last_webfingered_at.nil? || last_webfingered_at <= 1.day.ago
+    last_webfingered_at.nil? || last_webfingered_at <= STALE_THRESHOLD.ago
   end
 
   def schedule_refresh_if_stale!
     return unless last_webfingered_at.present? && last_webfingered_at <= BACKGROUND_REFRESH_INTERVAL.ago
 
-    AccountRefreshWorker.perform_in(rand(6.hours.to_i), id)
+    AccountRefreshWorker.perform_in(rand(REFRESH_DEADLINE), id)
   end
 
   def refresh!
     ResolveAccountService.new.call(acct) unless local?
-  end
-
-  def silenced?
-    silenced_at.present?
-  end
-
-  def silence!(date = Time.now.utc)
-    update!(silenced_at: date)
-  end
-
-  def unsilence!
-    update!(silenced_at: nil)
-  end
-
-  def suspended?
-    suspended_at.present? && !instance_actor?
-  end
-
-  def suspended_locally?
-    suspended? && suspension_origin_local?
-  end
-
-  def suspended_permanently?
-    suspended? && deletion_request.nil?
-  end
-
-  def suspended_temporarily?
-    suspended? && deletion_request.present?
-  end
-
-  alias unavailable? suspended?
-  alias permanently_unavailable? suspended_permanently?
-
-  def suspend!(date: Time.now.utc, origin: :local, block_email: true)
-    transaction do
-      create_deletion_request!
-      update!(suspended_at: date, suspension_origin: origin)
-      create_canonical_email_block! if block_email
-    end
-  end
-
-  def unsuspend!
-    transaction do
-      deletion_request&.destroy!
-      update!(suspended_at: nil, suspension_origin: nil)
-      destroy_canonical_email_block!
-    end
-  end
-
-  def approve_remote!
-    return unless remote_pending
-
-    update!(remote_pending: false)
-    unsuspend!
-    ActivateRemoteAccountWorker.perform_async(id)
-  end
-
-  def reject_remote!
-    return unless remote_pending
-
-    update!(remote_pending: false, suspension_origin: :local)
-    pending_follow_requests.destroy_all
-    pending_statuses.destroy_all
-    suspend!
-  end
-
-  def sensitized?
-    sensitized_at.present?
-  end
-
-  def sensitize!(date = Time.now.utc)
-    update!(sensitized_at: date)
-  end
-
-  def unsensitize!
-    update!(sensitized_at: nil)
   end
 
   def memorialize!

@@ -43,19 +43,23 @@ class StatusReachFinder
 
   def reached_account_inboxes
     reject_domains = @status.limited_visibility? ? banned_domains : banned_domains + friend_domains
-    Account.where(id: reached_account_ids).where.not(domain: reject_domains).inboxes
+    scope = Account.where(id: reached_account_ids).where.not(domain: reject_domains)
+    inboxes_without_suspended_for(scope)
   end
 
   def reached_account_inboxes_for_misskey
-    Account.where(id: reached_account_ids, domain: banned_domains_for_misskey - friend_domains).inboxes
+    scope = Account.where(id: reached_account_ids, domain: banned_domains_for_misskey - friend_domains)
+    inboxes_without_suspended_for(scope)
   end
 
   def reached_account_inboxes_for_friend
-    Account.where(id: reached_account_ids, domain: friend_domains).inboxes
+    scope = Account.where(id: reached_account_ids, domain: friend_domains)
+    inboxes_without_suspended_for(scope)
   end
 
   def reached_account_inboxes_for_sending_domain_block
-    Account.where(id: reached_account_ids, domain: banned_domains_of_status(@status)).inboxes
+    scope = Account.where(id: reached_account_ids, domain: banned_domains_of_status(@status))
+    inboxes_without_suspended_for(scope)
   end
 
   def reached_account_ids
@@ -115,13 +119,8 @@ class StatusReachFinder
   end
 
   def followers_inboxes
-    if @status.in_reply_to_local_account? && distributable?
-      @status.account.followers.or(@status.thread.account.followers.not_domain_blocked_by_account(@status.account)).where.not(domain: banned_domains + friend_domains).inboxes
-    elsif @status.direct_visibility? || @status.limited_visibility?
-      []
-    else
-      @status.account.followers.where.not(domain: banned_domains + friend_domains).inboxes
-    end
+    scope = followers_scope
+    inboxes_without_suspended_for(scope)
   end
 
   def followers_inboxes_for_misskey
@@ -223,5 +222,20 @@ class StatusReachFinder
     from_info = InstanceInfo.where(software: InstanceInfo::INVALID_SUBSCRIPTION_SOFTWARES).pluck(:domain)
     from_domain_block = DomainBlock.where(detect_invalid_subscription: true).pluck(:domain)
     (from_info + from_domain_block).uniq
+  end
+
+  def followers_scope
+    if @status.in_reply_to_local_account? && distributable?
+      @status.account.followers.or(@status.thread.account.followers.not_domain_blocked_by_account(@status.account)).where.not(domain: banned_domains + friend_domains)
+    elsif @status.direct_visibility? || @status.limited_visibility?
+      Account.none
+    else
+      @status.account.followers.where.not(domain: banned_domains + friend_domains)
+    end
+  end
+
+  def inboxes_without_suspended_for(scope)
+    scope.merge!(Account.without_suspended) unless unsafe?
+    scope.inboxes
   end
 end

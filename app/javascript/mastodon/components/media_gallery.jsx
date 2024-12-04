@@ -113,11 +113,11 @@ class Item extends PureComponent {
       width = 25;
     }
 
-    if (attachment.get('description')?.length > 0) {
-      badges.push(<AltTextBadge key='alt' description={attachment.get('description')} />);
-    }
-
     const description = attachment.getIn(['translation', 'description']) || attachment.get('description');
+
+    if (description?.length > 0) {
+      badges.push(<AltTextBadge key='alt' description={description} />);
+    }
 
     if (attachment.get('type') === 'unknown') {
       return (
@@ -367,7 +367,7 @@ class MediaGallery extends PureComponent {
     return (
       <div className={classNames(classList)} style={style} ref={this.handleRef}>
         {children}
-        
+
         {(!visible || uncached) && (
           <div className={classNames('spoiler-button', { 'spoiler-button--click-thru': uncached })}>
             {spoilerButton}

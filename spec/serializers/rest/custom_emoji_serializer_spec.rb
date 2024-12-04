@@ -3,15 +3,18 @@
 require 'rails_helper'
 
 RSpec.describe REST::CustomEmojiSerializer do
-  let(:serialization) { serialized_record_json(record, described_class) }
-  let(:record) do
-    Fabricate(:custom_emoji, shortcode: 'ohagi', aliases: aliases)
-  end
+  subject { serialized_record_json(record, described_class) }
+
+  let(:record) { Fabricate.build :custom_emoji, id: 123, category: Fabricate(:custom_emoji_category, name: 'Category Name'), aliases: aliases }
   let(:aliases) { [] }
 
-  context 'when empty aliases' do
-    it 'returns normalized aliases' do
-      expect(serialization['aliases']).to eq []
+  describe 'serialization' do
+    it 'returns expected values' do
+      expect(subject)
+        .to include(
+          'category' => be_a(String).and(eq('Category Name')),
+          'aliases' => be_a(Array).and(eq([]))
+        )
     end
   end
 
@@ -19,7 +22,7 @@ RSpec.describe REST::CustomEmojiSerializer do
     let(:aliases) { nil }
 
     it 'returns normalized aliases' do
-      expect(serialization['aliases']).to eq []
+      expect(subject['aliases']).to eq []
     end
   end
 
@@ -27,7 +30,7 @@ RSpec.describe REST::CustomEmojiSerializer do
     let(:aliases) { [nil] }
 
     it 'returns normalized aliases' do
-      expect(serialization['aliases']).to eq []
+      expect(subject['aliases']).to eq []
     end
   end
 
@@ -35,7 +38,7 @@ RSpec.describe REST::CustomEmojiSerializer do
     let(:aliases) { ['neko'] }
 
     it 'returns normalized aliases' do
-      expect(serialization['aliases']).to eq ['neko']
+      expect(subject['aliases']).to eq ['neko']
     end
   end
 end

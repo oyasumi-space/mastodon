@@ -53,6 +53,7 @@ export const DetailedStatus: React.FC<{
   domain: string;
   showMedia?: boolean;
   withLogo?: boolean;
+  overrideDisplayName?: React.ReactNode;
   pictureInPicture: any;
   onToggleHidden?: (status: any) => void;
   onToggleMediaVisibility?: () => void;
@@ -69,6 +70,7 @@ export const DetailedStatus: React.FC<{
   domain,
   showMedia,
   withLogo,
+  overrideDisplayName,
   pictureInPicture,
   onToggleMediaVisibility,
   onToggleHidden,
@@ -163,7 +165,7 @@ export const DetailedStatus: React.FC<{
     media = <PictureInPicturePlaceholder aspectRatio={attachmentAspectRatio} />;
   } else if (status.get('media_attachments').size > 0) {
     if (
-      ['image', 'gifv'].includes(
+      ['image', 'gifv', 'unknown'].includes(
         status.getIn(['media_attachments', 0, 'type']) as string,
       ) ||
       status.get('media_attachments').size > 1
@@ -403,7 +405,11 @@ export const DetailedStatus: React.FC<{
           <div className='detailed-status__display-avatar'>
             <Avatar account={status.get('account')} size={46} />
           </div>
-          <DisplayName account={status.get('account')} localDomain={domain} />
+
+          {overrideDisplayName ?? (
+            <DisplayName account={status.get('account')} localDomain={domain} />
+          )}
+
           {withLogo && (
             <>
               <div className='spacer' />

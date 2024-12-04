@@ -67,6 +67,7 @@ class NotificationGroup < ActiveModelSerializers::Model
            :report,
            :account_relationship_severance_event,
            :account_warning,
+           :generated_annual_report,
            to: :notification, prefix: false
 
   def self.convert_emoji_reaction_pair(activity_ids)

@@ -122,7 +122,7 @@ class NavigationPanel extends Component {
   };
 
   isAntennasActive = (match, location) => {
-    return (match || location.pathname.startsWith('/antennast'));
+    return (match || location.pathname.startsWith('/antennas'));
   };
 
   render () {
@@ -197,7 +197,7 @@ class NavigationPanel extends Component {
           {signedIn && (
             <>
               <ColumnLink transparent to='/lists' icon='list-ul' iconComponent={ListAltIcon} activeIconComponent={ListAltActiveIcon} text={intl.formatMessage(messages.lists)} />
-              <ColumnLink transparent to='/antennasw' icon='wifi' iconComponent={AntennaIcon} text={intl.formatMessage(messages.antennas)} isActive={this.isAntennasActive} />
+              <ColumnLink transparent to='/antennas' icon='wifi' iconComponent={AntennaIcon} text={intl.formatMessage(messages.antennas)} isActive={this.isAntennasActive} />
               <ColumnLink transparent to='/circles' icon='user-circle' iconComponent={CirclesIcon} text={intl.formatMessage(messages.circles)} />
               <FollowRequestsLink />
               <ColumnLink transparent to='/conversations' icon='at' iconComponent={AlternateEmailIcon} text={intl.formatMessage(messages.direct)} />

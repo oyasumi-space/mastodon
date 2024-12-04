@@ -19,6 +19,7 @@ ja:
     posts:
       other: 投稿
     posts_tab_heading: 投稿
+    self_follow_error: 自分のアカウントをフォローすることはできません
   admin:
     account_actions:
       action: アクションを実行
@@ -189,6 +190,7 @@ ja:
         create_domain_block: ドメインブロックを作成
         create_email_domain_block: メールドメインブロックを作成
         create_ip_block: IPルールを作成
+        create_relay: リレーの追加
         create_unavailable_domain: 配送できないドメインを作成
         create_user_role: ロールを作成
         demote_user: ユーザーを降格
@@ -200,14 +202,17 @@ ja:
         destroy_email_domain_block: メールドメインブロックを削除
         destroy_instance: ドメインをブロックする
         destroy_ip_block: IPルールを削除
+        destroy_relay: リレーの削除
         destroy_status: 投稿を削除
         destroy_unavailable_domain: 配送できないドメインを削除
         destroy_user_role: ロールを削除
         disable_2fa_user: 二要素認証を無効化
         disable_custom_emoji: カスタム絵文字を無効化
+        disable_relay: リレーの無効化
         disable_sign_in_token_auth_user: ユーザのメールトークン認証を無効化
         disable_user: ユーザーを無効化
         enable_custom_emoji: カスタム絵文字を有効化
+        enable_relay: リレーの有効化
         enable_sign_in_token_auth_user: ユーザのメールトークン認証を有効化
         enable_user: ユーザーを有効化
         force_cw_status: 投稿に警告文を追加
@@ -253,6 +258,7 @@ ja:
         create_domain_block_html: "%{name}さんがドメイン %{target}をブロックしました"
         create_email_domain_block_html: "%{name} さんがメールドメイン %{target} をブロックしました"
         create_ip_block_html: "%{name}さんがIP %{target}のルールを作成しました"
+        create_relay_html: "%{name} さんがリレー %{target} を追加しました"
         create_unavailable_domain_html: "%{name}がドメイン %{target}への配送を停止しました"
         create_user_role_html: "%{name}さんがロール『%{target}』を作成しました"
         demote_user_html: "%{name}さんが%{target}さんを降格しました"
@@ -261,17 +267,20 @@ ja:
         destroy_custom_emoji_html: "%{name}さんがカスタム絵文字『%{target}』を削除しました"
         destroy_domain_allow_html: "%{name}さんが%{target}の連合許可を外しました"
         destroy_domain_block_html: "%{name}さんがドメイン %{target}のブロックを外しました"
-        destroy_email_domain_block_html: "%{name} がメールドメイン %{target} のブロックを外しました"
+        destroy_email_domain_block_html: "%{name} さんがメールドメイン %{target} のブロックを外しました"
         destroy_instance_html: "%{name}さんがドメイン %{target}をブロックしました"
         destroy_ip_block_html: "%{name}さんが IP %{target}のルールを削除しました"
+        destroy_relay_html: "%{name} さんがリレー %{target} を削除しました"
         destroy_status_html: "%{name}さんが%{target}さんの投稿を削除しました"
         destroy_unavailable_domain_html: "%{name}がドメイン %{target}への配送を再開しました"
         destroy_user_role_html: "%{name}さんがロール『%{target}』を削除しました"
         disable_2fa_user_html: "%{name}さんが%{target}さんの二要素認証を無効化しました"
         disable_custom_emoji_html: "%{name}さんがカスタム絵文字 %{target}を無効化しました"
+        disable_relay_html: "%{name} さんがリレー %{target} を無効にしました"
         disable_sign_in_token_auth_user_html: "%{name} が %{target} のメールトークン認証を無効化しました"
         disable_user_html: "%{name}さんが%{target}さんのログインを無効化しました"
         enable_custom_emoji_html: "%{name}さんがカスタム絵文字 %{target}を有効化しました"
+        enable_relay_html: "%{name} さんがリレー %{target} を有効にしました"
         enable_sign_in_token_auth_user_html: "%{name} が %{target} のメールトークン認証を有効化しました"
         enable_user_html: "%{name}さんが%{target}さんのログインを有効化しました"
         force_cw_status_html: "%{name}さんが%{target}さんの投稿を強制的にCWにしました"
@@ -1060,8 +1069,10 @@ ja:
       back_to_account: アカウントページに戻る
       back_to_report: 通報ページに戻る
       batch:
+        add_to_report: 'レポート #%{id} に追加'
         remove_from_report: 通報から削除
         report: 通報
+      contents: 投稿内容
       deleted: 削除済み
       favourites: お気に入り
       force_cw: 強制CW
@@ -1072,16 +1083,20 @@ ja:
       media:
         title: メディア
       metadata: メタデータ
+      no_history: この投稿は編集されていません
       no_status_selected: 何も選択されていないため、変更されていません
       open: 投稿を開く
       original_status: オリジナルの投稿
       reblogs: ブースト
-      remove: 投稿を削除
+      remove: 削除
       remove_history: 編集履歴を削除
       remove_media: メディアを削除
+      replied_to_html: "%{acct_link}さんへの返信"
       status_changed: 投稿を変更しました
-      title: 投稿一覧
+      status_title: "@%{name} の投稿"
+      title: 投稿一覧 - @%{name}
       trending: トレンド
+      view_publicly: 元の投稿を開く
       visibility: 公開範囲
       with_media: メディアあり
     strikes:
@@ -1307,17 +1322,11 @@ ja:
     hint_html: 他のアカウントからこのアカウントにフォロワーを引き継いで引っ越したい場合、ここでエイリアスを作成しておく必要があります。エイリアス自体は<strong>無害で、取り消す</strong>ことができます。<strong>引っ越しは以前のアカウント側から開始する必要があります</strong>。
     remove: エイリアスを削除
   antennas:
-    contexts:
-      account: アカウント
-      domain: ドメイン
-      keyword: キーワード
-      tag: ハッシュタグ
-    edit:
-      available: 有効
-      description: アンテナは、サーバーが認識した全ての公開・ローカル公開投稿のうち、購読を拒否していないすべてのアカウントからの投稿が対象です。検出された投稿は、指定したリストに追加されます。
-      title: アンテナを編集
     errors:
-      empty_contexts: 絞り込み条件が1つも指定されていないため無効です（除外条件はカウントされません）
+      duplicate_account: 重複アカウント
+      duplicate_domain: 重複ドメイン
+      duplicate_keyword: 重複キーワード
+      duplicate_tag: 重複タグ
       invalid_list_owner: これはあなたのリストではありません
       limit:
         accounts: 登録できるアカウント数の上限に達しています
@@ -1328,23 +1337,6 @@ ja:
       over_ltl_limit: 所持できるLTLモード付きアンテナ数 (ホーム/リストそれぞれにつき%{limit}) を超えています
       over_stl_limit: 所持できるSTLモード付きアンテナ数 (ホーム/リストそれぞれにつき%{limit}) を超えています
       too_short_keyword: キーワードが短すぎます
-    index:
-      accounts:
-        other: "%{count}件のアカウント"
-      contexts: "%{contexts}のアンテナ"
-      delete: 削除
-      disabled: 無効
-      domains:
-        other: "%{count}件のドメイン"
-      empty: アンテナはありません。
-      expires_in: "%{distance}で期限切れ"
-      expires_on: 有効期限 %{date}
-      keywords:
-        other: "%{count}件のキーワード"
-      stl: STLモードが適用されます。購読拒否設定は無視されます。
-      tags:
-        other: "%{count}件のタグ"
-      title: アンテナ
   appearance:
     advanced_web_interface: 上級者向けUI
     advanced_web_interface_hint: ディスプレイを幅いっぱいまで活用したい場合、上級者向け UI をおすすめします。ホーム、通知、連合タイムライン、更にはリストやハッシュタグなど、様々な異なるカラムから望む限りの情報を一度に受け取れるような設定が可能になります。
@@ -1464,8 +1456,11 @@ ja:
     with_login_options: カスタムCSSを無効化しますか？
   author_attribution:
     example_title: サンプルテキスト
+    hint_html: Mastodonの外でニュースやブログなどを執筆しているユーザーは、Mastodonで自分の記事が共有されたときに著者情報を表示させることができます。
+    instructions: 以下のコードを自分の記事のHTMLに貼り付けます。
     more_from_html: "%{name} のその他の情報"
     s_blog: "%{name} のブログ"
+    then_instructions: その後、記事の公開に使用しているドメイン名を以下の入力欄に追加してください。
     title: 著者の帰属
   challenge:
     confirm: 続ける
@@ -1659,19 +1654,31 @@ ja:
       overwrite: 上書き
       overwrite_long: 現在のレコードを新しいもので置き換えます
     overwrite_preambles:
-      blocking_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>で<strong>ブロックしたアカウントリストを置き換えます</strong>。"
-      bookmarks_html: "<strong>%{filename}</strong>の<strong>%{total_items}件の投稿</strong>で<strong>ブックマークの一覧を置き換えます</strong>。"
-      domain_blocking_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のドメイン</strong>で<strong>非表示にしたドメインリストを置き換えます</strong>。"
-      following_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>を<strong>フォローします</strong>。また、<strong>この中に含まれていないアカウントのフォローを解除します</strong>。"
-      lists_html: "<strong>作成済みのリスト</strong>を<strong>%{filename}の内容で置き換えます</strong>。<strong>%{total_items}個のアカウント</strong>が新しいリストに追加されます。"
-      muting_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>で<strong>ミュートしたアカウントリストを置き換えます</strong>。"
+      blocking_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>で<strong>ブロックリストを置き換えようとしています</strong>。
+      bookmarks_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}の投稿</strong>で<strong>ブックマークを置き換えようとしています</strong>。
+      domain_blocking_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のドメイン</strong>で<strong>ドメインブロックリストを置き換えようとしています</strong>。
+      following_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>を<strong>フォローし</strong>、<strong>他のすべてのユーザーのフォローを解除します</strong>。
+      lists_html:
+        other: あなたは<strong>%{filename}</strong>の内容で<strong>リストを置き換えようとしています</strong>。最大<strong>%{count}のアカウント</strong>が新しいリストに追加されます。
+      muting_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>で<strong>ミュートアカウントのリストを置き換えようとしています</strong>。
     preambles:
-      blocking_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>を<strong>ブロックします</strong>。"
-      bookmarks_html: "<strong>%{filename}</strong>の<strong>%{total_items}件の投稿</strong>を<strong>ブックマークに追加します</strong>。"
-      domain_blocking_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のドメイン</strong>を<strong>非表示にします</strong>。"
-      following_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>を<strong>フォローします</strong>。"
-      lists_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>を<strong>リストに追加します</strong>。追加先のリストがない場合は新しく作成されます。"
-      muting_html: "<strong>%{filename}</strong>の<strong>%{total_items}個のアカウント</strong>を<strong>ミュートします</strong>。"
+      blocking_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>を<strong>ブロックしようとしています</strong>。
+      bookmarks_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}の投稿</strong>を<strong>ブックマークに追加しようとしています</strong>。
+      domain_blocking_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のドメイン</strong>を<strong>ブロックしようとしています</strong>。
+      following_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>を<strong>フォローしようとしています</strong>。
+      lists_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>を<strong>リストに追加しようとしています</strong>。追加するリストがない場合は新しいリストが作成されます。
+      muting_html:
+        other: あなたは<strong>%{filename}</strong>から最大<strong>%{count}のアカウント</strong>を<strong>ミュートしようとしています</strong>。
     preface: 他のサーバーでエクスポートされたファイルから、フォロー/ブロックした情報をこのサーバー上のアカウントにインポートできます。
     recent_imports: 最近のインポート
     states:

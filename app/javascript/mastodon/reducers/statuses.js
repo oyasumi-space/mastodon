@@ -4,8 +4,7 @@ import { timelineDelete } from 'mastodon/actions/timelines_typed';
 import { me } from 'mastodon/initial_state';
 
 import {
-  BOOKMARK_CATEGORY_EDITOR_ADD_REQUEST,
-  BOOKMARK_CATEGORY_EDITOR_ADD_FAIL,
+  BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS,
 } from '../actions/bookmark_categories';
 import { STATUS_IMPORT, STATUSES_IMPORT } from '../actions/importer';
 import { normalizeStatusTranslation } from '../actions/importer/normalizer';
@@ -122,10 +121,8 @@ export default function statuses(state = initialState, action) {
     return state.get(action.status.get('id')) === undefined ? state : state.setIn([action.status.get('id'), 'bookmarked'], true);
   case BOOKMARK_FAIL:
     return state.get(action.status.get('id')) === undefined ? state : state.setIn([action.status.get('id'), 'bookmarked'], false);
-  case BOOKMARK_CATEGORY_EDITOR_ADD_REQUEST:
+  case BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS:
     return state.get(action.statusId) === undefined ? state : state.setIn([action.statusId, 'bookmarked'], true);
-  case BOOKMARK_CATEGORY_EDITOR_ADD_FAIL:
-    return state.get(action.statusId) === undefined ? state : state.setIn([action.statusId, 'bookmarked'], false);
   case UNBOOKMARK_REQUEST:
     return state.get(action.status.get('id')) === undefined ? state : state.setIn([action.status.get('id'), 'bookmarked'], false);
   case UNBOOKMARK_FAIL:

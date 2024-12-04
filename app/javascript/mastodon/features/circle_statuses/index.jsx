@@ -38,9 +38,8 @@ const messages = defineMessages({
 const mapStateToProps = (state, { params }) => ({
   circle: state.getIn(['circles', params.id]),
   statusIds: getCircleStatusList(state, params.id),
-  isLoading: state.getIn(['circles', params.id, 'isLoading'], true),
-  isEditing: state.getIn(['circleEditor', 'circleId']) === params.id,
-  hasMore: !!state.getIn(['circles', params.id, 'next']),
+  isLoading: state.getIn(['status_lists', 'circle_statuses', params.id, 'isLoading'], true),
+  hasMore: !!state.getIn(['status_lists', 'circle_statuses', params.id, 'next']),
 });
 
 class CircleStatuses extends ImmutablePureComponent {
@@ -61,6 +60,16 @@ class CircleStatuses extends ImmutablePureComponent {
   UNSAFE_componentWillMount () {
     this.props.dispatch(fetchCircle(this.props.params.id));
     this.props.dispatch(fetchCircleStatuses(this.props.params.id));
+  }
+
+  UNSAFE_componentWillReceiveProps (nextProps) {
+    const { dispatch } = this.props;
+    const { id } = nextProps.params;
+
+    if (id !== this.props.params.id) {
+      dispatch(fetchCircle(id));
+      dispatch(fetchCircleStatuses(id));
+    }
   }
 
   handlePin = () => {
@@ -84,10 +93,7 @@ class CircleStatuses extends ImmutablePureComponent {
   };
 
   handleEditClick = () => {
-    this.props.dispatch(openModal({
-      modalType: 'CIRCLE_EDITOR',
-      modalProps: { circleId: this.props.params.id },
-    }));
+    this.props.history.push(`/circles/${this.props.params.id}/edit`);
   };
 
   handleDeleteClick = () => {

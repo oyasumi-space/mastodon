@@ -9,17 +9,17 @@ module Mastodon
     # If you change the version number, also change the image version in docker-compose.yml.
 
     def kmyblue_major
-      15
+      16
     end
 
     def kmyblue_minor
-      4
+      1
     end
 
     def kmyblue_flag
-      'LTS'
+      # 'LTS'
       # 'dev'
-      # nil
+      nil
     end
 
     def major
@@ -27,7 +27,7 @@ module Mastodon
     end
 
     def minor
-      3
+      4
     end
 
     def patch
@@ -35,7 +35,7 @@ module Mastodon
     end
 
     def default_prerelease
-      ''
+      'alpha.1'
     end
 
     def prerelease
@@ -55,12 +55,11 @@ module Mastodon
     def to_s_of_mastodon
       components = [to_a.join('.')]
       components << "-#{prerelease}" if prerelease.present?
-      components << "+#{build_metadata_of_mastodon}" if build_metadata_of_mastodon.present?
       components.join
     end
 
     def build_metadata
-      ['kmyblue', to_s_of_kmyblue, build_metadata_of_mastodon].compact.join('.')
+      ['kmyblue', to_s_of_kmyblue].compact.join('.')
     end
 
     def build_metadata_of_mastodon
@@ -75,6 +74,7 @@ module Mastodon
       components = [to_a.join('.')]
       components << "-#{prerelease}" if prerelease.present?
       components << "+#{build_metadata}" if build_metadata.present?
+      components << "+#{build_metadata_of_mastodon}" if build_metadata_of_mastodon.present?
       components.join
     end
 
@@ -120,6 +120,10 @@ module Mastodon
       else
         source_base_url
       end
+    end
+
+    def source_commit
+      ENV.fetch('SOURCE_COMMIT', nil)
     end
 
     def user_agent

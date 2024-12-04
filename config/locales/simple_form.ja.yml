@@ -3,6 +3,7 @@ ja:
   simple_form:
     hints:
       account:
+        attribution_domains_as_text: 1行につき1つずつ入力してください。この設定は関わりのないwebサイトに対して虚偽の帰属表示が行われることを防止する役割があります。
         discoverable: プロフィールと公開投稿をMastodonのおすすめやハイライトとしてほかのユーザーに表示することを許可します。
         display_name: フルネーム、ハンドルネームなど
         fields: ホームページ、代名詞、年齢など何でも構いません。
@@ -179,6 +180,7 @@ ja:
     kmyblue: kmyblue
     labels:
       account:
+        attribution_domains_as_text: あなたの著者表示を許可するwebサイト
         discoverable: アカウントを見つけやすくする
         fields:
           examples:
@@ -327,9 +329,10 @@ ja:
         setting_trends: 本日のトレンドタグを表示する
         setting_unfollow_modal: フォローを解除する前に確認ダイアログを表示する
         setting_use_blurhash: 非表示のメディアを色付きのぼかしで表示する
-        setting_use_custom_css: カスタムCSSを有効にする
+        setting_use_custom_css: あなた自身が設定する以下のカスタムCSSを有効にする
         setting_use_pending_items: 手動更新モード
         setting_use_public_index: Mastodonの標準設定によって検索が許可されたアカウントの公開投稿を検索結果に含める
+        setting_use_server_css: 管理者の設定したカスタムCSSを有効にする
         severity: 重大性
         sign_in_token_attempt: セキュリティコード
         title: タイトル

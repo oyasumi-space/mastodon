@@ -1,5 +1,5 @@
 import type { RecordOf } from 'immutable';
-import { List, Record as ImmutableRecord } from 'immutable';
+import { List as ImmutableList, Record as ImmutableRecord } from 'immutable';
 
 import escapeTextContentForBrowser from 'escape-html';
 
@@ -79,9 +79,9 @@ export interface AccountShape
   extends Required<
     Omit<ApiAccountJSON, 'emojis' | 'fields' | 'roles' | 'moved'>
   > {
-  emojis: List<CustomEmoji>;
-  fields: List<AccountField>;
-  roles: List<AccountRole>;
+  emojis: ImmutableList<CustomEmoji>;
+  fields: ImmutableList<AccountField>;
+  roles: ImmutableList<AccountRole>;
   display_name_html: string;
   note_emojified: string;
   note_plain: string | null;
@@ -102,8 +102,8 @@ export const accountDefaultValues: AccountShape = {
   display_name: '',
   display_name_html: '',
   server_features: AccountServerFeaturesFactory(),
-  emojis: List<CustomEmoji>(),
-  fields: List<AccountField>(),
+  emojis: ImmutableList<CustomEmoji>(),
+  fields: ImmutableList<AccountField>(),
   group: false,
   header: '',
   header_static: '',
@@ -114,7 +114,7 @@ export const accountDefaultValues: AccountShape = {
   note: '',
   note_emojified: '',
   note_plain: 'string',
-  roles: List<AccountRole>(),
+  roles: ImmutableList<AccountRole>(),
   uri: '',
   url: '',
   username: '',
@@ -173,11 +173,15 @@ export function createAccountFromServerJSON(serverJSON: ApiAccountJSON) {
   return AccountFactory({
     ...accountJSON,
     moved: moved?.id,
-    fields: List(
+    fields: ImmutableList(
       serverJSON.fields.map((field) => createAccountField(field, emojiMap)),
     ),
-    emojis: List(serverJSON.emojis.map((emoji) => CustomEmojiFactory(emoji))),
-    roles: List(serverJSON.roles?.map((role) => AccountRoleFactory(role))),
+    emojis: ImmutableList(
+      serverJSON.emojis.map((emoji) => CustomEmojiFactory(emoji)),
+    ),
+    roles: ImmutableList(
+      serverJSON.roles?.map((role) => AccountRoleFactory(role)),
+    ),
     display_name_html: emojify(
       escapeTextContentForBrowser(displayName),
       emojiMap,

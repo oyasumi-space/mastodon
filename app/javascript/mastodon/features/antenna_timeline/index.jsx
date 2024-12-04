@@ -113,7 +113,7 @@ class AntennaTimeline extends PureComponent {
   };
 
   handleEditClick = () => {
-    this.props.history.push(`/antennasw/${this.props.params.id}`);
+    this.props.history.push(`/antennas/${this.props.params.id}/edit`);
   };
 
   handleDeleteClick = () => {

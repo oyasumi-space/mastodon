@@ -10,11 +10,8 @@ import {
   DomainBlockModal,
   ReportModal,
   EmbedModal,
-  ListEditor,
   ListAdder,
-  AntennaEditor,
   AntennaAdder,
-  CircleEditor,
   CircleAdder,
   BookmarkCategoryAdder,
   CompareHistoryModal,
@@ -23,6 +20,7 @@ import {
   SubscribedLanguagesModal,
   ClosedRegistrationsModal,
   IgnoreNotificationsModal,
+  AnnualReportModal,
 } from 'mastodon/features/ui/util/async-components';
 import { getScrollbarWidth } from 'mastodon/utils/scrollbar';
 
@@ -36,6 +34,9 @@ import {
   ConfirmationModal,
   ConfirmDeleteStatusModal,
   ConfirmDeleteListModal,
+  ConfirmDeleteAntennaModal,
+  ConfirmDeleteCircleModal,
+  ConfirmDeleteBookmarkCategoryModal,
   ConfirmReplyModal,
   ConfirmEditStatusModal,
   ConfirmUnfollowModal,
@@ -57,6 +58,9 @@ export const MODAL_COMPONENTS = {
   'CONFIRM': () => Promise.resolve({ default: ConfirmationModal }),
   'CONFIRM_DELETE_STATUS': () => Promise.resolve({ default: ConfirmDeleteStatusModal }),
   'CONFIRM_DELETE_LIST': () => Promise.resolve({ default: ConfirmDeleteListModal }),
+  'CONFIRM_DELETE_ANTENNA': () => Promise.resolve({ default: ConfirmDeleteAntennaModal }),
+  'CONFIRM_DELETE_CIRCLE': () => Promise.resolve({ default: ConfirmDeleteCircleModal }),
+  'CONFIRM_DELETE_BOOKMARK_CATEGORY': () => Promise.resolve({ default: ConfirmDeleteBookmarkCategoryModal }),
   'CONFIRM_REPLY': () => Promise.resolve({ default: ConfirmReplyModal }),
   'CONFIRM_EDIT_STATUS': () => Promise.resolve({ default: ConfirmEditStatusModal }),
   'CONFIRM_UNFOLLOW': () => Promise.resolve({ default: ConfirmUnfollowModal }),
@@ -68,9 +72,6 @@ export const MODAL_COMPONENTS = {
   'REPORT': ReportModal,
   'ACTIONS': () => Promise.resolve({ default: ActionsModal }),
   'EMBED': EmbedModal,
-  'LIST_EDITOR': ListEditor,
-  'ANTENNA_EDITOR': AntennaEditor,
-  'CIRCLE_EDITOR': CircleEditor,
   'FOCAL_POINT': () => Promise.resolve({ default: FocalPointModal }),
   'LIST_ADDER': ListAdder,
   'ANTENNA_ADDER': AntennaAdder,
@@ -82,6 +83,7 @@ export const MODAL_COMPONENTS = {
   'INTERACTION': InteractionModal,
   'CLOSED_REGISTRATIONS': ClosedRegistrationsModal,
   'IGNORE_NOTIFICATIONS': IgnoreNotificationsModal,
+  'ANNUAL_REPORT': AnnualReportModal,
 };
 
 export default class ModalRoot extends PureComponent {

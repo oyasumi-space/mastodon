@@ -19,6 +19,7 @@ ko:
     posts:
       other: 게시물
     posts_tab_heading: 게시물
+    self_follow_error: 본인의 계정을 팔로우할 수는 없습니다
   admin:
     account_actions:
       action: 조치 취하기
@@ -183,6 +184,7 @@ ko:
         create_domain_block: 도메인 차단 추가
         create_email_domain_block: 이메일 도메인 차단 생성
         create_ip_block: IP 규칙 만들기
+        create_relay: 릴레이 생성
         create_unavailable_domain: 사용 불가능한 도메인 생성
         create_user_role: 역할 생성
         demote_user: 사용자 강등
@@ -194,14 +196,17 @@ ko:
         destroy_email_domain_block: 이메일 도메인 차단 삭제
         destroy_instance: 도메인 퍼지하기
         destroy_ip_block: IP 규칙 삭제
+        destroy_relay: 릴레이 삭제
         destroy_status: 게시물 삭제
         destroy_unavailable_domain: 사용 불가능한 도메인 제거
         destroy_user_role: 역할 삭제
         disable_2fa_user: 2단계 인증 비활성화
         disable_custom_emoji: 커스텀 에모지 비활성화
+        disable_relay: 릴레이 비활성화
         disable_sign_in_token_auth_user: 사용자의 이메일 토큰 인증 비활성화
         disable_user: 사용자 비활성화
         enable_custom_emoji: 커스텀 에모지 활성화
+        enable_relay: 릴레이 활성화
         enable_sign_in_token_auth_user: 사용자의 이메일 토큰 인증 활성화
         enable_user: 사용자 활성화
         memorialize_account: 고인의 계정으로 전환
@@ -243,6 +248,7 @@ ko:
         create_domain_block_html: "%{name} 님이 도메인 %{target}를 차단했습니다"
         create_email_domain_block_html: "%{name} 님이 이메일 도메인 %{target}를 차단했습니다"
         create_ip_block_html: "%{name} 님이 IP 규칙 %{target}을 만들었습니다"
+        create_relay_html: "%{name} 님이 릴레이 %{target}를 생성했습니다"
         create_unavailable_domain_html: "%{name} 님이 도메인 %{target}에 대한 전달을 중지했습니다"
         create_user_role_html: "%{name} 님이 %{target} 역할을 생성했습니다"
         demote_user_html: "%{name} 님이 사용자 %{target} 님을 강등했습니다"
@@ -254,14 +260,17 @@ ko:
         destroy_email_domain_block_html: "%{name} 님이 이메일 도메인 %{target}을 차단 해제하였습니다"
         destroy_instance_html: "%{name} 님이 도메인 %{target}를 제거했습니다"
         destroy_ip_block_html: "%{name} 님이 IP 규칙 %{target}을 삭제하였습니다"
+        destroy_relay_html: "%{name} 님이 릴레이 %{target}를 삭제했습니다"
         destroy_status_html: "%{name} 님이 %{target} 님의 게시물을 삭제했습니다"
         destroy_unavailable_domain_html: "%{name} 님이 도메인 %{target}에 대한 전달을 재개"
         destroy_user_role_html: "%{name} 님이 %{target} 역할을 삭제했습니다"
         disable_2fa_user_html: "%{name} 님이 사용자 %{target} 님의 2단계 인증을 비활성화 했습니다"
         disable_custom_emoji_html: "%{name} 님이 에모지 %{target}를 비활성화했습니다"
+        disable_relay_html: "%{name} 님이 릴레이 %{target}를 비활성화했습니다"
         disable_sign_in_token_auth_user_html: "%{name} 님이 %{target} 님의 이메일 토큰 인증을 비활성화했습니다"
         disable_user_html: "%{name} 님이 사용자 %{target}의 로그인을 비활성화했습니다"
         enable_custom_emoji_html: "%{name} 님이 에모지 %{target}를 활성화했습니다"
+        enable_relay_html: "%{name} 님이 릴레이 %{target}를 활성화했습니다"
         enable_sign_in_token_auth_user_html: "%{name} 님이 %{target} 님의 이메일 토큰 인증을 활성화했습니다"
         enable_user_html: "%{name} 님이 사용자 %{target}의 로그인을 활성화했습니다"
         memorialize_account_html: "%{name} 님이 %{target}의 계정을 고인의 계정 페이지로 전환했습니다"
@@ -805,8 +814,10 @@ ko:
       back_to_account: 계정으로 돌아가기
       back_to_report: 신고 페이지로 돌아가기
       batch:
+        add_to_report: '신고 #%{id}에 추가'
         remove_from_report: 신고에서 제거
         report: 신고
+      contents: 내용
       deleted: 삭제됨
       favourites: 좋아요
       history: 버전 이력
@@ -815,13 +826,17 @@ ko:
       media:
         title: 미디어
       metadata: 메타데이터
+      no_history: 이 게시물은 수정되지 않았습니다
       no_status_selected: 아무 것도 선택 되지 않아 어떤 게시물도 바뀌지 않았습니다
       open: 게시물 열기
       original_status: 원본 게시물
       reblogs: 리블로그
+      replied_to_html: "%{acct_link} 님에게 답장"
       status_changed: 게시물 변경됨
-      title: 계정 게시물
+      status_title: "@%{name} 님의 게시물"
+      title: 계정 게시물 - @%{name}
       trending: 유행 중
+      view_publicly: 공개시점으로 보기
       visibility: 공개 설정
       with_media: 미디어 있음
     strikes:
@@ -1149,8 +1164,11 @@ ko:
     use_security_key: 보안 키 사용
   author_attribution:
     example_title: 예시 텍스트
+    hint_html: 마스토돈 밖에서 뉴스나 블로그 글을 쓰시나요? 마스토돈에 공유되었을 때 어떻게 표시될지를 제어하세요.
+    instructions: '이 코드가 글의 HTML 안에 포함되는지 확인하세요:'
     more_from_html: "%{name}의 게시물 더 보기"
     s_blog: "%{name}의 블로그"
+    then_instructions: 그리고 발행처의 도메인 네임을 아래 입력란에 추가하세요.
     title: 작성자 기여
   challenge:
     confirm: 계속
@@ -1342,19 +1360,31 @@ ko:
       overwrite: 덮어쓰기
       overwrite_long: 기존 것을 모두 지우고 새로 추가
     overwrite_preambles:
-      blocking_html: 나의 <strong>차단 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 계정</strong>으로 덮어 씌우려고 합니다.
-      bookmarks_html: 나의 <strong>북마크</strong>를 <strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 게시물</strong>로 덮어 씌우려고 합니다.
-      domain_blocking_html: 나의 <strong>도메인 차단 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 도메인</strong>으로 덮어 씌우려고 합니다.
-      following_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 계정</strong>을 <strong>팔로우</strong>하고 <strong>나머지 계정을 팔로우 해제</strong>하려고 합니다."
-      lists_html: 나의 <strong>리스트</strong>를 <strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 계정</strong>으로 덮어 씌우려고 합니다.
-      muting_html: 나의 <strong>뮤트한 계정 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{total_items} 개의 계정</strong>으로 덮어 씌우려고 합니다.
+      blocking_html:
+        other: 나의 <strong>차단 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 계정</strong>으로 덮어 씌우려고 합니다.
+      bookmarks_html:
+        other: 나의 <strong>북마크</strong>를 <strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 게시물</strong>로 덮어 씌우려고 합니다.
+      domain_blocking_html:
+        other: 나의 <strong>도메인 차단 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 도메인</strong>으로 덮어 씌우려고 합니다.
+      following_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 계정</strong>을 <strong>팔로우</strong>하고 <strong>나머지 계정을 팔로우 해제</strong>하려고 합니다."
+      lists_html:
+        other: 나의 <strong>리스트</strong>를 <strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 계정</strong>으로 덮어 씌우려고 합니다.
+      muting_html:
+        other: 나의 <strong>뮤트한 계정 목록</strong>을 <strong>%{filename}</strong>에서 가져온 <strong>%{count} 개의 계정</strong>으로 덮어 씌우려고 합니다.
     preambles:
-      blocking_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 계정</strong>을 차단하려고 합니다."
-      bookmarks_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 게시물</strong>을 북마크에 추가하려고 합니다."
-      domain_blocking_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 도메인</strong>을 차단하려고 합니다."
-      following_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 계정</strong>을 팔로우하려고 합니다."
-      lists_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 계정</strong>을 내 <strong>리스트</strong>에 추가하려고 합니다. 추가할 리스트가 존재하지 않으면 새로 생성될 것입니다."
-      muting_html: "<strong>%{filename}</strong>에서 가져온 <strong>%{total_items}개의 계정</strong>을 뮤트하려고 합니다."
+      blocking_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 계정</strong>을 차단하려고 합니다."
+      bookmarks_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 게시물</strong>을 북마크에 추가하려고 합니다."
+      domain_blocking_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 도메인</strong>을 차단하려고 합니다."
+      following_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 계정</strong>을 팔로우하려고 합니다."
+      lists_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 계정</strong>을 내 <strong>리스트</strong>에 추가하려고 합니다. 추가할 리스트가 존재하지 않으면 새로 생성될 것입니다."
+      muting_html:
+        other: "<strong>%{filename}</strong>에서 가져온 <strong>%{count}개의 계정</strong>을 뮤트하려고 합니다."
     preface: 다른 서버에서 내보내기 한 파일에서 팔로우 / 차단 정보를 이 계정으로 불러올 수 있습니다.
     recent_imports: 최근의 가져오기
     states:

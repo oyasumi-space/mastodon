@@ -272,14 +272,14 @@ export function submitCompose() {
         insertIfOnline('home');
       }
 
-      if (statusId === null && response.data.in_reply_to_id === null && response.data.visibility_ex === 'public') {
+      if (statusId === null && response.data.in_reply_to_id === null && ['public', 'public_unlisted', 'login'].includes(response.data.visibility_ex)) {
         insertIfOnline('community');
         insertIfOnline('public');
         insertIfOnline(`account:${response.data.account.id}`);
       }
 
       if (statusId === null && privacy === 'circle' && circleId !== null && circleId !== 0) {
-        dispatch(submitComposeWithCircleSuccess({ ...response.data }, circleId));
+        dispatch(submitComposeWithCircleSuccess({ ...response.data }, `${circleId}`));
       }
 
       dispatch(showAlert({
@@ -310,7 +310,7 @@ export function submitComposeSuccess(status) {
 export function submitComposeWithCircleSuccess(status, circleId) {
   return {
     type: COMPOSE_WITH_CIRCLE_SUCCESS,
-    status,
+    statusId: status.id,
     circleId,
   };
 }

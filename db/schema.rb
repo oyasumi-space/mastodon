@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
+ActiveRecord::Schema[7.2].define(version: 2024_11_04_082851) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -21,7 +21,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["account_id", "uri"], name: "index_account_aliases_on_account_id_and_uri", unique: true
-    t.index ["account_id"], name: "index_account_aliases_on_account_id"
   end
 
   create_table "account_conversations", force: :cascade do |t|
@@ -99,7 +98,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.integer "followers_count", default: 0, null: false
     t.integer "following_count", default: 0, null: false
     t.index ["account_id", "relationship_severance_event_id"], name: "idx_on_account_id_relationship_severance_event_id_7bd82bf20e", unique: true
-    t.index ["account_id"], name: "index_account_relationship_severance_events_on_account_id"
     t.index ["relationship_severance_event_id"], name: "idx_on_relationship_severance_event_id_403f53e707"
   end
 
@@ -267,6 +265,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "published_at", precision: nil
     t.bigint "status_ids", array: true
+  end
+
+  create_table "annual_report_statuses_per_account_counts", force: :cascade do |t|
+    t.integer "year", null: false
+    t.bigint "account_id", null: false
+    t.bigint "statuses_count", null: false
+    t.index ["year", "account_id"], name: "idx_on_year_account_id_ff3e167cef", unique: true
   end
 
   create_table "antenna_accounts", force: :cascade do |t|
@@ -533,7 +538,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", null: false
     t.index ["custom_filter_id"], name: "index_custom_filter_statuses_on_custom_filter_id"
     t.index ["status_id", "custom_filter_id"], name: "index_custom_filter_statuses_on_status_id_and_custom_filter_id", unique: true
-    t.index ["status_id"], name: "index_custom_filter_statuses_on_status_id"
   end
 
   create_table "custom_filters", force: :cascade do |t|
@@ -1372,6 +1376,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.integer "emoji_reactions_count", default: 0, null: false
     t.integer "emoji_reaction_accounts_count", default: 0, null: false
     t.integer "status_referred_by_count", default: 0, null: false
+    t.bigint "untrusted_favourites_count"
+    t.bigint "untrusted_reblogs_count"
     t.index ["status_id"], name: "index_status_stats_on_status_id", unique: true
   end
 
@@ -1571,7 +1577,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["external_id"], name: "index_webauthn_credentials_on_external_id", unique: true
     t.index ["user_id", "nickname"], name: "index_webauthn_credentials_on_user_id_and_nickname", unique: true
-    t.index ["user_id"], name: "index_webauthn_credentials_on_user_id"
   end
 
   create_table "webhooks", force: :cascade do |t|

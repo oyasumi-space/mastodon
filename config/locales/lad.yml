@@ -24,6 +24,7 @@ lad:
   admin:
     account_actions:
       action: Realiza aksion
+      already_silenced: Este kuento ya tiene sido limitado.
       already_suspended: Este kuento ya tiene sido suspendido.
       title: Modera %{acct}
     account_moderation_notes:
@@ -638,6 +639,7 @@ lad:
       report: 'Raporta #%{id}'
       reported_account: Kuento raportado
       reported_by: Raportado por
+      reported_with_application: Raportado kon aplikasyon
       resolved: Rezolvido
       resolved_msg: Tienes rezolvido la denunsia djustamente!
       skip_to_actions: Va direktamente a las aksyones
@@ -752,6 +754,7 @@ lad:
         desc_html: Esto se baza en eskriptos eksternos de hCaptcha, ke pueden ser una influensya negra a la sigurita i privasita. Ademas, <strong>esto puede rezultar en un proseso de enrejistrasyon signifikativamente manko aksesivle para algunas personas (espesyalmente diskapasitadas)</strong>. Por estas razones, por favor, konsidera otras alternativas komo rejistrasyon por aprovasyon manuala o kon envitasyon.
         title: Solisita ke los muevos utilizadores rezolven un CAPTCHA para konfirmar su konto
       content_retention:
+        danger_zone: Zona de perikolo
         preamble: Kontrola komo el kontenido jenerado por el utilizador se magazina en Mastodon.
         title: Retensyon de kontenido
       default_noindex:
@@ -822,7 +825,6 @@ lad:
       original_status: Publikasyon orijinala
       reblogs: Repartajasyones
       status_changed: Publikasyon trokada
-      title: Publikasyones del kuento
       trending: Trendes
       visibility: Vizivilita
       with_media: Kon multimedia
@@ -882,9 +884,12 @@ lad:
         message_html: "<strong>Tu magazinaje de objektos es mal konfigurado. La privasita de tus utilizadores esta en riziko.</strong>"
     tags:
       moderation:
+        not_trendable: No trendavle
+        not_usable: No uzavle
         pending_review: Revizion esta asperando
         reviewed: Revizado
         title: Estado
+        trendable: Trendavle
         unreviewed: No revizado
         usable: Uzavle
       name: Nombre
@@ -959,6 +964,7 @@ lad:
         used_by_over_week:
           one: Uzada por una persona durante la ultima semana
           other: Uzada por %{count} personas durante la ultima semana
+      title: Rekomendasyones i trendes
       trending: En trend
     warning_presets:
       add_new: Adjusta muevo
@@ -1138,7 +1144,9 @@ lad:
     too_fast: Formulario enviado demaziado rapido, aprovalo de muevo.
     use_security_key: Uza la yave de sigurita
   author_attribution:
+    example_title: Teksto de enshemplo
     more_from_html: Mas de %{name}
+    s_blog: Blog de %{name}
   challenge:
     confirm: Kontinua
     hint_html: "<strong>Konsejo:</strong> No retornaremos a demandarte por el kod durante la sigiente ora."
@@ -1335,20 +1343,6 @@ lad:
       merge_long: Manten rejistros egzistentes i adjusta muevos
       overwrite: Sobreskrive
       overwrite_long: Mete muevos rejistros en vez de los aktuales
-    overwrite_preambles:
-      blocking_html: Estas a punto de <strong>substituyir tu lista de blokos</strong> por asta <strong>%{total_items} kuentos </strong> de <strong>%{filename}</strong>.
-      bookmarks_html: Estas a punto de <strong>substituyir tus markadores</strong> por asta <strong>%{total_items} publikasyones</strong> ke vinyeron de <strong>%{filename}</strong>.
-      domain_blocking_html: Estas a punto de <strong>substituyir tu lista de blokos de domeno</strong> por asta <strong>%{total_items} domenos </strong> de <strong>%{filename}</strong>.
-      following_html: Estas a punto de <strong>segir</strong> asta <strong>%{total_items} kuentos</strong> de <strong>%{filename}</strong> i <strong>deshar de segir todos los otros kuentos</strong>.
-      lists_html: Estas a punto de <strong>sustituyir tus listas</strong> con el kontenido de <strong>%{filename}</strong>. Asta <strong>%{total_items} kuentos</strong> seran adjustados a muevas listas.
-      muting_html: Estas a punto de <strong>substituyir tu lista de kuentos silensyados</strong> por asta <strong>%{total_items} kuentos </strong> de <strong>%{filename}</strong>.
-    preambles:
-      blocking_html: Estas a punto de <strong>blokar</strong> asta <strong>%{total_items} kuentos </strong> de <strong>%{filename}</strong>.
-      bookmarks_html: Estas a punto de adjustar asta <strong>%{total_items} publikasyones</strong> de <strong>%{filename}</strong> a tus <strong>markadores</strong>.
-      domain_blocking_html: Estas a punto de <strong>blokar</strong> asta <strong>%{total_items} domenos </strong> de <strong>%{filename}</strong>.
-      following_html: Estas a punto de <strong>segir</strong> asta <strong>%{total_items} kuentos </strong> de <strong>%{filename}</strong>.
-      lists_html: Estas a punto de adjustar <strong>%{total_items} kuentos</strong> dizde <strong>%{filename}</strong> a tus <strong>listas</strong>. Se kriyaran muevas listas si no ay listas para adjustarlas.
-      muting_html: Estas a punto de <strong>silensyar</strong> asta <strong>%{total_items} kuentos </strong> de <strong>%{filename}</strong>.
     preface: Puedes importar siertos datos, komo todas las personas a las kualas estas sigiendo o blokando en tu kuento en esta instansya, dizde dosyas eksportadas de otra instansya.
     recent_imports: Importasyones resyentes
     states:

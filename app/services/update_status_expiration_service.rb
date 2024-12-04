@@ -27,6 +27,6 @@ class UpdateStatusExpirationService < BaseService
     expired_at = base_time + due
     expired_status = ScheduledExpirationStatus.create!(account: status.account, status: status, scheduled_at: expired_at)
 
-    RemoveExpiredStatusWorker.perform_at(expired_at, expired_status.id) if due < PostStatusService::MIN_SCHEDULE_OFFSET
+    RemoveExpiredStatusWorker.perform_at(expired_at, expired_status.id) if due < ScheduledStatus::MINIMUM_OFFSET
   end
 end

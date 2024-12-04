@@ -6,7 +6,7 @@ SimpleNavigation::Configuration.run do |navigation|
   navigation.items do |n|
     n.item :web, safe_join([material_symbol('chevron_left'), t('settings.back')]), root_path
 
-    if ENV['UPDATE_CHECK_URL'] != '' && current_user.can?(:view_devops)
+    if Rails.configuration.x.mastodon.software_update_url.present? && current_user.can?(:view_devops)
       n.item :software_updates, safe_join([material_symbol('report'), t('admin.critical_update_pending')]), admin_software_updates_path, if: -> { SoftwareUpdate.urgent_pending? }, html: { class: 'warning' }
       n.item :software_updates, safe_join([material_symbol('report'), t('admin.update_pendings.major')]), admin_software_updates_path, if: -> { !SoftwareUpdate.urgent_pending? && SoftwareUpdate.major_pending? }, html: { class: 'warning' }
       n.item :software_updates, safe_join([material_symbol('report'), t('admin.update_pendings.patch')]), admin_software_updates_path, if: -> { !SoftwareUpdate.urgent_pending? && SoftwareUpdate.patch_pending? }, html: { class: 'warning' }

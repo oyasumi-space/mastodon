@@ -47,6 +47,26 @@ RSpec.describe StatusesHelper do
       end
     end
 
+    context 'with a status that is public_unlisted' do
+      let(:status) { Status.new(visibility: 'public_unlisted') }
+
+      it 'returns the correct fa icon' do
+        result = helper.visibility_icon(status)
+
+        expect(result).to match('cloud')
+      end
+    end
+
+    context 'with a status that is login' do
+      let(:status) { Status.new(visibility: 'login') }
+
+      it 'returns the correct fa icon' do
+        result = helper.visibility_icon(status)
+
+        expect(result).to match('key')
+      end
+    end
+
     context 'with a status that is unlisted' do
       let(:status) { Status.new(visibility: 'unlisted') }
 
@@ -76,29 +96,15 @@ RSpec.describe StatusesHelper do
         expect(result).to match('alternate_email')
       end
     end
-  end
 
-  describe '#stream_link_target' do
-    it 'returns nil if it is not an embedded view' do
-      set_not_embedded_view
+    context 'with a status that is limited' do
+      let(:status) { Status.new(visibility: 'limited') }
 
-      expect(helper.stream_link_target).to be_nil
+      it 'returns the correct fa icon' do
+        result = helper.visibility_icon(status)
+
+        expect(result).to match('shield')
+      end
     end
-
-    it 'returns _blank if it is an embedded view' do
-      set_embedded_view
-
-      expect(helper.stream_link_target).to eq '_blank'
-    end
-  end
-
-  def set_not_embedded_view
-    params[:controller] = "not_#{StatusesHelper::EMBEDDED_CONTROLLER}"
-    params[:action] = "not_#{StatusesHelper::EMBEDDED_ACTION}"
-  end
-
-  def set_embedded_view
-    params[:controller] = StatusesHelper::EMBEDDED_CONTROLLER
-    params[:action] = StatusesHelper::EMBEDDED_ACTION
   end
 end

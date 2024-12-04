@@ -70,7 +70,9 @@ class DomainBlock < ApplicationRecord
        reject_friend? ? :reject_friend : nil,
        block_trends? ? :block_trends : nil,
        detect_invalid_subscription? ? :detect_invalid_subscription : nil,
-       reject_reports? ? :reject_reports : nil].reject { |policy| policy == :noop || policy.nil? }
+       reject_reports? ? :reject_reports : nil]
+        .reject { |policy| policy == :noop }
+        .compact
     end
   end
 

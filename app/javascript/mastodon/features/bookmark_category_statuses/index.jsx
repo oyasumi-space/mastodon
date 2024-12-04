@@ -16,7 +16,7 @@ import { debounce } from 'lodash';
 import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg';
 import DeleteIcon from '@/material-icons/400-24px/delete.svg?react';
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
-import { deleteBookmarkCategory, expandBookmarkCategoryStatuses, fetchBookmarkCategory, fetchBookmarkCategoryStatuses , setupBookmarkCategoryEditor } from 'mastodon/actions/bookmark_categories';
+import { deleteBookmarkCategory, expandBookmarkCategoryStatuses, fetchBookmarkCategory, fetchBookmarkCategoryStatuses } from 'mastodon/actions/bookmark_categories';
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { openModal } from 'mastodon/actions/modal';
 import Column from 'mastodon/components/column';
@@ -28,8 +28,6 @@ import BundleColumnError from 'mastodon/features/ui/components/bundle_column_err
 import { getBookmarkCategoryStatusList } from 'mastodon/selectors';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
-import EditBookmarkCategoryForm from './components/edit_bookmark_category_form';
-
 
 const messages = defineMessages({
   deleteMessage: { id: 'confirmations.delete_bookmark_category.message', defaultMessage: 'Are you sure you want to permanently delete this category?' },
@@ -40,9 +38,8 @@ const messages = defineMessages({
 const mapStateToProps = (state, { params }) => ({
   bookmarkCategory: state.getIn(['bookmark_categories', params.id]),
   statusIds: getBookmarkCategoryStatusList(state, params.id),
-  isLoading: state.getIn(['bookmark_categories', params.id, 'isLoading'], true),
-  isEditing: state.getIn(['bookmarkCategoryEditor', 'bookmarkCategoryId']) === params.id,
-  hasMore: !!state.getIn(['bookmark_categories', params.id, 'next']),
+  isLoading: state.getIn(['status_lists', 'bookmark_category_statuses', params.id, 'isLoading'], true),
+  hasMore: !!state.getIn(['status_lists', 'bookmark_category_statuses', params.id, 'next']),
 });
 
 class BookmarkCategoryStatuses extends ImmutablePureComponent {
@@ -57,13 +54,22 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
     multiColumn: PropTypes.bool,
     hasMore: PropTypes.bool,
     isLoading: PropTypes.bool,
-    isEditing: PropTypes.bool,
     ...WithRouterPropTypes,
   };
 
   UNSAFE_componentWillMount () {
     this.props.dispatch(fetchBookmarkCategory(this.props.params.id));
     this.props.dispatch(fetchBookmarkCategoryStatuses(this.props.params.id));
+  }
+
+  UNSAFE_componentWillReceiveProps (nextProps) {
+    const { dispatch } = this.props;
+    const { id } = nextProps.params;
+
+    if (id !== this.props.params.id) {
+      dispatch(fetchBookmarkCategory(id));
+      dispatch(fetchBookmarkCategoryStatuses(id));
+    }
   }
 
   handlePin = () => {
@@ -87,7 +93,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
   };
 
   handleEditClick = () => {
-    this.props.dispatch(setupBookmarkCategoryEditor(this.props.params.id));
+    this.props.history.push(`/bookmark_categories/${this.props.params.id}/edit`);
   };
 
   handleDeleteClick = () => {
@@ -121,7 +127,7 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
   }, 300, { leading: true });
 
   render () {
-    const { intl, bookmarkCategory, statusIds, columnId, multiColumn, hasMore, isLoading, isEditing } = this.props;
+    const { intl, bookmarkCategory, statusIds, columnId, multiColumn, hasMore, isLoading } = this.props;
     const pinned = !!columnId;
 
     if (typeof bookmarkCategory === 'undefined') {
@@ -139,10 +145,6 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
     }
 
     const emptyMessage = <FormattedMessage id='empty_column.bookmarked_statuses' defaultMessage="You don't have any bookmarked posts yet. When you bookmark one, it will show up here." />;
-
-    const editor = isEditing && (
-      <EditBookmarkCategoryForm />
-    );
 
     return (
       <Column bindToDocument={!multiColumn} ref={this.setRef} label={intl.formatMessage(messages.heading)}>
@@ -165,8 +167,6 @@ class BookmarkCategoryStatuses extends ImmutablePureComponent {
               <button type='button' className='text-btn column-header__setting-btn' tabIndex={0} onClick={this.handleDeleteClick}>
                 <Icon id='trash' icon={DeleteIcon} /> <FormattedMessage id='bookmark_categories.delete' defaultMessage='Delete category' />
               </button>
-
-              {editor}
             </section>
           </div>
         </ColumnHeader>

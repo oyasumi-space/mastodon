@@ -1,3 +1,5 @@
+import type { JSX } from 'react';
+
 import { FormattedMessage } from 'react-intl';
 
 import { Link } from 'react-router-dom';
@@ -48,7 +50,7 @@ const FollowerCount: React.FC<{ accountId: string }> = ({ accountId }) => {
     <ShortNumber
       value={account.followers_count}
       renderer={FollowersCounter}
-      isHide={isHide}
+      isHide={account.other_settings.hide_followers_count}
     />
   );
 };

@@ -12,7 +12,7 @@ en:
         locked: People will request to follow you and you will be able to either accept or reject new followers.
         note: 'You can @mention other people or #hashtags.'
         show_collections: People will be able to browse through your follows and followers. People that you follow will see that you follow them regardless.
-        unlocked: People will be able to follow you without requesting approval. Uncheck if you want to review follow requests and chose whether to accept or reject new followers.
+        unlocked: People will be able to follow you without requesting approval. Uncheck if you want to review follow requests and choose whether to accept or reject new followers.
       account_alias:
         acct: Specify the username@domain of the account you want to move from
       account_migration:
@@ -329,9 +329,10 @@ en:
         setting_trends: Show today's trends
         setting_unfollow_modal: Show confirmation dialog before unfollowing someone
         setting_use_blurhash: Show colorful gradients for hidden media
-        setting_use_custom_css: Enable custom CSS
+        setting_use_custom_css: Enable custom CSS set by yourself
         setting_use_pending_items: Slow mode
         setting_use_public_index: Include permitted accounts post to results of search
+        setting_use_server_css: Enable server CSS set by the administrator
         severity: Severity
         sign_in_token_attempt: Security code
         title: Title

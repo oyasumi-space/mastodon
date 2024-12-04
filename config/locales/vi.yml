@@ -19,6 +19,7 @@ vi:
     posts:
       other: Tút
     posts_tab_heading: Tút
+    self_follow_error: Bạn không thể tự theo dõi chính bạn
   admin:
     account_actions:
       action: Thực hiện hành động
@@ -183,6 +184,7 @@ vi:
         create_domain_block: Chặn máy chủ
         create_email_domain_block: Chặn tên miền email
         create_ip_block: Chặn IP
+        create_relay: Tạo relay
         create_unavailable_domain: Bỏ liên hợp
         create_user_role: Tạo vai trò
         demote_user: Hạ vai trò
@@ -194,14 +196,17 @@ vi:
         destroy_email_domain_block: Bỏ chặn tên miền email
         destroy_instance: Thanh trừng máy chủ
         destroy_ip_block: Bỏ chặn IP
+        destroy_relay: Xóa relay
         destroy_status: Xóa tút
         destroy_unavailable_domain: Cho phép liên hợp
         destroy_user_role: Xóa vai trò
         disable_2fa_user: Vô hiệu hóa 2FA
         disable_custom_emoji: Vô hiệu hóa emoji
+        disable_relay: Tắt relay
         disable_sign_in_token_auth_user: Tắt xác minh bằng email cho người dùng
         disable_user: Vô hiệu hóa đăng nhập
         enable_custom_emoji: Cho phép emoji
+        enable_relay: Bật relay
         enable_sign_in_token_auth_user: Bật xác minh bằng email cho người dùng
         enable_user: Cho phép đăng nhập
         memorialize_account: Gán tưởng niệm
@@ -243,6 +248,7 @@ vi:
         create_domain_block_html: "%{name} đã chặn máy chủ %{target}"
         create_email_domain_block_html: "%{name} đã chặn tên miền email %{target}"
         create_ip_block_html: "%{name} đã chặn IP %{target}"
+        create_relay_html: "%{name} đã tạo relay %{target}"
         create_unavailable_domain_html: "%{name} đã bỏ liên hợp với máy chủ %{target}"
         create_user_role_html: "%{name} đã tạo vai trò %{target}"
         demote_user_html: "%{name} đã hạ vai trò của %{target}"
@@ -254,14 +260,17 @@ vi:
         destroy_email_domain_block_html: "%{name} đã bỏ chặn email %{target}"
         destroy_instance_html: "%{name} đã thanh trừng máy chủ %{target}"
         destroy_ip_block_html: "%{name} đã bỏ chặn IP %{target}"
+        destroy_relay_html: "%{name} đã xóa relay %{target}"
         destroy_status_html: "%{name} đã xóa tút của %{target}"
         destroy_unavailable_domain_html: "%{name} tiếp tục liên hợp với máy chủ %{target}"
         destroy_user_role_html: "%{name} đã xóa vai trò %{target}"
         disable_2fa_user_html: "%{name} đã vô hiệu hóa xác minh hai bước của %{target}"
         disable_custom_emoji_html: "%{name} đã ẩn emoji %{target}"
+        disable_relay_html: "%{name} đã tắt relay %{target}"
         disable_sign_in_token_auth_user_html: "%{name} đã tắt xác minh email của %{target}"
         disable_user_html: "%{name} đã vô hiệu hóa đăng nhập %{target}"
         enable_custom_emoji_html: "%{name} đã cho phép emoji %{target}"
+        enable_relay_html: "%{name} đã bật relay %{target}"
         enable_sign_in_token_auth_user_html: "%{name} đã bật xác minh email của %{target}"
         enable_user_html: "%{name} đã bỏ vô hiệu hóa đăng nhập %{target}"
         memorialize_account_html: "%{name} đã biến tài khoản %{target} thành một trang tưởng niệm"
@@ -803,8 +812,10 @@ vi:
       back_to_account: Quay lại trang tài khoản
       back_to_report: Quay lại trang báo cáo
       batch:
+        add_to_report: 'Thêm vào báo cáo #%{id}'
         remove_from_report: Xóa khỏi báo cáo
         report: Báo cáo
+      contents: Nội dung
       deleted: Đã xóa
       favourites: Lượt thích
       history: Lịch sử phiên bản
@@ -813,13 +824,17 @@ vi:
       media:
         title: Media
       metadata: Metadata
+      no_history: Tút này chưa được chỉnh sửa
       no_status_selected: Bạn chưa chọn bất kỳ tút nào
       open: Mở tút
       original_status: Tút gốc
       reblogs: Lượt đăng lại
+      replied_to_html: Trả lời đến %{acct_link}
       status_changed: Tút đã sửa
-      title: Tất cả tút
+      status_title: Đăng bởi @%{name}
+      title: Tút từ tài khoản - @%{name}
       trending: Xu hướng
+      view_publicly: Xem công khai
       visibility: Hiển thị
       with_media: Có media
     strikes:
@@ -831,8 +846,8 @@ vi:
         sensitive: "%{name} đã đánh dấu %{target} là nhạy cảm"
         silence: "%{name} đã ẩn %{target}"
         suspend: "%{name} đã vô hiệu hóa %{target}"
-      appeal_approved: Đã khiếu nại
-      appeal_pending: Đang kháng cáo
+      appeal_approved: Khiếu nại được chấp nhận
+      appeal_pending: Đang khiếu nại
       appeal_rejected: Khiếu nại bị từ chối
     system_checks:
       database_schema_check:
@@ -1147,7 +1162,7 @@ vi:
     use_security_key: Dùng khóa bảo mật
   author_attribution:
     example_title: Văn bản mẫu
-    hint_html: Bạn là nhà báo hoặc blogger bên ngoài Mastodon? Kiểm soát cách bạn được ghi nhận khi chúng được chia sẻ trên Mastodon.
+    hint_html: Bạn là nhà báo hoặc blogger bên ngoài Mastodon? Kiểm soát cách bài viết của bạn được ghi nhận khi chia sẻ trên Mastodon.
     instructions: 'Đặt mã này trong HTML bài viết:'
     more_from_html: Viết bởi %{name}
     s_blog: "%{name}'s Blog"
@@ -1343,19 +1358,31 @@ vi:
       overwrite: Ghi đè
       overwrite_long: Thay thế các bản ghi hiện tại bằng các bản ghi mới
     overwrite_preambles:
-      blocking_html: Bạn sắp <strong>thay thế danh sách chặn</strong> với <strong>%{total_items} tài khoản</strong> từ <strong>%{filename}</strong>.
-      bookmarks_html: Bạn sắp <strong>thay thế lượt lưu</strong> với <strong>%{total_items} tút</strong> từ <strong>%{filename}</strong>.
-      domain_blocking_html: Bạn sắp <strong>thay thế danh sách máy chủ chặn</strong> với <strong>%{total_items} máy chủ</strong> từ <strong>%{filename}</strong>.
-      following_html: Bạn sắp <strong>theo dõi</strong> với <strong>%{total_items} người</strong> từ <strong>%{filename}</strong> và <strong>ngừng theo dõi bất kỳ ai</strong>.
-      lists_html: Bạn sắp <strong>thay thế các danh sách</strong> bằng nội dung từ <strong>%{filename}</strong>. Hơn <strong>%{total_items} tài khoản</strong> sẽ được thêm vào những danh sách mới.
-      muting_html: Bạn sắp <strong>thay thế danh sách ẩn</strong> với <strong>%{total_items} người</strong> từ <strong>%{filename}</strong>.
+      blocking_html:
+        other: Bạn sắp <strong>thay thế danh sách chặn</strong> với <strong>%{count} người</strong> từ <strong>%{filename}</strong>.
+      bookmarks_html:
+        other: Bạn sắp <strong>thay thế danh sách tút đã lưu</strong> với <strong>%{count} tút</strong> từ <strong>%{filename}</strong>.
+      domain_blocking_html:
+        other: Bạn sắp <strong>thay thế danh sách máy chủ chặn</strong> với <strong>%{count} máy chủ</strong> từ <strong>%{filename}</strong>.
+      following_html:
+        other: Bạn sắp <strong>theo dõi</strong> tới <strong>%{count} người</strong> từ <strong>%{filename}</strong> và <strong>ngừng theo dõi mọi người khác</strong>.
+      lists_html:
+        other: Bạn sắp <strong>thay thế danh sách</strong> với nội dung của <strong>%{filename}</strong>. Có <strong>%{count} người</strong> sẽ được thêm vào những danh sách mới.
+      muting_html:
+        other: Bạn sắp <strong>they thế danh sách người bạn chặn</strong> với <strong>%{count} người</strong> từ <strong>%{filename}</strong>.
     preambles:
-      blocking_html: Bạn sắp <strong>chặn</strong> tới <strong>%{total_items} người</strong> từ <strong>%{filename}</strong>.
-      bookmarks_html: Bạn sắp thêm vào <strong>%{total_items} tút</strong> từ <strong>%{filename}</strong> vào <strong>lượt lưu</strong>.
-      domain_blocking_html: Bạn sắp <strong>chặn</strong> tới <strong>%{total_items} máy chủ</strong> từ <strong>%{filename}</strong>.
-      following_html: Bạn sắp <strong>theo dõi</strong> tới <strong>%{total_items} người</strong> từ <strong>%{filename}</strong>.
-      lists_html: Bạn sắp thêm <strong>%{total_items} tài khoản</strong> từ <strong>%{filename}</strong> vào <strong>danh sách của bạn</strong>. Những danh sách mới sẽ được tạo nếu bạn chưa có danh sách nào.
-      muting_html: Bạn sắp <strong>ẩn</strong> lên tới <strong>%{total_items} người</strong> từ <strong>%{filename}</strong>.
+      blocking_html:
+        other: Bạn sắp <strong>chặn</strong> tới <strong>%{count} người</strong> từ <strong>%{filename}</strong>.
+      bookmarks_html:
+        other: Bạn sắp thêm tới <strong>%{count} tút</strong> từ <strong>%{filename}</strong> vào <strong>danh sách tút đã lưu</strong>.
+      domain_blocking_html:
+        other: Bạn sắp <strong>chặn</strong> tới <strong>%{count} máy chủ</strong> từ <strong>%{filename}</strong>.
+      following_html:
+        other: Bạn sắp <strong>theo dõi</strong> tới <strong>%{count} người</strong> từ <strong>%{filename}</strong>.
+      lists_html:
+        other: Bạn sắp thêm tới <strong>%{count} người</strong> từ <strong>%{filename}</strong> vào <strong>danh sách của bạn</strong>. Những danh sách mới sẽ được tạo nếu không có danh sách để thêm.
+      muting_html:
+        other: Bạn sắp <strong>ẩn</strong> tới <strong>%{count} người</strong> từ <strong>%{filename}</strong>.
     preface: Bạn có thể nhập dữ liệu mà bạn đã xuất từ một máy chủ khác, chẳng hạn danh sách những người đang theo dõi hoặc chặn.
     recent_imports: Đã nhập gần đây
     states:

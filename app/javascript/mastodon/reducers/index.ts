@@ -7,15 +7,9 @@ import { accountsReducer } from './accounts';
 import accounts_map from './accounts_map';
 import alerts from './alerts';
 import announcements from './announcements';
-import antennaAdder from './antenna_adder';
-import antennaEditor from './antenna_editor';
-import antennas from './antennas';
-import bookmark_categories from './bookmark_categories';
-import bookmarkCategoryAdder from './bookmark_category_adder';
-import bookmarkCategoryEditor from './bookmark_category_editor';
-import circleAdder from './circle_adder';
-import circleEditor from './circle_editor';
-import circles from './circles';
+import { antennasReducer } from './antennas';
+import { bookmarkCategoriesReducer } from './bookmark_categories';
+import { circlesReducer } from './circles';
 import compose from './compose';
 import contexts from './contexts';
 import conversations from './conversations';
@@ -26,9 +20,7 @@ import filters from './filters';
 import followed_tags from './followed_tags';
 import height_cache from './height_cache';
 import history from './history';
-import listAdder from './list_adder';
-import listEditor from './list_editor';
-import lists from './lists';
+import { listsReducer } from './lists';
 import { markersReducer } from './markers';
 import media_attachments from './media_attachments';
 import meta from './meta';
@@ -47,7 +39,7 @@ import server from './server';
 import settings from './settings';
 import status_lists from './status_lists';
 import statuses from './statuses';
-import suggestions from './suggestions';
+import { suggestionsReducer } from './suggestions';
 import tags from './tags';
 import timelines from './timelines';
 import trends from './trends';
@@ -79,21 +71,13 @@ const reducers = {
   notificationGroups: notificationGroupsReducer,
   height_cache,
   custom_emojis,
-  lists,
-  listEditor,
-  listAdder,
-  antennas,
-  antennaEditor,
-  antennaAdder,
-  circles,
-  circleEditor,
-  circleAdder,
-  bookmark_categories,
-  bookmarkCategoryEditor,
-  bookmarkCategoryAdder,
+  lists: listsReducer,
+  antennas: antennasReducer,
+  circles: circlesReducer,
+  bookmark_categories: bookmarkCategoriesReducer,
   filters,
   conversations,
-  suggestions,
+  suggestions: suggestionsReducer,
   polls,
   trends,
   markers: markersReducer,
