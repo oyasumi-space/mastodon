@@ -48,14 +48,34 @@ RSpec.describe Account do
   end
 
   describe '#local?' do
-    it 'returns true when the account is local' do
+    it 'returns true when domain is null' do
       account = Fabricate(:account, domain: nil)
-      expect(account.local?).to be true
+      expect(account).to be_local
     end
 
-    it 'returns false when the account is on a different domain' do
+    it 'returns false when domain is present' do
       account = Fabricate(:account, domain: 'foreign.tld')
-      expect(account.local?).to be false
+      expect(account).to_not be_local
+    end
+  end
+
+  describe '#remote?' do
+    context 'when the domain is null' do
+      subject { Fabricate.build :account, domain: nil }
+
+      it { is_expected.to_not be_remote }
+    end
+
+    context 'when the domain is blank' do
+      subject { Fabricate.build :account, domain: '' }
+
+      it { is_expected.to_not be_remote }
+    end
+
+    context 'when the domain is present' do
+      subject { Fabricate.build :account, domain: 'host.example' }
+
+      it { is_expected.to be_remote }
     end
   end
 
@@ -1045,6 +1065,9 @@ RSpec.describe Account do
       it { is_expected.to validate_length_of(:display_name).is_at_most(described_class::DISPLAY_NAME_LENGTH_LIMIT) }
 
       it { is_expected.to_not allow_values(account_note_over_limit).for(:note) }
+
+      it { is_expected.to allow_value(fields_empty_name_value).for(:fields) }
+      it { is_expected.to_not allow_values(fields_over_limit, fields_empty_name).for(:fields) }
     end
 
     context 'when account is remote' do
@@ -1076,6 +1099,18 @@ RSpec.describe Account do
 
     def account_note_over_limit
       'a' * described_class::NOTE_LENGTH_LIMIT * 2
+    end
+
+    def fields_empty_name_value
+      Array.new(4) { { 'name' => '', 'value' => '' } }
+    end
+
+    def fields_over_limit
+      Array.new(described_class::DEFAULT_FIELDS_SIZE + 1) { { 'name' => 'Name', 'value' => 'Value', 'verified_at' => '01/01/1970' } }
+    end
+
+    def fields_empty_name
+      [{ 'name' => '', 'value' => 'Value', 'verified_at' => '01/01/1970' }]
     end
   end
 
