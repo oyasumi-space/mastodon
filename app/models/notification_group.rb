@@ -20,7 +20,6 @@ class NotificationGroup < ActiveModelSerializers::Model
     group_keys = grouped_notifications.pluck(:group_key)
 
     with_emoji_reaction = grouped_notifications.any? { |notification| notification.type == :emoji_reaction }
-    notifications.any? { |notification| notification.type == :list_status }
 
     groups_data = load_groups_data(notifications.first.account_id, group_keys, pagination_range: pagination_range)
     accounts_map = Account.where(id: groups_data.values.pluck(1).flatten).index_by(&:id)
@@ -74,6 +73,7 @@ class NotificationGroup < ActiveModelSerializers::Model
     return [] if activity_ids.empty?
 
     EmojiReaction.where(id: activity_ids)
+                 .order(id: :desc)
                  .each_with_object({}) { |e, h| h[e.name] = (h[e.name] || []).push(e) }
                  .to_a
                  .map { |pair| NotificationEmojiReactionGroup.new(emoji_reaction: pair[1].first, sample_accounts: pair[1].take(SAMPLE_ACCOUNTS_SIZE).map(&:account)) }

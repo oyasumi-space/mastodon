@@ -1,7 +1,7 @@
 {
   "name": "@mastodon/mastodon",
   "license": "AGPL-3.0-or-later",
-  "packageManager": "yarn@4.5.3",
+  "packageManager": "yarn@4.6.0",
   "engines": {
     "node": ">=18"
   },
@@ -203,6 +203,8 @@
     "webpack-dev-server": "^3.11.3"
   },
   "resolutions": {
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
     "kind-of": "^6.0.3",
     "webpack/terser-webpack-plugin": "^4.2.3"
   },
