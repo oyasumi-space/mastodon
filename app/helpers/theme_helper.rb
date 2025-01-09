@@ -26,7 +26,7 @@ module ThemeHelper
   def custom_stylesheet
     if active_custom_stylesheet.present?
       stylesheet_link_tag(
-        "/css/#{active_custom_stylesheet}.css", # custom_css_path(active_custom_stylesheet),
+        custom_css_path(active_custom_stylesheet),
         host: root_url,
         media: :all,
         skip_pipeline: true
