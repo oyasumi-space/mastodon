@@ -21,7 +21,7 @@ export const NOTIFICATIONS_SET_BROWSER_SUPPORT    = 'NOTIFICATIONS_SET_BROWSER_S
 export const NOTIFICATIONS_SET_BROWSER_PERMISSION = 'NOTIFICATIONS_SET_BROWSER_PERMISSION';
 
 const messages = defineMessages({
-  mention: { id: 'notification.mention', defaultMessage: '{name} mentioned you' },
+  // mention: { id: 'notification.mention', defaultMessage: '{name} mentioned you' },
   group: { id: 'notifications.group', defaultMessage: '{count} notifications' },
   'message_admin.report': { id: 'notification.admin.report', defaultMessage: '{name} reported {target}' },
   'message_admin.sign_up': { id: 'notification.admin.sign_up', defaultMessage: '{name} signed up' },
