@@ -599,7 +599,7 @@ class Status extends ImmutablePureComponent {
                   {withReference}
                   {withExpiration}
                   {withLimited}
-                  <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility_ex')} /></span>
+                  <span className='status__visibility-icon'><VisibilityIcon visibility={visibilityName} /></span>
                   <RelativeTimestamp timestamp={status.get('created_at')} />{status.get('edited_at') && <abbr title={intl.formatMessage(messages.edited, { date: intl.formatDate(status.get('edited_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}> *</abbr>}
                 </Link>
 
