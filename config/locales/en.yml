@@ -1504,6 +1504,7 @@ en:
     too_fast: Form submitted too fast, try again.
     use_security_key: Use security key
     user_agreement_html: I have read and agree to the <a href="%{terms_of_service_path}" target="_blank">terms of service</a> and <a href="%{privacy_policy_path}" target="_blank">privacy policy</a>
+    user_privacy_agreement_html: I have read and agree to the <a href="%{privacy_policy_path}" target="_blank">privacy policy</a>
     with_login_options: Will you disable your custom css?
   author_attribution:
     example_title: Sample text
