@@ -26,6 +26,7 @@ class List < ApplicationRecord
 
   has_many :list_accounts, inverse_of: :list, dependent: :destroy
   has_many :accounts, through: :list_accounts
+  has_many :active_accounts, -> { merge(ListAccount.active) }, through: :list_accounts, source: :account
   has_many :antennas, inverse_of: :list, dependent: :destroy
   has_many :list_statuses, inverse_of: :list, dependent: :destroy
   has_many :statuses, through: :list_statuses
