@@ -79,11 +79,11 @@ module Admin
     end
 
     def resource_params
-      params.require(:friend_domain).permit(:domain, :inbox_url, :available, :pseudo_relay, :delivery_local, :unlocked, :allow_all_posts)
+      params.expect(friend_domain: [:domain, :inbox_url, :available, :pseudo_relay, :delivery_local, :unlocked, :allow_all_posts])
     end
 
     def update_resource_params
-      params.require(:friend_domain).permit(:inbox_url, :available, :pseudo_relay, :delivery_local, :unlocked, :allow_all_posts)
+      params.expect(friend_domain: [:inbox_url, :available, :pseudo_relay, :delivery_local, :unlocked, :allow_all_posts])
     end
 
     def warn_signatures_not_enabled!
