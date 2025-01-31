@@ -35,7 +35,9 @@ module Admin
     rescue Mastodon::NotPermittedError
       flash[:alert] = I18n.t('admin.domain_blocks.not_permitted')
     else
-      redirect_to admin_instances_path(limited: '1'), notice: I18n.t('admin.domain_blocks.created_msg')
+      flash[:notice] = I18n.t('admin.domain_blocks.created_msg')
+    ensure
+      redirect_to admin_instances_path(limited: '1')
     end
 
     def new
@@ -124,9 +126,14 @@ module Admin
     end
 
     def form_domain_block_batch_params
-      params.require(:form_domain_block_batch).permit(domain_blocks_attributes: [:enabled, :domain, :severity, :reject_media, :reject_favourite, :reject_reply_exclude_followers,
-                                                                                 :reject_send_sensitive, :reject_hashtag, :reject_straight_follow, :reject_new_follow, :reject_friend, :block_trends, :detect_invalid_subscription,
-                                                                                 :reject_reports, :private_comment, :public_comment, :obfuscate, :hidden])
+      params
+        .expect(
+          form_domain_block_batch: [
+            domain_blocks_attributes: [[:enabled, :domain, :severity, :reject_media, :reject_reports, :private_comment, :public_comment, :obfuscate,
+                                        :reject_favourite, :reject_reply_exclude_followers, :reject_send_sensitive, :reject_hashtag,
+                                        :reject_straight_follow, :reject_new_follow, :reject_friend, :block_trends, :detect_invalid_subscription, :hidden]],
+          ]
+        )
     end
 
     def action_from_button

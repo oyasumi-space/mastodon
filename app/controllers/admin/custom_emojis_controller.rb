@@ -67,11 +67,13 @@ module Admin
     end
 
     def resource_params
-      params.require(:custom_emoji).permit(:shortcode, :image, :category_id, :visible_in_picker, :aliases_raw, :license)
+      params
+        .expect(custom_emoji: [:shortcode, :image, :category_id, :visible_in_picker, :aliases_raw, :license])
     end
 
     def update_params
-      params.require(:custom_emoji).permit(:category_id, :visible_in_picker, :aliases_raw, :license)
+      params
+        .expect(custom_emoji: [:category_id, :visible_in_picker, :aliases_raw, :license])
     end
 
     def filtered_custom_emojis
@@ -101,7 +103,8 @@ module Admin
     end
 
     def form_custom_emoji_batch_params
-      params.require(:form_custom_emoji_batch).permit(:action, :category_id, :category_name, custom_emoji_ids: [])
+      params
+        .expect(form_custom_emoji_batch: [:action, :category_id, :category_name, custom_emoji_ids: []])
     end
   end
 end
