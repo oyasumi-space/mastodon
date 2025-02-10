@@ -200,9 +200,9 @@ namespace :dangerous do
     ActiveRecord::Base.connection.execute('UPDATE custom_filters SET action = 0 WHERE action = 2')
     ActiveRecord::Base.connection.execute('UPDATE account_warnings SET action = 1250 WHERE action = 1200')
     ActiveRecord::Base.connection.execute('CREATE INDEX IF NOT EXISTS index_statuses_local_20190824 ON statuses USING btree (id DESC, account_id) WHERE (local OR (uri IS NULL)) AND deleted_at IS NULL AND visibility = 0 AND reblog_of_id IS NULL AND ((NOT reply) OR (in_reply_to_account_id = account_id))')
-    ActiveRecord::Base.connection.execute('CREATE INDEX IF NOT EXISTS index_statuses_public_20200119 ON statuses USING btree (id DESC, account_id) WHERE deleted_at IS NULL AND visibility = 0 AND reblog_of_id IS NULL AND ((NOT reply) OR (in_reply_to_account_id = account_id))')
+    ActiveRecord::Base.connection.execute('CREATE INDEX IF NOT EXISTS index_statuses_public_20250129 ON statuses USING btree (id DESC, language, account_id) WHERE deleted_at IS NULL AND visibility = 0 AND reblog_of_id IS NULL AND ((NOT reply) OR (in_reply_to_account_id = account_id))')
     ActiveRecord::Base.connection.execute('DROP INDEX IF EXISTS index_statuses_local_20231213')
-    ActiveRecord::Base.connection.execute('DROP INDEX IF EXISTS index_statuses_public_20231213')
+    ActiveRecord::Base.connection.execute('DROP INDEX IF EXISTS index_statuses_public_20250210')
     ActiveRecord::Base.connection.execute('ALTER TABLE ONLY custom_filter_keywords ALTER COLUMN whole_word SET DEFAULT true')
     prompt.ok 'Proceed'
 
