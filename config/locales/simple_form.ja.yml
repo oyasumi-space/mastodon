@@ -3,6 +3,7 @@ ja:
   simple_form:
     hints:
       account:
+        attribution_domains: 1行につき1つずつ入力してください。この設定は関わりのないwebサイトに対して虚偽の帰属表示が行われることを防止する役割があります。
         discoverable: プロフィールと公開投稿をMastodonのおすすめやハイライトとしてほかのユーザーに表示することを許可します。
         display_name: フルネーム、ハンドルネームなど
         fields: ホームページ、代名詞、年齢など何でも構いません。
@@ -190,6 +191,7 @@ ja:
     kmyblue: kmyblue
     labels:
       account:
+        attribution_domains: あなたの著者表示を許可するwebサイト
         discoverable: アカウントを見つけやすくする
         fields:
           examples:
@@ -310,6 +312,7 @@ ja:
         setting_hide_quote_unavailable_server: 引用に対応していないと思われるサーバーの投稿からメニューを隠す
         setting_hide_status_reference_unavailable_server: ひかえめな引用（Fedibirdの参照）に対応していないと思われるサーバーの投稿からメニューを隠す
         setting_lock_follow_from_bot: botからのフォローを承認制にする
+        setting_missing_alt_text_modal: 代替テキストなしでメディアを投稿する前に確認ダイアログを表示する
         setting_public_post_to_unlisted: サードパーティから公開範囲「公開」で投稿した場合、「ローカル公開」に変更する
         setting_reduce_motion: アニメーションの動きを減らす
         setting_reject_public_unlisted_subscription: Misskey系サーバーに「ローカル公開」かつ検索許可「誰でも以外」の投稿を「フォロワーのみ」に変換して配送する
