@@ -262,8 +262,8 @@ RSpec.describe Auth::SessionsController do
           end
 
           it 'renders two factor authentication page' do
-            expect(controller).to render_template('two_factor')
-            expect(controller).to render_template(partial: '_otp_authentication_form')
+            expect(response.body)
+              .to include(I18n.t('simple_form.hints.sessions.otp'))
           end
         end
 
@@ -278,8 +278,8 @@ RSpec.describe Auth::SessionsController do
           end
 
           it 'renders two factor authentication page' do
-            expect(controller).to render_template('two_factor')
-            expect(controller).to render_template(partial: '_otp_authentication_form')
+            expect(response.body)
+              .to include(I18n.t('simple_form.hints.sessions.otp'))
           end
         end
 
@@ -289,8 +289,8 @@ RSpec.describe Auth::SessionsController do
           end
 
           it 'renders two factor authentication page' do
-            expect(controller).to render_template('two_factor')
-            expect(controller).to render_template(partial: '_otp_authentication_form')
+            expect(response.body)
+              .to include(I18n.t('simple_form.hints.sessions.otp'))
           end
         end
 
@@ -417,8 +417,8 @@ RSpec.describe Auth::SessionsController do
           end
 
           it 'renders webauthn authentication page' do
-            expect(controller).to render_template('two_factor')
-            expect(controller).to render_template(partial: '_webauthn_form')
+            expect(response.body)
+              .to include(I18n.t('simple_form.title.sessions.webauthn'))
           end
         end
 
@@ -428,8 +428,8 @@ RSpec.describe Auth::SessionsController do
           end
 
           it 'renders webauthn authentication page' do
-            expect(controller).to render_template('two_factor')
-            expect(controller).to render_template(partial: '_webauthn_form')
+            expect(response.body)
+              .to include(I18n.t('simple_form.title.sessions.webauthn'))
           end
         end
 
