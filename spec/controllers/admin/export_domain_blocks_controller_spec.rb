@@ -44,11 +44,11 @@ RSpec.describe Admin::ExportDomainBlocksController do
       end
 
       it 'renders page with extended domain blocks' do
-        expect(assigns(:domain_blocks).map { |block| [block.domain, block.reject_favourite, block.reject_friend] }).to contain_exactly(
-          ['bad.domain', false, false],
-          ['worse.domain', false, false],
-          ['reject.media', false, false],
-          ['little.spam', true, false]
+        expect(mapped_batch_table_rows_with_expanded_params).to contain_exactly(
+          ['bad.domain', false],
+          ['worse.domain', false],
+          ['reject.media', false],
+          ['little.spam', true]
         )
       end
 
@@ -71,6 +71,10 @@ RSpec.describe Admin::ExportDomainBlocksController do
 
     def mapped_batch_table_rows
       batch_table_rows.map { |row| [row.at_css('[id$=_domain]')['value'], row.at_css('[id$=_severity]')['value'].to_sym] }
+    end
+
+    def mapped_batch_table_rows_with_expanded_params
+      batch_table_rows.map { |row| [row.at_css('[id$=_domain]')['value'], row.at_css('[id$=_reject_favourite]')['value'] == 'true'] }
     end
 
     def batch_table_rows
