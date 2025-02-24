@@ -5,6 +5,9 @@ class ActivityPub::Parser::StatusParser
 
   NORMALIZED_LOCALE_NAMES = LanguagesHelper::SUPPORTED_LOCALES.keys.index_by(&:downcase).freeze
 
+  SCAN_SEARCHABILITY_RE = /\[searchability:(public|followers|reactors|private)\]/
+  SCAN_SEARCHABILITY_FEDIBIRD_RE = /searchable_by_(all_users|followers_only|reacted_users_only|nobody)/
+
   # @param [Hash] json
   # @param [Hash] options
   # @option options [String] :followers_collection
@@ -181,9 +184,6 @@ class ActivityPub::Parser::StatusParser
   def misskey_searchability
     %i(public unlisted).include?(visibility) ? :public : :limited
   end
-
-  SCAN_SEARCHABILITY_RE = /\[searchability:(public|followers|reactors|private)\]/
-  SCAN_SEARCHABILITY_FEDIBIRD_RE = /searchable_by_(all_users|followers_only|reacted_users_only|nobody)/
 
   def default_searchability_from_bio?
     note = @account.note

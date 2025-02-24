@@ -4,6 +4,8 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   include FormattingHelper
   include NgRuleHelper
 
+  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
+
   def perform
     @account.schedule_refresh_if_stale!
 
@@ -644,8 +646,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   def quote
     @quote ||= quote_from_tags || @object['quote'] || @object['quoteUrl'] || @object['quoteURL'] || @object['_misskey_quote']
   end
-
-  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
 
   def quote_from_tags
     return @quote_from_tags if defined?(@quote_from_tags)

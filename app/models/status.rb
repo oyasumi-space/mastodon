@@ -425,7 +425,7 @@ class Status < ApplicationRecord
           end
 
           emoji_reaction['count'] = emoji_reaction['account_ids'].size
-          public_emoji_reactions << emoji_reaction if (emoji_reaction['count']).positive?
+          public_emoji_reactions << emoji_reaction if emoji_reaction['count'].positive?
         end
 
         public_emoji_reactions
