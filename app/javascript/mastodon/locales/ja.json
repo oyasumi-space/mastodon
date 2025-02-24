@@ -848,7 +848,7 @@
   "privacy.circle.long": "サークルメンバーのみ閲覧可",
   "privacy.circle.short": "サークル (投稿時点)",
   "privacy.direct.long": "本文で指定した相手のみ",
-  "privacy.direct.short": "特定の人",
+  "privacy.direct.short": "非公開の返信",
   "privacy.limited.short": "限定投稿",
   "privacy.login.long": "ログインユーザーのみ閲覧可、公開",
   "privacy.login.short": "ログインユーザーのみ",

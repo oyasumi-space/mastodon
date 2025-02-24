@@ -870,7 +870,7 @@
   "privacy.circle.long": "Circle members only",
   "privacy.circle.short": "Circle",
   "privacy.direct.long": "Everyone mentioned in the post",
-  "privacy.direct.short": "Specific people",
+  "privacy.direct.short": "Private mention",
   "privacy.limited.short": "Limited",
   "privacy.login.long": "Visible for login users only",
   "privacy.login.short": "Login only",
