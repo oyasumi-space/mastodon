@@ -3,7 +3,7 @@
 class AddEmojiReactionStreamingToAccounts < ActiveRecord::Migration[6.1]
   def change
     safety_assured do
-      add_column :accounts, :stop_emoji_reaction_streaming, :boolean, default: false
+      add_column :accounts, :stop_emoji_reaction_streaming, :boolean, default: false, null: false
     end
   end
 end

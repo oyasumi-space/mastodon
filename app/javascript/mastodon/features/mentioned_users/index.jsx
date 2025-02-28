@@ -11,10 +11,10 @@ import { connect } from 'react-redux';
 import { debounce } from 'lodash';
 
 import { fetchMentionedUsers, expandMentionedUsers } from 'mastodon/actions/interactions';
+import { Account } from 'mastodon/components/account';
 import ColumnHeader from 'mastodon/components/column_header';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import ScrollableList from 'mastodon/components/scrollable_list';
-import AccountContainer from 'mastodon/containers/account_container';
 import Column from 'mastodon/features/ui/components/column';
 
 const mapStateToProps = (state, props) => ({
@@ -74,7 +74,7 @@ class MentionedUsers extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {accountIds.map(id =>
-            <AccountContainer key={id} id={id} withNote={false} />,
+            <Account key={id} id={id} />,
           )}
         </ScrollableList>
 

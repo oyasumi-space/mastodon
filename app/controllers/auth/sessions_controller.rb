@@ -73,7 +73,7 @@ class Auth::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    params.require(:user).permit(:email, :password, :otp_attempt, :disable_css, credential: {})
+    params.expect(user: [:email, :password, :otp_attempt, :disable_css, credential: {}])
   end
 
   def login_page_params

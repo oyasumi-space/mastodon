@@ -21,7 +21,7 @@ class Api::V1::AntennasController < Api::BaseController
   end
 
   def create
-    @antenna = Antenna.create!(antenna_params.merge(account: current_account, list_id: 0))
+    @antenna = Antenna.create!(antenna_params.merge(account: current_account))
     render json: @antenna, serializer: REST::AntennaSerializer
   end
 
@@ -42,6 +42,6 @@ class Api::V1::AntennasController < Api::BaseController
   end
 
   def antenna_params
-    params.permit(:title, :list_id, :insert_feeds, :stl, :ltl, :with_media_only, :ignore_reblog)
+    params.permit(:title, :list_id, :insert_feeds, :stl, :ltl, :with_media_only, :ignore_reblog, :favourite)
   end
 end

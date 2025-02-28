@@ -38,6 +38,8 @@
                   input_html: { 'aria-label': t('auth.disable_custom_css') },
                   label: t('auth.disable_custom_css'),
                   wrapper: :with_label
+    - else
+      = f.hidden_field :disable_css
 
     .actions
       = f.button :button, t('auth.login'), type: :submit

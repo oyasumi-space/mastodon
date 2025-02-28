@@ -20,6 +20,8 @@ module KmyblueCapabilitiesHelper
       kmyblue_circle_history
       kmyblue_list_notification
       kmyblue_server_features
+      favourite_list
+      kmyblue_favourite_antenna
     )
 
     capabilities << :full_text_search if Chewy.enabled?

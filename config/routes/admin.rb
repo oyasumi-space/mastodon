@@ -48,6 +48,18 @@ namespace :admin do
   resource :special_instances, only: [:show, :create]
   resource :special_domains, only: [:show, :create]
 
+  namespace :terms_of_service do
+    resource :generate, only: [:show, :create]
+    resource :history, only: [:show]
+    resource :draft, only: [:show, :update]
+  end
+
+  resources :terms_of_service, only: [:index] do
+    resource :preview, only: [:show], module: :terms_of_service
+    resource :test, only: [:create], module: :terms_of_service
+    resource :distribution, only: [:create], module: :terms_of_service
+  end
+
   resources :announcements, except: [:show] do
     member do
       post :publish

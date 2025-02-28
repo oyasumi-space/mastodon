@@ -3,7 +3,7 @@
 class AddMarkdownToStatuses < ActiveRecord::Migration[6.1]
   def change
     safety_assured do
-      add_column :statuses, :markdown, :boolean, default: false
+      add_column :statuses, :markdown, :boolean, default: false, null: false
     end
   end
 end

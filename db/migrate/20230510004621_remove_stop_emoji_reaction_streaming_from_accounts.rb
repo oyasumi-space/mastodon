@@ -9,7 +9,7 @@ class RemoveStopEmojiReactionStreamingFromAccounts < ActiveRecord::Migration[6.1
 
   def down
     safety_assured do
-      add_column :accounts, :stop_emoji_reaction_streaming, :boolean, null: true, default: false
+      add_column :accounts, :stop_emoji_reaction_streaming, :boolean, null: false, default: false
     end
   end
 end

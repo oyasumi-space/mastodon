@@ -59,6 +59,7 @@ class UserSettings
     setting :use_custom_css, default: false
     setting :content_font_size, default: 'medium', in: %w(medium large x_large xx_large)
     setting :bookmark_category_needed, default: false
+    setting :use_system_scrollbars, default: false
     setting :disable_swiping, default: false
     setting :disable_hover_cards, default: false
     setting :delete_modal, default: true
@@ -67,6 +68,7 @@ class UserSettings
     setting :enable_emoji_reaction, default: true
     setting :show_emoji_reaction_on_timeline, default: true
     setting :reblog_modal, default: false
+    setting :missing_alt_text_modal, default: true
     setting :reduce_motion, default: false
     setting :expand_content_warnings, default: false
     setting :display_media, default: 'default', in: %w(default show_all hide_all)
@@ -82,6 +84,7 @@ class UserSettings
     setting :hide_status_reference_unavailable_server, default: false
     setting :hide_favourite_menu, default: false
     setting :hide_emoji_reaction_count, default: false
+    setting :show_avatar_on_filter, default: true
 
     setting_inverse_alias :'web.show_blocking_quote', :'web.hide_blocking_quote'
     setting_inverse_alias :'web.show_emoji_reaction_count', :'web.hide_emoji_reaction_count'

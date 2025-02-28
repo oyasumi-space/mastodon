@@ -3,7 +3,7 @@ en:
   simple_form:
     hints:
       account:
-        attribution_domains_as_text: One per line. Protects from false attributions.
+        attribution_domains: One per line. Protects from false attributions.
         discoverable: Your public posts and profile may be featured or recommended in various areas of Mastodon and your profile may be suggested to other users.
         display_name: Your full name or your fun name.
         fields: Your homepage, pronouns, age, anything you want.
@@ -84,6 +84,7 @@ en:
         setting_show_application: 投稿するのに使用したアプリが投稿の詳細ビューに表示されるようになります
         setting_stay_privacy: If you choose to enable this setting, please consider manually setting the visibility of the boost
         setting_stop_emoji_reaction_streaming: Helps to save communication capacity.
+        setting_system_scrollbars_ui: Applies only to desktop browsers based on Safari and Chrome
         setting_use_blurhash: Gradients are based on the colors of the hidden visuals but obfuscate any details
         setting_use_pending_items: Hide timeline updates behind a click instead of automatically scrolling the feed
         username: You can use letters, numbers, and underscores
@@ -98,7 +99,6 @@ en:
       filters:
         action: Chose which action to perform when a post matches the filter
         actions:
-          half_warn: Hide the filtered content (exclude account info) behind a warning mentioning the filter's title
           hide: Completely hide the filtered content, behaving as if it did not exist
           warn: Hide the filtered content behind a warning mentioning the filter's title
       form_admin_settings:
@@ -164,6 +164,17 @@ en:
         show_application: You will always be able to see which app published your post regardless.
       tag:
         name: You can only change the casing of the letters, for example, to make it more readable
+      terms_of_service:
+        changelog: Can be structured with Markdown syntax.
+        text: Can be structured with Markdown syntax.
+      terms_of_service_generator:
+        admin_email: Legal notices include counternotices, court orders, takedown requests, and law enforcement requests.
+        arbitration_address: Can be the same as Physical address above, or “N/A” if using email
+        arbitration_website: Can be a web form, or “N/A” if using email
+        dmca_address: For US operators, use the address registered in the DMCA Designated Agent Directory. A P.O. Box listing is available upon direct request, use the DMCA Designated Agent Post Office Box Waiver Request to email the Copyright Office and describe that you are a home-based content moderator who fears revenge or retribution for your actions and need to use a P.O. Box to remove your home address from public view.
+        dmca_email: Can be the same email used for “Email address for legal notices” above
+        domain: Unique identification of the online service you are providing.
+        jurisdiction: List the country where whoever pays the bills lives. If it’s a company or other entity, list the country where it’s incorporated, and the city, region, territory or state as appropriate.
       user:
         chosen_languages: When checked, only posts in selected languages will be displayed in public timelines
         role: The role controls which permissions the user has.
@@ -180,7 +191,7 @@ en:
     kmyblue: kmyblue
     labels:
       account:
-        attribution_domains_as_text: Websites allowed to credit you
+        attribution_domains: Websites allowed to credit you
         discoverable: Feature profile and posts in discovery algorithms
         fields:
           examples:
@@ -301,6 +312,7 @@ en:
         setting_hide_quote_unavailable_server: Hide quote menu from unavailable server
         setting_hide_status_reference_unavailable_server: Hide quiet quote (reference named by Fedibird) menu from unavailable server
         setting_lock_follow_from_bot: Request approval about bot follow
+        setting_missing_alt_text_modal: Show confirmation dialog before posting media without alt text
         setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
         setting_reduce_motion: Reduce motion in animations
         setting_reject_public_unlisted_subscription: Reject sending public unlisted visibility/non-public searchability posts to Misskey, Calckey
@@ -308,6 +320,7 @@ en:
         setting_reject_unlisted_subscription: Reject sending unlisted visibility/non-public searchability posts to Misskey, Calckey
         setting_reverse_search_quote: Perform word-by-word search when search keywords are not enclosed in double quotes
         setting_show_application: Disclose application used to send posts
+        setting_show_avatar_on_filter: Show filtered posts with avatar and user profile
         setting_show_blocking_quote: Show posts which have a quote written by the user you are blocking
         setting_show_emoji_reaction_count: Show emoji reaction number
         setting_show_emoji_reaction_on_timeline: Show all emoji reactions on timeline
@@ -324,6 +337,7 @@ en:
         setting_stay_privacy: Keep visibility after post
         setting_stop_emoji_reaction_streaming: Disable emoji reaction streamings
         setting_system_font_ui: Use system's default font
+        setting_system_scrollbars_ui: Use system's default scrollbar
         setting_theme: Site theme
         setting_translatable_private: Allow other users translation of your private posts
         setting_trends: Show today's trends
@@ -359,7 +373,6 @@ en:
         name: Hashtag
       filters:
         actions:
-          half_warn: Half hide with a warning
           hide: Hide completely
           warn: Hide with a warning
         options:
@@ -460,6 +473,17 @@ en:
         name: Hashtag
         trendable: Allow this hashtag to appear under trends
         usable: Allow posts to use this hashtag locally
+      terms_of_service:
+        changelog: What's changed?
+        text: Terms of Service
+      terms_of_service_generator:
+        admin_email: Email address for legal notices
+        arbitration_address: Physical address for arbitration notices
+        arbitration_website: Website for submitting arbitration notices
+        dmca_address: Physical address for DMCA/copyright notices
+        dmca_email: Email address for DMCA/copyright notices
+        domain: Domain
+        jurisdiction: Legal jurisdiction
       user:
         role: Role
         time_zone: Time zone

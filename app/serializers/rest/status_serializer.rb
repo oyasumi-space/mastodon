@@ -7,7 +7,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   attributes :id, :created_at, :in_reply_to_id, :in_reply_to_account_id,
              :sensitive, :spoiler_text, :visibility, :visibility_ex, :limited_scope, :language,
-             :uri, :url, :replies_count, :reblogs_count, :searchability, :markdown,
+             :uri, :url, :replies_count, :reblogs_count, :searchability,
              :status_reference_ids, :status_references_count, :status_referred_by_count,
              :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :edited_at
 
@@ -19,6 +19,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   attribute :reactions, if: :reactions?
   attribute :expires_at, if: :will_expire?
   attribute :quote_id, if: :quote?
+  attribute :markdown_opt, key: :markdown
   has_many :filtered, serializer: REST::FilterResultSerializer, if: :current_user?
 
   attribute :content, unless: :source_requested?
@@ -116,6 +117,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   def url
     ActivityPub::TagManager.instance.url_for(object)
+  end
+
+  def markdown_opt
+    object.markdown
   end
 
   def status_reference_ids

@@ -128,6 +128,7 @@ namespace :api, format: false do
         resources :rules, only: [:index]
         resources :domain_blocks, only: [:index]
         resource :privacy_policy, only: [:show]
+        resource :terms_of_service, only: [:show]
         resource :extended_description, only: [:show]
         resource :translation_languages, only: [:show]
         resource :languages, only: [:show]
@@ -232,6 +233,11 @@ namespace :api, format: false do
 
     resources :lists, only: [:index, :create, :show, :update, :destroy] do
       resource :accounts, only: [:show, :create, :destroy], module: :lists
+
+      member do
+        post :favourite
+        post :unfavourite
+      end
     end
 
     resources :antennas, only: [:index, :create, :show, :update, :destroy] do

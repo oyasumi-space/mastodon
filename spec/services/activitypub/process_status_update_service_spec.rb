@@ -7,10 +7,13 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
 
   let(:thread) { nil }
   let!(:status) { Fabricate(:status, text: 'Hello world', account: Fabricate(:account, domain: 'example.com'), thread: thread) }
+  let(:bogus_mention) { 'https://example.com/users/erroringuser' }
   let(:json_tags) do
     [
       { type: 'Hashtag', name: 'hoge' },
       { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+      { type: 'Mention', href: ActivityPub::TagManager.instance.uri_for(alice) },
+      { type: 'Mention', href: bogus_mention },
     ]
   end
   let(:content) { 'Hello universe' }
@@ -39,16 +42,18 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
     mentions.each { |(account, silent)| Fabricate(:mention, status: status, account: account, silent: silent) }
     tags.each { |t| status.tags << t }
     media_attachments.each { |m| status.media_attachments << m }
+    stub_request(:get, bogus_mention).to_raise(HTTP::ConnectionError)
   end
 
   describe '#call' do
-    it 'updates text and content warning' do
+    it 'updates text and content warning, and schedules re-fetching broken mention' do
       subject.call(status, json, json)
       expect(status.reload)
         .to have_attributes(
           text: eq('Hello universe'),
           spoiler_text: eq('Show more')
         )
+      expect(MentionResolveWorker).to have_enqueued_sidekiq_job(status.id, bogus_mention, anything)
     end
 
     context 'when the changes are only in sanitized-out HTML' do
@@ -258,16 +263,22 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
           updated: '2021-09-08T22:39:25Z',
           tag: [
             { type: 'Hashtag', name: 'foo' },
+            { type: 'Hashtag', name: 'bar' },
           ],
         }
       end
 
       before do
-        subject.call(status, json, json)
+        status.account.featured_tags.create!(name: 'bar')
+        status.account.featured_tags.create!(name: 'test')
       end
 
-      it 'updates tags' do
-        expect(status.tags.reload.map(&:name)).to eq %w(foo)
+      it 'updates tags and featured tags' do
+        expect { subject.call(status, json, json) }
+          .to change { status.tags.reload.pluck(:name) }.from(contain_exactly('test', 'foo')).to(contain_exactly('foo', 'bar'))
+          .and change { status.account.featured_tags.find_by(name: 'test').statuses_count }.by(-1)
+          .and change { status.account.featured_tags.find_by(name: 'bar').statuses_count }.by(1)
+          .and change { status.account.featured_tags.find_by(name: 'bar').last_status_at }.from(nil).to(be_present)
       end
     end
 

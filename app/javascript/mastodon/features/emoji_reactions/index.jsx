@@ -10,12 +10,13 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
+
 import RefreshIcon from '@/material-icons/400-24px/refresh.svg?react';
 import { fetchEmojiReactions, expandEmojiReactions } from 'mastodon/actions/interactions';
+import { Account } from 'mastodon/components/account';
 import ColumnHeader from 'mastodon/components/column_header';
 import { Icon } from 'mastodon/components/icon';
 import ScrollableList from 'mastodon/components/scrollable_list';
-import AccountContainer from 'mastodon/containers/account_container';
 import Column from 'mastodon/features/ui/components/column';
 
 
@@ -101,11 +102,11 @@ class EmojiReactions extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {Object.keys(groups).map((key) =>(
-            <AccountContainer key={key} id={key} withNote={false} hideButtons>
+            <Account key={key} id={key} hideButtons>
               <div style={{ 'maxWidth': '100px' }}>
                 {groups[key].map((value, index2) => <EmojiView key={index2} name={value.name} url={value.url} staticUrl={value.static_url} />)}
               </div>
-            </AccountContainer>
+            </Account>
           ))}
         </ScrollableList>
 

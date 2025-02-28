@@ -13,7 +13,7 @@ import {
   createBookmarkCategory,
   updateBookmarkCategory,
 } from 'mastodon/actions/bookmark_categories_typed';
-import Column from 'mastodon/components/column';
+import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
@@ -85,7 +85,7 @@ const NewBookmarkCategory: React.FC<{
 
         if (isFulfilled(result)) {
           history.replace(`/bookmark_categories/${result.payload.id}/edit`);
-          history.push(`/bookmark_categories/${result.payload.id}/members`);
+          history.push(`/bookmark_categories`);
         }
 
         return '';

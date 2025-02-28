@@ -123,12 +123,20 @@ module User::HasSettings
     settings['web.show_relationships']
   end
 
+  def setting_show_avatar_on_filter
+    settings['web.show_avatar_on_filter']
+  end
+
   def setting_allow_quote
     settings['allow_quote']
   end
 
   def setting_reject_send_limited_to_suspects
     settings['reject_send_limited_to_suspects']
+  end
+
+  def setting_system_scrollbars_ui
+    settings['web.use_system_scrollbars']
   end
 
   def setting_noindex

@@ -10,7 +10,7 @@ import announcements from './announcements';
 import { antennasReducer } from './antennas';
 import { bookmarkCategoriesReducer } from './bookmark_categories';
 import { circlesReducer } from './circles';
-import compose from './compose';
+import { composeReducer } from './compose';
 import contexts from './contexts';
 import conversations from './conversations';
 import custom_emojis from './custom_emojis';
@@ -30,17 +30,16 @@ import { notificationPolicyReducer } from './notification_policy';
 import { notificationRequestsReducer } from './notification_requests';
 import notifications from './notifications';
 import { pictureInPictureReducer } from './picture_in_picture';
-import polls from './polls';
+import { pollsReducer } from './polls';
 import push_notifications from './push_notifications';
 import reaction_deck from './reaction_deck';
 import { relationshipsReducer } from './relationships';
-import search from './search';
+import { searchReducer } from './search';
 import server from './server';
 import settings from './settings';
 import status_lists from './status_lists';
 import statuses from './statuses';
 import { suggestionsReducer } from './suggestions';
-import tags from './tags';
 import timelines from './timelines';
 import trends from './trends';
 import user_lists from './user_lists';
@@ -64,8 +63,8 @@ const reducers = {
   push_notifications,
   server,
   contexts,
-  compose,
-  search,
+  compose: composeReducer,
+  search: searchReducer,
   media_attachments,
   notifications,
   notificationGroups: notificationGroupsReducer,
@@ -78,12 +77,11 @@ const reducers = {
   filters,
   conversations,
   suggestions: suggestionsReducer,
-  polls,
+  polls: pollsReducer,
   trends,
   markers: markersReducer,
   picture_in_picture: pictureInPictureReducer,
   history,
-  tags,
   followed_tags,
   reaction_deck,
   notificationPolicy: notificationPolicyReducer,

@@ -21,6 +21,10 @@ module Admin
       false
     end
 
+    def avoid_save?
+      true
+    end
+
     private
 
     def after_update_redirect_path

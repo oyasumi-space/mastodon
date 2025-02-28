@@ -14,6 +14,9 @@ namespace :dangerous do
     end
 
     target_migrations = %w(
+      20250130232529
+      20250123091137
+      20241208232829
       20240828123604
       20240709063700
       20240426233435
@@ -172,6 +175,7 @@ namespace :dangerous do
       %w(domain_blocks reject_send_sensitive),
       %w(domain_blocks reject_straight_follow),
       %w(favourites uri),
+      %w(lists favourite),
       %w(lists notify),
       %w(statuses limited_scope),
       %w(statuses markdown),

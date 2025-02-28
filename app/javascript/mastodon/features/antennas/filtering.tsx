@@ -31,7 +31,7 @@ import {
   apiGetExcludeAccounts,
 } from 'mastodon/api/antennas';
 import { Button } from 'mastodon/components/button';
-import Column from 'mastodon/components/column';
+import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
 import type { IconProp } from 'mastodon/components/icon';
 import { Icon } from 'mastodon/components/icon';
