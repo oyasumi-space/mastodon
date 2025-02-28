@@ -13,6 +13,12 @@ module Admin
 
       return unless validate
 
+      if avoid_save?
+        flash[:notice] = I18n.t('generic.changes_saved_msg')
+        redirect_to after_update_redirect_path
+        return
+      end
+
       @admin_settings = Form::AdminSettings.new(settings_params)
 
       if @admin_settings.save
@@ -33,6 +39,10 @@ module Admin
       admin_ng_words_path
     end
 
+    def avoid_save?
+      false
+    end
+
     private
 
     def settings_params
@@ -40,7 +50,7 @@ module Admin
     end
 
     def settings_params_test
-      params.require(:form_admin_settings)[:ng_words_test]
+      params.expect(form_admin_settings: [ng_words_test: [keywords: [], strangers: [], temporary_ids: []]])['ng_words_test']
     end
   end
 end
