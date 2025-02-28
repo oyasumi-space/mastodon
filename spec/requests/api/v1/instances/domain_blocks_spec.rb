@@ -10,7 +10,7 @@ RSpec.describe 'Domain Blocks' do
 
   describe 'GET /api/v1/instance/domain_blocks' do
     let(:user) { Fabricate(:user) }
-    let(:token) { Fabricate(:accessible_access_token, resource_owner_id: user.id).token }
+    let(:token) { Fabricate(:accessible_access_token, resource_owner_id: user.id) }
 
     before { Fabricate(:domain_block) }
 
@@ -60,7 +60,7 @@ RSpec.describe 'Domain Blocks' do
           before { user.update(approved: false) }
 
           it 'returns http not found' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(404)
@@ -71,7 +71,7 @@ RSpec.describe 'Domain Blocks' do
           before { user.update(confirmed_at: nil) }
 
           it 'returns http not found' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(404)
@@ -82,7 +82,7 @@ RSpec.describe 'Domain Blocks' do
           before { user.update(disabled: true) }
 
           it 'returns http not found' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(404)
@@ -93,7 +93,7 @@ RSpec.describe 'Domain Blocks' do
           before { user.account.update(suspended_at: Time.zone.now) }
 
           it 'returns http not found' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(403)
@@ -104,7 +104,7 @@ RSpec.describe 'Domain Blocks' do
           before { user.account.update(moved_to_account_id: Fabricate(:account).id) }
 
           it 'returns http success' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(200)
@@ -121,7 +121,7 @@ RSpec.describe 'Domain Blocks' do
 
         context 'with normal user' do
           it 'returns http success' do
-            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token}" }
+            get api_v1_instance_domain_blocks_path, headers: { 'Authorization' => "Bearer #{token.token}" }
 
             expect(response)
               .to have_http_status(200)
