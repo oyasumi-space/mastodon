@@ -50,7 +50,7 @@ module Admin
     end
 
     def settings_params_test
-      params.expect(form_admin_settings: [ng_words_test: [keywords: [], strangers: [], temporary_ids: []]])['ng_words_test']
+      params.expect(form_admin_settings: [ng_words_test: [keywords: [], regexps: [], strangers: [], temporary_ids: []]])['ng_words_test']
     end
   end
 end
