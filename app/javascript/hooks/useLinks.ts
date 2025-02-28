@@ -14,6 +14,9 @@ const isHashtagClick = (element: HTMLAnchorElement) =>
   element.textContent?.[0] === '#' ||
   element.previousSibling?.textContent?.endsWith('#');
 
+const isFeaturedHashtagClick = (element: HTMLAnchorElement) =>
+  isHashtagClick(element) && element.href.includes('/tagged/');
+
 export const useLinks = () => {
   const history = useHistory();
   const dispatch = useAppDispatch();
@@ -25,6 +28,19 @@ export const useLinks = () => {
       if (!textContent) return;
 
       history.push(`/tags/${textContent.replace(/^#/, '')}`);
+    },
+    [history],
+  );
+
+  const handleFeaturedHashtagClick = useCallback(
+    (element: HTMLAnchorElement) => {
+      const { textContent, href } = element;
+
+      if (!textContent) return;
+
+      const url = new URL(href);
+
+      history.push(url.pathname);
     },
     [history],
   );
@@ -61,12 +77,15 @@ export const useLinks = () => {
       if (isMentionClick(target)) {
         e.preventDefault();
         void handleMentionClick(target);
+      } else if (isFeaturedHashtagClick(target)) {
+        e.preventDefault();
+        handleFeaturedHashtagClick(target);
       } else if (isHashtagClick(target)) {
         e.preventDefault();
         handleHashtagClick(target);
       }
     },
-    [handleMentionClick, handleHashtagClick],
+    [handleMentionClick, handleFeaturedHashtagClick, handleHashtagClick],
   );
 
   return handleClick;
