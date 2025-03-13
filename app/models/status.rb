@@ -31,6 +31,7 @@
 #  markdown                     :boolean          default(FALSE)
 #  limited_scope                :integer
 #  quote_of_id                  :bigint(8)
+#  fetched_replies_at           :datetime
 #
 
 require 'ostruct'
@@ -41,6 +42,7 @@ class Status < ApplicationRecord
   include Paginable
   include RateLimitable
   include Status::DomainBlockConcern
+  include Status::FetchRepliesConcern
   include Status::SafeReblogInsert
   include Status::SearchConcern
   include Status::SnapshotConcern
