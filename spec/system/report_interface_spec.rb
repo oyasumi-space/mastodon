@@ -18,7 +18,6 @@ RSpec.describe 'report interface', :attachment_processing, :js, :streaming do
   before do
     as_a_logged_in_admin
     visit admin_report_path(report)
-    page.driver.browser.manage.window.resize_to(1600, 1050)
   end
 
   it 'displays the report interface, including the javascript bits' do
