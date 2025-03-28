@@ -131,7 +131,9 @@ class REST::InstanceSerializer < ActiveModel::Serializer
       enabled: registrations_enabled?,
       approval_required: Setting.registrations_mode == 'approved' || (Setting.registrations_mode == 'open' && !registrations_in_time?),
       limit_reached: Setting.registrations_mode != 'none' && reach_registrations_limit?,
+      reason_required: Setting.registrations_mode == 'approved' && Setting.require_invite_text,
       message: registrations_enabled? ? nil : registrations_message,
+      min_age: Setting.min_age.presence,
       url: ENV.fetch('SSO_ACCOUNT_SIGN_UP', nil),
     }
   end

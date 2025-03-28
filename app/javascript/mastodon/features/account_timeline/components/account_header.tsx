@@ -44,6 +44,7 @@ import {
   FollowingCounter,
   StatusesCounter,
 } from 'mastodon/components/counters';
+import { FormattedDateWrapper } from 'mastodon/components/formatted_date';
 import { getFeaturedHashtagBar } from 'mastodon/components/hashtag_bar';
 import { Icon } from 'mastodon/components/icon';
 import { IconButton } from 'mastodon/components/icon_button';
@@ -1020,7 +1021,7 @@ export const AccountHeader: React.FC<{
                 onClickCapture={handleLinkClick}
               >
                 {account.id !== me && signedIn && (
-                  <AccountNoteContainer account={account} />
+                  <AccountNoteContainer accountId={accountId} />
                 )}
 
                 {account.note.length > 0 && account.note !== '<p></p>' && (
@@ -1045,11 +1046,12 @@ export const AccountHeader: React.FC<{
                       />
                     </dt>
                     <dd>
-                      {intl.formatDate(account.created_at, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                      })}
+                      <FormattedDateWrapper
+                        value={account.created_at}
+                        year='numeric'
+                        month='short'
+                        day='2-digit'
+                      />
                     </dd>
                   </dl>
 
