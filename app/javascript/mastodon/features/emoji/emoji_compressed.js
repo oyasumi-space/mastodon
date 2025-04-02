@@ -1,5 +1,3 @@
-/* eslint-disable import/no-commonjs --
-   We need to use CommonJS here due to preval */
 // @preval
 // http://www.unicode.org/Public/emoji/5.0/emoji-test.txt
 // This file contains the compressed version of the emoji data from
@@ -22,8 +20,8 @@ const emojiMap = require('./emoji_map.json');
 // This json file is downloaded from https://github.com/iamcal/emoji-data/
 // and is used to correct the sheet coordinates since we're using that repo's sheet
 const emojiSheetData = require('./emoji_sheet.json');
-const { unicodeToFilename } = require('./unicode_to_filename_s');
-const { unicodeToUnifiedName } = require('./unicode_to_unified_name_s');
+const unicodeToFilename = require('./unicode_to_filename_s');
+const unicodeToUnifiedName = require('./unicode_to_unified_name_s');
 
 // Grabbed from `emoji_utils` to avoid circular dependency
 function unifiedToNative(unified) {

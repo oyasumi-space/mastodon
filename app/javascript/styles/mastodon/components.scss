@@ -1952,27 +1952,19 @@ body > [data-popper-placement] {
 }
 
 .domain {
-  padding: 10px;
+  padding: 16px;
   border-bottom: 1px solid var(--background-border-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  .domain__domain-name {
+  &__domain-name {
     flex: 1 1 auto;
-    display: block;
     color: $primary-text-color;
-    text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 21px;
     font-weight: 500;
   }
-}
-
-.domain__wrapper {
-  display: flex;
-}
-
-.domain_buttons {
-  height: 18px;
-  padding: 10px;
-  white-space: nowrap;
 }
 
 .account {
@@ -7408,6 +7400,8 @@ a.status-card {
     height: 100% !important;
     margin: 0;
     aspect-ratio: auto !important;
+    outline: none;
+    border-radius: 0;
 
     video {
       width: 100% !important;
@@ -7431,6 +7425,15 @@ a.status-card {
       transparent
     );
     padding: 0 15px;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+
+    &.active {
+      opacity: 1;
+    }
+  }
+
+  .media-gallery__actions {
     opacity: 0;
     transition: opacity 0.1s ease;
 
@@ -7589,7 +7592,7 @@ a.status-card {
       inset-inline-start: 0;
       top: 50%;
       transform: translate(0, -50%);
-      background: lighten($ui-highlight-color, 8%);
+      background: $white;
     }
 
     &__handle {
@@ -7602,7 +7605,7 @@ a.status-card {
       inset-inline-start: 0;
       margin-inline-start: -6px;
       transform: translate(0, -50%);
-      background: lighten($ui-highlight-color, 8%);
+      background: $white;
       box-shadow: 1px 2px 6px rgba($base-shadow-color, 0.2);
       opacity: 0;
 
@@ -7656,7 +7659,7 @@ a.status-card {
       height: 4px;
       border-radius: 4px;
       top: 14px;
-      background: lighten($ui-highlight-color, 8%);
+      background: $white;
     }
 
     &__buffer {
@@ -7672,7 +7675,7 @@ a.status-card {
       height: 12px;
       top: 10px;
       margin-inline-start: -6px;
-      background: lighten($ui-highlight-color, 8%);
+      background: $white;
       box-shadow: 1px 2px 6px rgba($base-shadow-color, 0.2);
 
       .no-reduce-motion & {
@@ -7681,6 +7684,7 @@ a.status-card {
 
       &.active {
         opacity: 1;
+        cursor: grabbing;
       }
     }
 
@@ -7688,6 +7692,28 @@ a.status-card {
       .video-player__seek__handle {
         opacity: 1;
       }
+    }
+  }
+
+  &__hotkey-indicator {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba($base-shadow-color, 0.45);
+    backdrop-filter: var(--background-filter);
+    color: $white;
+    border-radius: 8px;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &__label {
+      font-size: 15px;
+      font-weight: 500;
     }
   }
 

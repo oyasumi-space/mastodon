@@ -24,6 +24,7 @@ import { IconLogo } from 'mastodon/components/logo';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
 import { SearchabilityIcon } from 'mastodon/components/searchability_icon';
 import { VisibilityIcon } from 'mastodon/components/visibility_icon';
+import { Video } from 'mastodon/features/video';
 import { enableEmojiReaction, isHideItem } from 'mastodon/initial_state';
 
 import { Avatar } from '../../../components/avatar';
@@ -34,7 +35,6 @@ import StatusEmojiReactionsBar from '../../../components/status_emoji_reactions_
 import CompactedStatusContainer from '../../../containers/compacted_status_container';
 import Audio from '../../audio';
 import scheduleIdleTask from '../../ui/util/schedule_idle_task';
-import Video from '../../video';
 
 import Card from './card';
 
@@ -42,7 +42,6 @@ interface VideoModalOptions {
   startTime: number;
   autoPlay?: boolean;
   defaultVolume: number;
-  componentIndex: number;
 }
 
 export const DetailedStatus: React.FC<{
@@ -232,8 +231,6 @@ export const DetailedStatus: React.FC<{
           src={attachment.get('url')}
           alt={description}
           lang={language}
-          width={300}
-          height={150}
           onOpenVideo={handleOpenVideo}
           sensitive={status.get('sensitive')}
           visible={showMedia}
