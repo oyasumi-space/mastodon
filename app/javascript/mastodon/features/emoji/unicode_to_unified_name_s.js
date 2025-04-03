@@ -6,7 +6,7 @@ function padLeft(str, num) {
   return str;
 }
 
-const unicodeToUnifiedName = (str) => {
+export default function unicodeToUnifiedName(str) {
   let output = '';
 
   for (let i = 0; i < str.length; i += 2) {
@@ -19,5 +19,3 @@ const unicodeToUnifiedName = (str) => {
 
   return output;
 };
-
-export default unicodeToUnifiedName;
