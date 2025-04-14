@@ -1,0 +1,121 @@
+import { useEffect, useRef, useCallback } from 'react';
+
+import { FormattedMessage } from 'react-intl';
+
+import { Helmet } from 'react-helmet';
+import { useParams } from 'react-router';
+
+import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg?react';
+import {
+  expandBookmarkCategoryStatuses,
+  fetchBookmarkCategory,
+  fetchBookmarkCategoryStatuses,
+} from 'mastodon/actions/bookmark_categories';
+import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
+import { Column } from 'mastodon/components/column';
+import type { ColumnRef } from 'mastodon/components/column';
+import { ColumnHeader } from 'mastodon/components/column_header';
+import StatusList from 'mastodon/components/status_list';
+import { getSubStatusList } from 'mastodon/selectors';
+import { useAppDispatch, useAppSelector } from 'mastodon/store';
+
+const BookmarkCategoryStatuses: React.FC<{
+  columnId: string;
+  multiColumn: boolean;
+}> = ({ columnId, multiColumn }) => {
+  const dispatch = useAppDispatch();
+  const { id } = useParams<{ id: string }>();
+  const columnRef = useRef<ColumnRef>(null);
+  const statusIds = useAppSelector((state) =>
+    getSubStatusList(state, 'bookmark_category', id),
+  );
+  const isLoading = useAppSelector(
+    (state) =>
+      state.status_lists.getIn(
+        ['bookmark_category_statuses', id, 'isLoading'],
+        true,
+      ) as boolean,
+  );
+  const hasMore = useAppSelector(
+    (state) =>
+      !!state.status_lists.getIn(['bookmark_category_statuses', id, 'next']),
+  );
+  const bookmarkCategory = useAppSelector((state) =>
+    state.bookmark_categories.get(id),
+  );
+
+  useEffect(() => {
+    dispatch(fetchBookmarkCategory(id));
+    dispatch(fetchBookmarkCategoryStatuses(id));
+  }, [dispatch, id]);
+
+  const handlePin = useCallback(() => {
+    if (columnId) {
+      dispatch(removeColumn(columnId));
+    } else {
+      dispatch(addColumn('BOOKMARKS_EX', { id }));
+    }
+  }, [dispatch, columnId, id]);
+
+  const handleMove = useCallback(
+    (dir: number) => {
+      dispatch(moveColumn(columnId, dir));
+    },
+    [dispatch, columnId],
+  );
+
+  const handleHeaderClick = useCallback(() => {
+    columnRef.current?.scrollTop();
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    dispatch(expandBookmarkCategoryStatuses(id));
+  }, [dispatch, id]);
+
+  const pinned = !!columnId;
+
+  const emptyMessage = (
+    <FormattedMessage
+      id='empty_column.bookmarked_statuses'
+      defaultMessage="You don't have any bookmarked posts yet. When you bookmark one, it will show up here."
+    />
+  );
+
+  return (
+    <Column
+      bindToDocument={!multiColumn}
+      ref={columnRef}
+      label={bookmarkCategory?.get('title')}
+    >
+      <ColumnHeader
+        icon='bookmark'
+        iconComponent={BookmarkIcon}
+        title={bookmarkCategory?.get('title')}
+        onPin={handlePin}
+        onMove={handleMove}
+        onClick={handleHeaderClick}
+        pinned={pinned}
+        multiColumn={multiColumn}
+      />
+
+      <StatusList
+        trackScroll={!pinned}
+        statusIds={statusIds}
+        scrollKey={`bookmark_ex_statuses-${columnId}`}
+        hasMore={hasMore}
+        isLoading={isLoading}
+        onLoadMore={handleLoadMore}
+        emptyMessage={emptyMessage}
+        bindToDocument={!multiColumn}
+      />
+
+      <Helmet>
+        <title>{bookmarkCategory?.get('title')}</title>
+        <meta name='robots' content='noindex' />
+      </Helmet>
+    </Column>
+  );
+};
+
+// eslint-disable-next-line import/no-default-export
+export default BookmarkCategoryStatuses;

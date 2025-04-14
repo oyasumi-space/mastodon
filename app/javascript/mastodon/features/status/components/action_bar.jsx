@@ -27,7 +27,7 @@ import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 
 import { IconButton } from '../../../components/icon_button';
-import DropdownMenuContainer from '../../../containers/dropdown_menu_container';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem, boostMenu, boostModal } from '../../../initial_state';
 import EmojiPickerDropdown from '../../compose/containers/emoji_picker_dropdown_container';
 
@@ -416,7 +416,7 @@ class ActionBar extends PureComponent {
           <div className='detailed-status__button'><IconButton className={classNames({ reblogPrivate })} disabled={!publicStatus && !reblogPrivate} active={status.get('reblogged')} title={reblogTitle} icon='retweet' iconComponent={reblogIconComponent} onClick={this.handleReblogClick} /></div>
         ) : (
           <div className='detailed-status__button'>
-            <DropdownMenuContainer
+            <Dropdown
               className={classNames({ reblogPrivate })}
               icon='retweet'
               iconComponent={reblogIconComponent}
@@ -434,7 +434,7 @@ class ActionBar extends PureComponent {
         {emojiPickerDropdown}
 
         <div className='detailed-status__action-bar-dropdown'>
-          <DropdownMenuContainer icon='ellipsis-h' iconComponent={MoreHorizIcon} status={status} items={menu} direction='left' title={intl.formatMessage(messages.more)} />
+          <Dropdown icon='ellipsis-h' iconComponent={MoreHorizIcon} status={status} items={menu} direction='left' title={intl.formatMessage(messages.more)} />
         </div>
       </div>
     );

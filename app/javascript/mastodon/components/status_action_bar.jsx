@@ -25,9 +25,8 @@ import { identityContextPropShape, withIdentity } from 'mastodon/identity_contex
 import { PERMISSION_MANAGE_USERS, PERMISSION_MANAGE_FEDERATION } from 'mastodon/permissions';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
-
-import DropdownMenuContainer from '../containers/dropdown_menu_container';
 import EmojiPickerDropdown from '../features/compose/containers/emoji_picker_dropdown_container';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { enableEmojiReaction , bookmarkCategoryNeeded, simpleTimelineMenu, me, isHideItem, boostMenu, boostModal } from '../initial_state';
 
 import { IconButton } from './icon_button';
@@ -349,9 +348,8 @@ class StatusActionBar extends ImmutablePureComponent {
 
       if (writtenByMe && pinnableStatus) {
         menu.push({ text: intl.formatMessage(status.get('pinned') ? messages.unpin : messages.pin), action: this.handlePinClick });
+        menu.push(null);
       }
-
-      menu.push(null);
 
       if (writtenByMe || withDismiss) {
         menu.push({ text: intl.formatMessage(mutingConversation ? messages.unmuteConversation : messages.muteConversation), action: this.handleConversationMuteClick });
@@ -498,7 +496,7 @@ class StatusActionBar extends ImmutablePureComponent {
         </div>
         <div className='status__action-bar__button-wrapper'>
           {reblogMenu.length === 0 ? reblogButton : (
-            <DropdownMenuContainer
+            <Dropdown
               className={classNames('status__action-bar__button', { reblogPrivate })}
               scrollKey={scrollKey}
               status={status}
@@ -509,9 +507,7 @@ class StatusActionBar extends ImmutablePureComponent {
               title={reblogTitle}
               active={status.get('reblogged')}
               disabled={!publicStatus && !reblogPrivate}
-            >
-              {reblogButton}
-            </DropdownMenuContainer>
+            />
           )}
         </div>
         <div className='status__action-bar__button-wrapper'>
@@ -522,7 +518,7 @@ class StatusActionBar extends ImmutablePureComponent {
         </div>
         {emojiPickerDropdown}
         <div className='status__action-bar__button-wrapper'>
-          <DropdownMenuContainer
+          <Dropdown
             scrollKey={scrollKey}
             status={status}
             items={menu}

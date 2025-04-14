@@ -184,6 +184,7 @@ const removeOneFromAllBookmarkCategoriesById = (state, statusId) => {
   return s;
 };
 
+/** @type {import('@reduxjs/toolkit').Reducer<typeof initialState>} */
 export default function statusLists(state = initialState, action) {
   switch(action.type) {
   case FAVOURITED_STATUSES_FETCH_REQUEST:
