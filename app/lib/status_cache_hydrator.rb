@@ -26,9 +26,9 @@ class StatusCacheHydrator
 
   private
 
-  def hydrate_non_reblog_payload(empty_payload, account_id, _account)
+  def hydrate_non_reblog_payload(empty_payload, account_id, account)
     empty_payload.tap do |payload|
-      fill_status_payload(payload, @status, account_id)
+      fill_status_payload(payload, @status, account_id, account)
 
       if payload[:poll]
         payload[:poll][:voted] = @status.account_id == account_id
@@ -37,7 +37,7 @@ class StatusCacheHydrator
     end
   end
 
-  def hydrate_reblog_payload(empty_payload, account_id, _account)
+  def hydrate_reblog_payload(empty_payload, account_id, account)
     empty_payload.tap do |payload|
       payload[:muted]      = false
       payload[:bookmarked] = false
@@ -47,7 +47,7 @@ class StatusCacheHydrator
       # used to create the status, we need to hydrate it here too
       payload[:reblog][:application] = payload_reblog_application if payload[:reblog][:application].nil? && @status.reblog.account_id == account_id
 
-      fill_status_payload(payload[:reblog], @status.reblog, account_id)
+      fill_status_payload(payload[:reblog], @status.reblog, account_id, account)
 
       if payload[:reblog][:poll]
         if @status.reblog.account_id == account_id
@@ -66,7 +66,7 @@ class StatusCacheHydrator
     end
   end
 
-  def fill_status_payload(payload, status, account_id)
+  def fill_status_payload(payload, status, account_id, account)
     payload[:favourited] = Favourite.exists?(account_id: account_id, status_id: status.id)
     payload[:reblogged]  = Status.exists?(account_id: account_id, reblog_of_id: status.id)
     payload[:muted]      = ConversationMute.exists?(account_id: account_id, conversation_id: status.conversation_id)
