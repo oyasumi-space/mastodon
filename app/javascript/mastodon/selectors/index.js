@@ -6,6 +6,7 @@ import { me, isHideItem } from '../initial_state';
 import { getFilters } from './filters';
 
 export { makeGetAccount } from "./accounts";
+export { getStatusList, getSubStatusList } from "./statuses";
 
 export const makeGetStatus = () => {
   return createSelector(
@@ -93,15 +94,3 @@ export const makeGetReport = () => createSelector([
   (_, base) => base,
   (state, _, targetAccountId) => state.getIn(['accounts', targetAccountId]),
 ], (base, targetAccount) => base.set('target_account', targetAccount));
-
-export const getStatusList = createSelector([
-  (state, type) => state.getIn(['status_lists', type, 'items']),
-], (items) => items.toList());
-
-export const getBookmarkCategoryStatusList = createSelector([
-  (state, bookmarkCategoryId) => state.getIn(['status_lists', 'bookmark_category_statuses', bookmarkCategoryId, 'items']),
-], (items) => items ? items.toList() : ImmutableList());
-
-export const getCircleStatusList = createSelector([
-  (state, circleId) => state.getIn(['status_lists', 'circle_statuses', circleId, `items`]),
-], (items) => items ? items.toList() : ImmutableList());
