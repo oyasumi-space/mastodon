@@ -242,6 +242,19 @@ class ActivityPub::TagManager
     path_params[param]
   end
 
+  def uris_to_local_accounts(uris)
+    usernames = []
+    ids = []
+
+    uris.each do |uri|
+      param, value = uri_to_local_account_params(uri)
+      usernames << value.downcase if param == :username
+      ids << value if param == :id
+    end
+
+    Account.local.with_username(usernames).or(Account.local.where(id: ids))
+  end
+
   def uri_to_actor(uri)
     uri_to_resource(uri, Account)
   end
@@ -252,7 +265,7 @@ class ActivityPub::TagManager
     if local_uri?(uri)
       case klass.name
       when 'Account'
-        klass.find_local(uri_to_local_id(uri, :username))
+        uris_to_local_accounts([uri]).first
       else
         StatusFinder.new(uri).status
       end
@@ -332,6 +345,22 @@ class ActivityPub::TagManager
         result << uri_for(mention.account)
         result << account_followers_url(mention.account) if mention.account.group?
       end
+    end
+  end
+
+  private
+
+  def uri_to_local_account_params(uri)
+    return unless local_uri?(uri)
+
+    path_params = Rails.application.routes.recognize_path(uri)
+
+    # TODO: handle numeric IDs
+    case path_params[:controller]
+    when 'accounts'
+      [:username, path_params[:username]]
+    when 'instance_actors'
+      [:id, -99]
     end
   end
 end

@@ -31,6 +31,7 @@
 #  markdown                     :boolean          default(FALSE)
 #  limited_scope                :integer
 #  quote_of_id                  :bigint(8)
+#  fetched_replies_at           :datetime
 #
 
 require 'ostruct'
@@ -41,6 +42,7 @@ class Status < ApplicationRecord
   include Paginable
   include RateLimitable
   include Status::DomainBlockConcern
+  include Status::FetchRepliesConcern
   include Status::SafeReblogInsert
   include Status::SearchConcern
   include Status::SnapshotConcern
@@ -425,7 +427,7 @@ class Status < ApplicationRecord
           end
 
           emoji_reaction['count'] = emoji_reaction['account_ids'].size
-          public_emoji_reactions << emoji_reaction if (emoji_reaction['count']).positive?
+          public_emoji_reactions << emoji_reaction if emoji_reaction['count'].positive?
         end
 
         public_emoji_reactions
@@ -505,7 +507,7 @@ class Status < ApplicationRecord
     end
 
     def bookmarks_map(status_ids, account_id)
-      Bookmark.select(:status_id).where(status_id: status_ids).where(account_id: account_id).map { |f| [f.status_id, true] }.to_h
+      Bookmark.select(:status_id).where(status_id: status_ids).where(account_id: account_id).to_h { |f| [f.status_id, true] }
     end
 
     def reblogs_map(status_ids, account_id)

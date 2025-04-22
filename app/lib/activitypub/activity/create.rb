@@ -4,6 +4,8 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   include FormattingHelper
   include NgRuleHelper
 
+  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
+
   def perform
     @account.schedule_refresh_if_stale!
 
@@ -433,7 +435,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     collection = @object['replies']
     return if collection.blank?
 
-    replies = ActivityPub::FetchRepliesService.new.call(status, collection, allow_synchronous_requests: false, request_id: @options[:request_id])
+    replies = ActivityPub::FetchRepliesService.new.call(status.account.uri, collection, allow_synchronous_requests: false, request_id: @options[:request_id])
     return unless replies.nil?
 
     uri = value_or_id(collection)
@@ -563,11 +565,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   def addresses_local_accounts?
     return true if @options[:delivered_to_account_id]
 
-    local_usernames = (audience_to + audience_cc).uniq.select { |uri| ActivityPub::TagManager.instance.local_uri?(uri) }.map { |uri| ActivityPub::TagManager.instance.uri_to_local_id(uri, :username) }
-
-    return false if local_usernames.empty?
-
-    Account.local.exists?(username: local_usernames)
+    ActivityPub::TagManager.instance.uris_to_local_accounts((audience_to + audience_cc).uniq).exists?
   end
 
   def tombstone_exists?
@@ -644,8 +642,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   def quote
     @quote ||= quote_from_tags || @object['quote'] || @object['quoteUrl'] || @object['quoteURL'] || @object['_misskey_quote']
   end
-
-  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
 
   def quote_from_tags
     return @quote_from_tags if defined?(@quote_from_tags)
