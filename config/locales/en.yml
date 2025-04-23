@@ -484,7 +484,7 @@ en:
       reject_media_hint: Removes locally stored media files and refuses to download any in the future. Irrelevant for suspensions
       reject_new_follow: Reject follows
       reject_new_follow_hint: Reject follows in the future
-      reject_reply_exclude_followers: Reject mentions/quotes exclude followers
+      reject_reply_exclude_followers: Reject mentions exclude followers
       reject_reply_exclude_followers_hint: Reject replies exclude followers in the future
       reject_reports: Reject reports
       reject_reports_hint: Ignore all reports coming from this domain. Irrelevant for suspensions
@@ -629,7 +629,7 @@ en:
           reject_hashtag: Reject hashtags
           reject_media: Reject media
           reject_new_follow: Reject follows
-          reject_reply_exclude_followers: Reject reply/quote exclude followers
+          reject_reply_exclude_followers: Reject reply exclude followers
           reject_reports: Reject reports
           reject_send_sensitive: No Sensitive Submission Delivery
           reject_straight_follow: Reject straight follow
@@ -781,7 +781,7 @@ en:
         needed: have
         no_needed: Should not have
         optional: Optional
-      status_allow_follower_mention: Check posts only if they contain mentions/quotes to non-followers
+      status_allow_follower_mention: Check posts only if they contain mentions to non-followers
       status_allow_follower_mention_hint: If enabled, mentions between other servers are unconditionally allowed
       status_cw_state: Has warning or not
       status_media_state: Has media or not
@@ -791,8 +791,8 @@ en:
       status_poll_state: Has poll or not
       status_poll_threshold: Poll items limit
       status_quote_state: Has quote or not
-      status_reference_state: Has quiet quote or not
-      status_reference_threshold: Has quiet quote or not
+      status_reference_state: Has link or not
+      status_reference_threshold: Has link or not
       status_reply_state: Is reply or not
       status_searchability: Searchability
       status_sensitive_state: Is sensitive or not
@@ -811,7 +811,7 @@ en:
       phrases:
         regexp_html: "<strong>Reg</strong> - If the <strong>Reg</strong> checkbox is checked, the comparison is performed using regular expressions."
         regexp_short: Reg
-        stranger_html: "<strong>UE</strong> - Items checked under <strong>Uem</strong> apply only to mentions, replies, quotes, etc. from accounts with which you have no follow relationship."
+        stranger_html: "<strong>UE</strong> - Items checked under <strong>Uem</strong> apply only to mentions, replies, links, etc. from accounts with which you have no follow relationship."
         stranger_short: Uem
       post_hash_tags_max: Hash tags limit of a post
       post_mentions_max: Mentions limit of a post
@@ -1106,7 +1106,7 @@ en:
     special_domains:
       stop_fetch_activity_domains:
         preamble: On servers with different domains for Web and Activity, you may not be able to retrieve Activity even if you access Web. In citations, this setting suppresses fetching when such a URL is specified in the body of a post. In most cases, this setting is rarely used.
-        title: Domains do not fetch for quotes
+        title: Domains do not fetch for links
       stop_link_preview_domains:
         preamble: If a site temporarily restricts connections from IP addresses that have received many hits, your server may be treated unfavorably. This setting suppresses the process of accessing such sites and generating link previews. In most cases, this setting is rarely used.
         title: Domains do not fetch for link previews
@@ -1435,7 +1435,6 @@ en:
       body: Mastodon is translated by volunteers.
       guide_link: https://crowdin.com/project/mastodon
       guide_link_text: Everyone can contribute.
-    quotes: Quotes
     remote_server_features: Other server features
     saved_posts: Saving posts
     sensitive_content: Sensitive content

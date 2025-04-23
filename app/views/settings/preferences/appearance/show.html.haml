@@ -86,7 +86,6 @@
     .fields-group
       - if Setting.enable_emoji_reaction
         = ff.input :'web.hide_emoji_reaction_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_emoji_reaction_unavailable_server')
-      = ff.input :'web.hide_quote_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_quote_unavailable_server')
       = ff.input :'web.hide_status_reference_unavailable_server', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_hide_status_reference_unavailable_server')
 
     %h4= t 'appearance.saved_posts'
@@ -94,13 +93,6 @@
     .fields-group
       = ff.input :'web.bookmark_category_needed', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_bookmark_category_needed'), hint: I18n.t('simple_form.hints.defaults.setting_bookmark_category_needed')
       = ff.input :'web.show_favourite_menu', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_favourite_menu')
-
-    %h4= t 'appearance.quotes'
-
-    .fields-group
-      = ff.input :'web.show_quote_in_home', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_quote_in_home'), hint: false
-      = ff.input :'web.show_quote_in_public', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_quote_in_public'), hint: false
-      = ff.input :'web.show_blocking_quote', wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_show_blocking_quote'), hint: false
 
     %h4= t 'appearance.status_action_bar'
 

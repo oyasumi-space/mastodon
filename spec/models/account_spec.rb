@@ -397,13 +397,9 @@ RSpec.describe Account do
   describe '#public_settings_for_local' do
     subject { account.public_settings_for_local }
 
-    let(:account) { Fabricate(:user, settings: { allow_quote: true, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+    let(:account) { Fabricate(:user, settings: { hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
 
     shared_examples 'some settings' do |permitted, emoji_reaction_policy|
-      it 'allow_quote is allowed' do
-        expect(subject['allow_quote']).to be permitted.include?(:allow_quote)
-      end
-
       it 'hide_statuses_count is allowed' do
         expect(subject['hide_statuses_count']).to be permitted.include?(:hide_statuses_count)
       end
@@ -417,24 +413,18 @@ RSpec.describe Account do
       end
     end
 
-    it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
+    it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
 
     context 'when default true setting is set false' do
-      let(:account) { Fabricate(:user, settings: { allow_quote: false, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+      let(:account) { Fabricate(:user, settings: { hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
 
       it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
     end
 
     context 'when remote user' do
-      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', settings: { 'allow_quote' => true, 'hide_statuses_count' => true, 'emoji_reaction_policy' => 'followers_only' }) }
+      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', settings: { 'hide_statuses_count' => true, 'emoji_reaction_policy' => 'followers_only' }) }
 
-      it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
-    end
-
-    context 'when remote user by server other_settings is not supported' do
-      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
-
-      it_behaves_like 'some settings', %i(allow_quote), 'allow'
+      it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
     end
   end
 

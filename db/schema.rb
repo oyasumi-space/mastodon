@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_10_144908) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_23_224935) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -552,7 +552,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_10_144908) do
     t.integer "action", default: 0, null: false
     t.boolean "exclude_follows", default: false, null: false
     t.boolean "exclude_localusers", default: false, null: false
-    t.boolean "with_quote", default: true, null: false
     t.boolean "with_profile", default: false, null: false
     t.index ["account_id"], name: "index_custom_filters_on_account_id"
   end
@@ -1374,7 +1373,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_10_144908) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "attribute_type"
-    t.boolean "quote", default: false, null: false
     t.index ["status_id"], name: "index_status_references_on_status_id"
     t.index ["target_status_id"], name: "index_status_references_on_target_status_id"
   end

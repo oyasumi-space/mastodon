@@ -156,7 +156,7 @@ const makeMapStateToProps = () => {
     if (status) {
       ancestorsIds   = getAncestorsIds(state, { id: status.get('in_reply_to_id') });
       descendantsIds = getDescendantsIds(state, { id: status.get('id') });
-      referenceIds   = getReferenceIds(state, { id: status.get('id') }).filter((id) => id !== status.get('quote_id'));
+      referenceIds   = getReferenceIds(state, { id: status.get('id') });
     }
 
     return {
@@ -339,10 +339,6 @@ class Status extends ImmutablePureComponent {
 
   handleReference = (status, router) => {
     this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'BT', router));
-  };
-
-  handleQuote = (status, router) => {
-    this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'QT', router));
   };
 
   handleBookmarkClick = (status) => {
@@ -774,7 +770,6 @@ class Status extends ImmutablePureComponent {
                   onReblog={this.handleReblogClick}
                   onReblogForceModal={this.handleReblogForceModalClick}
                   onReference={this.handleReference}
-                  onQuote={this.handleQuote}
                   onBookmark={this.handleBookmarkClick}
                   onBookmarkCategoryAdder={this.handleBookmarkCategoryAdderClick}
                   onDelete={this.handleDeleteClick}

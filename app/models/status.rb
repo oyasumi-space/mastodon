@@ -205,19 +205,6 @@ class Status < ApplicationRecord
                      account: [:account_stat, user: :role],
                      active_mentions: { account: :account_stat },
                    ],
-                   quote: [
-                     :application,
-                     :tags,
-                     :media_attachments,
-                     :conversation,
-                     :status_stat,
-                     :preloadable_poll,
-                     :reference_objects,
-                     :scheduled_expiration_status,
-                     preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
-                     account: [:account_stat, user: :role],
-                     active_mentions: :account,
-                   ],
                    thread: :account
 
   delegate :domain, to: :account, prefix: true
@@ -250,10 +237,6 @@ class Status < ApplicationRecord
 
   def reblog?
     !reblog_of_id.nil?
-  end
-
-  def quote?
-    !quote_of_id.nil? && !quote.nil?
   end
 
   def expires?

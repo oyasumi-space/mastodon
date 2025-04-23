@@ -56,11 +56,11 @@ class Api::V1::FiltersController < Api::BaseController
   end
 
   def resource_params
-    params.permit(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_quote, :with_profile, :whole_word, context: [])
+    params.permit(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_profile, :whole_word, context: [])
   end
 
   def filter_params
-    resource_params.slice(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_quote, :with_profile, :context)
+    resource_params.slice(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_profile, :context)
   end
 
   def keyword_params

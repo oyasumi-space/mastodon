@@ -2,14 +2,10 @@
 
 
 /**
- * @typedef { 'blocking_quote'
- *   | 'emoji_reaction_on_timeline'
+ * @typedef { 'emoji_reaction_on_timeline'
  *   | 'emoji_reaction_unavailable_server'
  *   | 'emoji_reaction_count'
  *   | 'favourite_menu'
- *   | 'quote_in_home'
- *   | 'quote_in_public'
- *   | 'quote_unavailable_server'
  *   | 'recent_emojis'
  *   | 'relationships'
  *   | 'status_reference_unavailable_server'

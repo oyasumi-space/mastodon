@@ -35,8 +35,6 @@ class InstanceInfo < ApplicationRecord
     yojo-art
   ).freeze
 
-  QUOTE_AVAILABLE_SOFTWARES = EMOJI_REACTION_AVAILABLE_SOFTWARES + %w(bridgy-fed).freeze
-
   STATUS_REFERENCE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
 
   CIRCLE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
@@ -87,7 +85,6 @@ class InstanceInfo < ApplicationRecord
 
       {
         emoji_reaction: feature_available?(info, EMOJI_REACTION_AVAILABLE_SOFTWARES, 'emoji_reaction'),
-        quote: feature_available?(info, QUOTE_AVAILABLE_SOFTWARES, 'quote'),
         status_reference: feature_available?(info, STATUS_REFERENCE_AVAILABLE_SOFTWARES, 'status_reference'),
         circle: feature_available?(info, CIRCLE_AVAILABLE_SOFTWARES, 'circle'),
       }
@@ -96,7 +93,6 @@ class InstanceInfo < ApplicationRecord
     def local_features
       {
         emoji_reaction: Setting.enable_emoji_reaction,
-        quote: true,
         status_reference: true,
         circle: true,
       }

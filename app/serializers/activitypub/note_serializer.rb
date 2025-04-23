@@ -3,7 +3,7 @@
 class ActivityPub::NoteSerializer < ActivityPub::Serializer
   include FormattingHelper
 
-  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :searchable_by, :references, :limited_scope, :quote_uri
+  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :searchable_by, :references, :limited_scope
 
   attributes :id, :type, :summary,
              :in_reply_to, :published, :url,
@@ -15,9 +15,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   attribute :content_map, if: :language?
   attribute :updated, if: :edited?
   attribute :limited_scope, if: :limited_visibility?
-
-  attribute :quote_uri, if: :quote?
-  attribute :misskey_quote, key: :_misskey_quote, if: :quote?
 
   has_many :virtual_attachments, key: :attachment
   has_many :virtual_tags, key: :tag
@@ -158,30 +155,7 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags
-    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis + virtual_tags_of_quote
-  end
-
-  class NoteLink < ActiveModelSerializers::Model
-    attributes :href
-  end
-
-  class NoteLinkSerializer < ActivityPub::Serializer
-    attributes :type, :href
-    attribute :media_type, key: :mediaType
-
-    def type
-      'Link'
-    end
-
-    def media_type
-      'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'
-    end
-  end
-
-  def virtual_tags_of_quote
-    return [] unless object.quote?
-
-    [NoteLink.new(href: quote_uri)]
+    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis
   end
 
   def atom_uri
@@ -216,20 +190,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def local?
     object.account.local?
-  end
-
-  delegate :quote?, to: :object
-
-  def quote_post
-    @quote_post ||= object.quote
-  end
-
-  def quote_uri
-    ActivityPub::TagManager.instance.uri_for(quote_post)
-  end
-
-  def misskey_quote
-    quote_uri
   end
 
   def poll_options

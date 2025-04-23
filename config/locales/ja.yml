@@ -1389,7 +1389,6 @@ ja:
       body: Mastodonは有志によって翻訳されています。
       guide_link: https://ja.crowdin.com/project/mastodon
       guide_link_text: 誰でも参加することができます。
-    quotes: 引用
     remote_server_features: 他のサーバーの機能
     saved_posts: 投稿の記録
     sensitive_content: 閲覧注意コンテンツ

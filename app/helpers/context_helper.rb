@@ -29,7 +29,6 @@ module ContextHelper
     limited_scope: { 'kmyblue' => 'http://kmy.blue/ns#', 'limitedScope' => 'kmyblue:limitedScope' },
     other_setting: { 'fedibird' => 'http://fedibird.com/ns#', 'otherSetting' => 'fedibird:otherSetting' },
     references: { 'fedibird' => 'http://fedibird.com/ns#', 'references' => { '@id' => 'fedibird:references', '@type' => '@id' } },
-    quote_uri: { 'fedibird' => 'http://fedibird.com/ns#', 'quoteUri' => 'fedibird:quoteUri' },
     keywords: { 'schema' => 'http://schema.org#', 'keywords' => 'schema:keywords' },
     license: { 'schema' => 'http://schema.org#', 'license' => 'schema:license' },
     suspended: { 'toot' => 'http://joinmastodon.org/ns#', 'suspended' => 'toot:suspended' },

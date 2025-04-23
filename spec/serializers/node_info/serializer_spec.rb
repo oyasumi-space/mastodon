@@ -30,7 +30,6 @@ RSpec.describe NodeInfo::Serializer do
     end
 
     it 'returns nodeinfo own features' do
-      expect(serialization['metadata']['features']).to include 'quote'
       expect(serialization['metadata']['features']).to_not include 'kmyblue_markdown'
     end
   end

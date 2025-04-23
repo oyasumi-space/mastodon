@@ -555,7 +555,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def related_to_local_activity?
     fetch? || followed_by_local_accounts? || requested_through_relay? ||
-      responds_to_followed_account? || addresses_local_accounts? || quote_local? || free_friend_domain?
+      responds_to_followed_account? || addresses_local_accounts? || free_friend_domain?
   end
 
   def responds_to_followed_account?
@@ -621,16 +621,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     ProcessReferencesService.call_service_without_error(@status, [], reference_uris, [quote].compact)
   end
 
-  def quote_local?
-    url = quote
-
-    if url.present?
-      ActivityPub::TagManager.instance.uri_to_resource(url, Status)&.local?
-    else
-      false
-    end
-  end
-
   def free_friend_domain?
     FriendDomain.free_receivings.exists?(domain: @account.domain)
   end
@@ -640,15 +630,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def quote
-    @quote ||= quote_from_tags || @object['quote'] || @object['quoteUrl'] || @object['quoteURL'] || @object['_misskey_quote']
-  end
-
-  def quote_from_tags
-    return @quote_from_tags if defined?(@quote_from_tags)
-
-    hit_tag = as_array(@object['tag']).detect do |tag|
-      equals_or_includes?(tag['type'], 'Link') && LINK_MEDIA_TYPES.include?(tag['mediaType']) && tag['href'].present?
-    end
-    @quote_from_tags = hit_tag && hit_tag['href']
+    @quote ||= nil # TODO: quote
   end
 end

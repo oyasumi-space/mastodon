@@ -42,7 +42,7 @@ const messages = defineMessages({
   reblog: { id: 'notification.reblog', defaultMessage: '{name} boosted your post' },
   status: { id: 'notification.status', defaultMessage: '{name} just posted' },
   listStatus: { id: 'notification.list_status', defaultMessage: '{name} post is added to {listName}' },
-  statusReference: { id: 'notification.status_reference', defaultMessage: '{name} quoted your post' },
+  statusReference: { id: 'notification.status_reference', defaultMessage: '{name} linked your post' },
   update: { id: 'notification.update', defaultMessage: '{name} edited a post' },
   adminSignUp: { id: 'notification.admin.sign_up', defaultMessage: '{name} signed up' },
   adminReport: { id: 'notification.admin.report', defaultMessage: '{name} reported {target}' },
@@ -305,7 +305,7 @@ class Notification extends ImmutablePureComponent {
             </div>
 
             <span title={notification.get('created_at')}>
-              <FormattedMessage id='notification.status_reference' defaultMessage='{name} quoted your post' values={{ name: link }} />
+              <FormattedMessage id='notification.status_reference' defaultMessage='{name} linked your post' values={{ name: link }} />
             </span>
           </div>
 

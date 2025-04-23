@@ -60,7 +60,6 @@ en:
         phrase: Will be matched regardless of casing in text or content warning of a post
         scopes: Which APIs the application will be allowed to access. If you select a top-level scope, you don't need to select individual ones.
         setting_aggregate_reblogs: Do not show new boosts for posts that have been recently boosted (only affects newly-received boosts)
-        setting_allow_quote: Subdued quotes are allowed regardless of this setting; you can quote freely from any source except kmyblue!
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
@@ -80,7 +79,6 @@ en:
         setting_public_post_to_unlisted: 未対応のサードパーティアプリからもローカル公開で投稿できますが、公開投稿はWeb以外できなくなります
         setting_reject_send_limited_to_suspects: This applies to "Mutual Only" posts. Circle posts will be delivered without exception. Some Misskey servers have independently supported limited posting, but this is a setting for those who are concerned about it, as mutual-only posting exposes some of the users you are mutual with to Misskey users!
         setting_reject_unlisted_subscription: Misskey and its forks can **subscribe and search** for "non-following" posts from accounts they do not follow. This differs from kmyblue's behavior. It delivers posts in the specified public range to such servers as "followers only". Please understand, however, that due to its structure, it is difficult to handle perfectly and will occasionally be delivered as non-subscribed.
-        setting_reverse_search_quote: Double-quotes will result in a search with a wider range of notation, which is the opposite of Mastodon's default behavior.
         setting_show_application: 投稿するのに使用したアプリが投稿の詳細ビューに表示されるようになります
         setting_stay_privacy: If you choose to enable this setting, please consider manually setting the visibility of the boost
         setting_stop_emoji_reaction_streaming: Helps to save communication capacity.
@@ -270,7 +268,6 @@ en:
         phrase: Keyword or phrase
         setting_advanced_layout: Enable advanced web interface
         setting_aggregate_reblogs: Group boosts in timelines
-        setting_allow_quote: Allow quote your posts
         setting_always_send_emails: Always send e-mail notifications
         setting_auto_play_gif: Auto-play animated GIFs
         setting_bio_markdown: Enable profile markdown
@@ -315,8 +312,7 @@ en:
         setting_expand_spoilers: Always expand posts marked with content warnings
         setting_hide_emoji_reaction_unavailable_server: Hide emoji reaction button from unavailable server
         setting_hide_network: Hide your social graph
-        setting_hide_quote_unavailable_server: Hide quote menu from unavailable server
-        setting_hide_status_reference_unavailable_server: Hide quiet quote (reference named by Fedibird) menu from unavailable server
+        setting_hide_status_reference_unavailable_server: Hide link (reference named by Fedibird) menu from unavailable server
         setting_lock_follow_from_bot: Request approval about bot follow
         setting_missing_alt_text_modal: Show confirmation dialog before posting media without alt text
         setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
@@ -327,14 +323,11 @@ en:
         setting_reverse_search_quote: Perform word-by-word search when search keywords are not enclosed in double quotes
         setting_show_application: Disclose application used to send posts
         setting_show_avatar_on_filter: Show filtered posts with avatar and user profile
-        setting_show_blocking_quote: Show posts which have a quote written by the user you are blocking
         setting_show_emoji_reaction_count: Show emoji reaction number
         setting_show_emoji_reaction_on_timeline: Show all emoji reactions on timeline
         setting_show_favourite_menu: Show favourite menu
         setting_show_followers_count: Show followers count
         setting_show_following_count: Show following count
-        setting_show_quote_in_home: Show quotes in home, list or antenna timelines
-        setting_show_quote_in_public: Show quotes in public timelines
         setting_show_recent_emojis: Show recent emojis
         setting_show_relationships: Show relationships on account page
         setting_show_statuses_count: Show statuses count
@@ -386,7 +379,6 @@ en:
           exclude_follows: Exclude following users
           exclude_localusers: Exclude local users
           exclude_profile: Exclude account name and bio
-          exclude_quote: Exclude quote or references
       form_admin_settings:
         activity_api_enabled: Publish aggregate statistics about user activity in the API
         app_icon: App icon

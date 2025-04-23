@@ -12,7 +12,6 @@
 #  expires_at         :datetime
 #  phrase             :text             default(""), not null
 #  with_profile       :boolean          default(FALSE), not null
-#  with_quote         :boolean          default(TRUE), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  account_id         :bigint(8)        not null
@@ -69,14 +68,6 @@ class CustomFilter < ApplicationRecord
     hide_action?
   end
 
-  def exclude_quote=(value)
-    self.with_quote = !ActiveModel::Type::Boolean.new.cast(value)
-  end
-
-  def exclude_quote
-    !with_quote
-  end
-
   def exclude_profile=(value)
     self.with_profile = !ActiveModel::Type::Boolean.new.cast(value)
   end
@@ -111,9 +102,6 @@ class CustomFilter < ApplicationRecord
   end
 
   def self.apply_cached_filters(cached_filters, status, following: false)
-    references_text_cache = nil
-    references_spoiler_text_cache = nil
-
     cached_filters.filter_map do |filter, rules|
       next if filter.exclude_follows && following
       next if filter.exclude_localusers && status.account.local?
@@ -121,17 +109,10 @@ class CustomFilter < ApplicationRecord
       if rules[:keywords].present?
         match = rules[:keywords].match(status.proper.searchable_text)
         match = rules[:keywords].match([status.account.display_name, status.account.note].join("\n\n")) if !match && filter.with_profile
-        if match.nil? && filter.with_quote && status.proper.reference_objects.exists?
-          references_text_cache = status.proper.references.pluck(:text).join("\n\n") if references_text_cache.nil?
-          references_spoiler_text_cache = status.proper.references.pluck(:spoiler_text).join("\n\n") if references_spoiler_text_cache.nil?
-          match = rules[:keywords].match(references_text_cache)
-          match = rules[:keywords].match(references_spoiler_text_cache) if match.nil?
-        end
       end
       keyword_matches = [match.to_s] unless match.nil?
 
-      reference_ids = filter.with_quote ? status.proper.reference_objects.pluck(:target_status_id) : []
-      status_matches = ([status.id, status.reblog_of_id] + reference_ids).compact & rules[:status_ids] if rules[:status_ids].present?
+      status_matches = [status.id, status.reblog_of_id].compact & rules[:status_ids] if rules[:status_ids].present?
 
       next if keyword_matches.blank? && status_matches.blank?
 

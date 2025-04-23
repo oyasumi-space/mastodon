@@ -18,9 +18,6 @@
     .fields-group
       = ff.input :translatable_private, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_translatable_private')
 
-    .fields-group
-      = ff.input :allow_quote, wrapper: :with_label, kmyblue: true, label: I18n.t('simple_form.labels.defaults.setting_allow_quote'), hint: I18n.t('simple_form.hints.defaults.setting_allow_quote')
-
     - if Setting.enable_emoji_reaction
       %h4= t 'preferences.emoji_reaction_permitting'
 

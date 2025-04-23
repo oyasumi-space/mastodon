@@ -40,14 +40,10 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:hide_items] = [
         object_account_user.setting_hide_favourite_menu ? 'favourite_menu' : nil,
         object_account_user.setting_hide_recent_emojis ? 'recent_emojis' : nil,
-        object_account_user.setting_hide_blocking_quote ? 'blocking_quote' : nil,
         object_account_user.setting_hide_emoji_reaction_unavailable_server ? 'emoji_reaction_unavailable_server' : nil,
-        object_account_user.setting_hide_quote_unavailable_server ? 'quote_unavailable_server' : nil,
         object_account_user.setting_hide_status_reference_unavailable_server ? 'status_reference_unavailable_server' : nil,
         object_account_user.setting_hide_emoji_reaction_count ? 'emoji_reaction_count' : nil,
         object_account_user.setting_show_emoji_reaction_on_timeline ? nil : 'emoji_reaction_on_timeline',
-        object_account_user.setting_show_quote_in_home ? nil : 'quote_in_home',
-        object_account_user.setting_show_quote_in_public ? nil : 'quote_in_public',
         object_account_user.setting_show_relationships ? nil : 'relationships',
         object_account_user.setting_show_avatar_on_filter ? nil : 'avatar_on_filter',
       ].compact

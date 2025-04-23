@@ -277,6 +277,7 @@ class PostStatusService < BaseService
 
   def quote_url
     ProcessReferencesService.extract_quote(@text)
+    # TODO: quote
   end
 
   def reference_urls

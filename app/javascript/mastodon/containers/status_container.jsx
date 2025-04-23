@@ -152,10 +152,6 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     dispatch(insertReferenceCompose(0, status.get('url'), 'BT', router));
   },
 
-  onQuote (status, router) {
-    dispatch(insertReferenceCompose(0, status.get('url'), 'QT', router));
-  },
-
   onTranslate (status) {
     if (status.get('translation')) {
       dispatch(undoStatusTranslation(status.get('id'), status.get('poll')));

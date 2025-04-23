@@ -188,7 +188,8 @@ class ProcessReferencesService < BaseService
       quote = quote_attribute?(attribute_type)
       @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type, quote: quote)
 
-      @status.update!(quote_of_id: status_id) if quote
+      # TODO: quote
+      # @status.update!(quote_of_id: status_id) if quote
 
       status.increment_count!(:status_referred_by_count)
       @references_count += 1
@@ -214,7 +215,9 @@ class ProcessReferencesService < BaseService
     @removed_objects = []
 
     @status.reference_objects.where(target_status: @removed_items.keys).destroy_all
-    @status.update!(quote_of_id: nil) if @status.quote_of_id.present? && @removed_items.key?(@status.quote_of_id)
+
+    # TODO: quote
+    # @status.update!(quote_of_id: nil) if @status.quote_of_id.present? && @removed_items.key?(@status.quote_of_id)
 
     statuses = Status.where(id: @added_items.keys).to_a
     @removed_items.each_key do |status_id|
@@ -240,11 +243,12 @@ class ProcessReferencesService < BaseService
 
       next unless quote_change
 
-      if quote
-        ref.status.update!(quote_of_id: ref.target_status.id)
-      else
-        ref.status.update!(quote_of_id: nil)
-      end
+      # TODO: quote
+      # if quote
+      # ref.status.update!(quote_of_id: ref.target_status.id)
+      # else
+      # ref.status.update!(quote_of_id: nil)
+      # end
     end
   end
 

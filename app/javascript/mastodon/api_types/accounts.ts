@@ -20,7 +20,6 @@ export interface ApiAccountOtherSettingsJSON {
   hide_followers_count: boolean;
   translatable_private: boolean;
   link_preview: boolean;
-  allow_quote: boolean;
   emoji_reaction_policy:
     | 'allow'
     | 'outside_only'
@@ -34,7 +33,6 @@ export interface ApiAccountOtherSettingsJSON {
 export interface ApiServerFeaturesJSON {
   circle: boolean;
   emoji_reaction: boolean;
-  quote: boolean;
   status_reference: boolean;
 }
 

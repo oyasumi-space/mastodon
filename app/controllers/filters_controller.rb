@@ -47,6 +47,6 @@ class FiltersController < ApplicationController
   end
 
   def resource_params
-    params.expect(custom_filter: [:title, :expires_in, :filter_action, :exclude_follows, :exclude_localusers, :exclude_quote, :exclude_profile, context: [], keywords_attributes: [[:id, :keyword, :whole_word, :_destroy]]])
+    params.expect(custom_filter: [:title, :expires_in, :filter_action, :exclude_follows, :exclude_localusers, :exclude_profile, context: [], keywords_attributes: [[:id, :keyword, :whole_word, :_destroy]]])
   end
 end

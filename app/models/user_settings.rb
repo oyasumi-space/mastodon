@@ -27,7 +27,6 @@ class UserSettings
   setting :default_searchability, default: :direct, in: %w(public private direct limited public_unlisted)
   setting :default_searchability_of_search, default: :public, in: %w(public private direct limited)
   setting :use_public_index, default: true
-  setting :reverse_search_quote, default: false
   setting :disallow_unlisted_public_searchability, default: false
   setting :public_post_to_unlisted, default: false
   setting :reject_public_unlisted_subscription, default: false
@@ -40,7 +39,6 @@ class UserSettings
   setting :dtl_force_visibility, default: :unchange, in: %w(unchange public public_unlisted unlisted)
   setting :dtl_force_searchability, default: :unchange, in: %w(unchange public public_unlisted)
   setting :lock_follow_from_bot, default: false
-  setting :allow_quote, default: true
   setting :reject_send_limited_to_suspects, default: false
 
   setting_inverse_alias :indexable, :noindex
@@ -75,18 +73,12 @@ class UserSettings
     setting :auto_play, default: true
     setting :simple_timeline_menu, default: false
     setting :boost_menu, default: false
-    setting :show_quote_in_home, default: true
-    setting :show_quote_in_public, default: false
     setting :show_relationships, default: true
-    setting :hide_blocking_quote, default: true
     setting :hide_emoji_reaction_unavailable_server, default: false
-    setting :hide_quote_unavailable_server, default: false
-    setting :hide_status_reference_unavailable_server, default: false
     setting :hide_favourite_menu, default: false
     setting :hide_emoji_reaction_count, default: false
     setting :show_avatar_on_filter, default: true
 
-    setting_inverse_alias :'web.show_blocking_quote', :'web.hide_blocking_quote'
     setting_inverse_alias :'web.show_emoji_reaction_count', :'web.hide_emoji_reaction_count'
     setting_inverse_alias :'web.show_favourite_menu', :'web.hide_favourite_menu'
     setting_inverse_alias :'web.show_recent_emojis', :'web.hide_recent_emojis'

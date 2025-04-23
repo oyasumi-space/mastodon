@@ -60,7 +60,6 @@ ja:
         phrase: 投稿内容の大文字小文字や閲覧注意に関係なく一致
         scopes: アプリの API に許可するアクセス権を選択してください。最上位のスコープを選択する場合、個々のスコープを選択する必要はありません。
         setting_aggregate_reblogs: 最近ブーストされた投稿が新たにブーストされても表示しません (設定後受信したものにのみ影響)
-        setting_allow_quote: ひかえめな引用はこの設定に関わらず可能です。kmyblue以外からは自由に引用できます
         setting_always_send_emails: 通常、Mastodon からメール通知は行われません。
         setting_bookmark_category_needed: すべてのカテゴリから削除したとき、ブックマークが自動で外れるようになります
         setting_custom_css_lead: '必ず覚えてください: 万が一カスタムCSSの入力を誤り、画面が正常に表示されなくなった場合は、サインイン画面の下にあるリンクよりカスタムCSSを無効化することができます。ブラウザのプライベートモードなどでサインイン画面を開き、無効化してください。'
@@ -261,7 +260,6 @@ ja:
         phrase: キーワードまたはフレーズ
         setting_advanced_layout: 上級者向けUIを有効にする
         setting_aggregate_reblogs: ブーストをまとめる
-        setting_allow_quote: 引用を許可する
         setting_always_send_emails: 常にメール通知を送信する
         setting_auto_play_gif: アニメーションGIFを自動再生する
         setting_bio_markdown: プロフィールのMarkdownを有効にする
@@ -306,7 +304,6 @@ ja:
         setting_expand_spoilers: 閲覧注意としてマークされた投稿を常に展開する
         setting_hide_emoji_reaction_unavailable_server: 絵文字リアクションに対応していないと思われるサーバーの投稿から絵文字リアクション機能を隠す
         setting_hide_network: 繋がりを隠す
-        setting_hide_quote_unavailable_server: 引用に対応していないと思われるサーバーの投稿からメニューを隠す
         setting_hide_status_reference_unavailable_server: ひかえめな引用（Fedibirdの参照）に対応していないと思われるサーバーの投稿からメニューを隠す
         setting_lock_follow_from_bot: botからのフォローを承認制にする
         setting_missing_alt_text_modal: 代替テキストなしでメディアを投稿する前に確認ダイアログを表示する
@@ -318,14 +315,11 @@ ja:
         setting_reverse_search_quote: ダブルクオートで囲まず検索した時、単語単位で検索する
         setting_show_application: 送信したアプリを開示する
         setting_show_avatar_on_filter: フィルター対象投稿の投稿者名やアイコンを表示する
-        setting_show_blocking_quote: ブロックしたユーザーの投稿を引用した投稿を表示する
         setting_show_emoji_reaction_count: 投稿につけられた各絵文字の数を表示する
         setting_show_emoji_reaction_on_timeline: タイムライン上の投稿に他の人のつけた絵文字を表示する
         setting_show_favourite_menu: 右サイドメニューに「お気に入り」を表示する
         setting_show_followers_count: フォロワー数を公開する
         setting_show_following_count: フォロー数を公開する
-        setting_show_quote_in_home: ホーム・リスト・アンテナなどで引用された投稿を表示する
-        setting_show_quote_in_public: 公開タイムライン（ローカル・連合）で引用された投稿を表示する
         setting_show_recent_emojis: 絵文字ピッカーで絵文字デッキと一緒に、絵文字の使用履歴も表示する
         setting_show_relationships: アカウント詳細ベージで、相手からのフォロー状況を表示する
         setting_show_statuses_count: 投稿数を公開する
@@ -376,7 +370,6 @@ ja:
           exclude_follows: フォロー中のユーザーをフィルターの対象にしない
           exclude_localusers: ローカルユーザーをフィルターの対象にしない
           exclude_profile: アカウント名および紹介文をフィルターの対象にしない
-          exclude_quote: 引用の内容をフィルターの対象にしない
       form_admin_settings:
         activity_api_enabled: APIでユーザーアクティビティに関する集計統計を公開する
         app_icon: アプリアイコン

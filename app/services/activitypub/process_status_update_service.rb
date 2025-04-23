@@ -351,7 +351,8 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
   end
 
   def quote
-    @json['quote'] || @json['quoteUrl'] || @json['quoteURL'] || @json['_misskey_quote']
+    # TODO: quote
+    nil
   end
 
   def local_referred_accounts

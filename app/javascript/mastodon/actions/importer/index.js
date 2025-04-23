@@ -70,10 +70,6 @@ export function importFetchedStatuses(statuses) {
         processStatus(status.reblog);
       }
 
-      if (status.quote?.id && !getState().getIn(['statuses', status.id])) {
-        processStatus(status.quote);
-      }
-
       if (status.poll?.id) {
         pushUnique(polls, createPollFromServerJSON(status.poll, getState().polls[status.poll.id]));
       }

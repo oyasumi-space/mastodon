@@ -68,8 +68,7 @@ const messages = defineMessages({
   admin_status: { id: 'status.admin_status', defaultMessage: 'Open this post in the moderation interface' },
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   copy: { id: 'status.copy', defaultMessage: 'Copy link to post' },
-  reference: { id: 'status.reference', defaultMessage: 'Quiet quote' },
-  quote: { id: 'status.quote', defaultMessage: 'Quote' },
+  reference: { id: 'status.reference', defaultMessage: 'Link' },
   blockDomain: { id: 'account.block_domain', defaultMessage: 'Block domain {domain}' },
   unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
@@ -110,7 +109,6 @@ class StatusActionBar extends ImmutablePureComponent {
     onFilter: PropTypes.func,
     onAddFilter: PropTypes.func,
     onReference: PropTypes.func,
-    onQuote: PropTypes.func,
     onInteractionModal: PropTypes.func,
     withDismiss: PropTypes.bool,
     withCounters: PropTypes.bool,
@@ -288,10 +286,6 @@ class StatusActionBar extends ImmutablePureComponent {
     this.props.onReference(this.props.status, this.props.history);
   };
 
-  handleQuote = () => {
-    this.props.onQuote(this.props.status, this.props.history);
-  };
-
   render () {
     const { status, relationship, intl, withDismiss, withCounters, scrollKey } = this.props;
     const { signedIn, permissions } = this.props.identity;
@@ -303,7 +297,6 @@ class StatusActionBar extends ImmutablePureComponent {
     const account            = status.get('account');
     const writtenByMe        = status.getIn(['account', 'id']) === me;
     const isRemote           = status.getIn(['account', 'username']) !== status.getIn(['account', 'acct']);
-    const allowQuote         = status.getIn(['account', 'other_settings', 'allow_quote']);
 
     let menu = [];
 
@@ -335,10 +328,6 @@ class StatusActionBar extends ImmutablePureComponent {
       }
 
       if (!boostMenu) {
-        if (publicStatus && allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-          menu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote, tag: 'reblog' });
-        }
-
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
         }
@@ -423,10 +412,6 @@ class StatusActionBar extends ImmutablePureComponent {
       }
   
       if (publicStatus) {
-        if (allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-          reblogMenu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote });
-        }
-  
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
         }

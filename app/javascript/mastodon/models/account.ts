@@ -56,7 +56,6 @@ const AccountOtherSettingsFactory = ImmutableRecord<AccountOtherSettingsShape>({
   hide_statuses_count: false,
   translatable_private: false,
   link_preview: true,
-  allow_quote: true,
   emoji_reaction_policy: 'allow',
   subscription_policy: 'allow',
 });
@@ -69,7 +68,6 @@ const AccountServerFeaturesFactory =
   ImmutableRecord<AccountServerFeaturesShape>({
     circle: false,
     emoji_reaction: false,
-    quote: false,
     status_reference: false,
   });
 

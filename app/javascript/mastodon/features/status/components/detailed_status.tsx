@@ -32,7 +32,6 @@ import { DisplayName } from '../../../components/display_name';
 import MediaGallery from '../../../components/media_gallery';
 import StatusContent from '../../../components/status_content';
 import StatusEmojiReactionsBar from '../../../components/status_emoji_reactions_bar';
-import CompactedStatusContainer from '../../../containers/compacted_status_container';
 import Audio from '../../audio';
 import scheduleIdleTask from '../../ui/util/schedule_idle_task';
 
@@ -77,7 +76,6 @@ export const DetailedStatus: React.FC<{
   onToggleHidden,
   onEmojiReact,
   onUnEmojiReact,
-  muted,
 }) => {
   const properStatus = status?.get('reblog') ?? status;
   const [height, setHeight] = useState(0);
@@ -330,7 +328,7 @@ export const DetailedStatus: React.FC<{
         <AnimatedNumber value={status.get('status_referred_by_count')} />
       </span>
       <FormattedMessage
-        id='status.quotes'
+        id='status.references'
         defaultMessage='{count, plural, one {boost} other {boosts}}'
         values={{ count: status.get('status_referred_by_count') }}
       />
@@ -382,13 +380,6 @@ export const DetailedStatus: React.FC<{
   const expanded =
     (!matchedFilters || showDespiteFilter) &&
     (!status.get('hidden') || status.get('spoiler_text').length === 0);
-
-  const quote = !muted && status.get('quote_id') && (
-    <>
-      {/* @ts-expect-error: CompactedStatusContainer class is not typescript still. */}
-      <CompactedStatusContainer id={status.get('quote_id')} history={history} />
-    </>
-  );
 
   return (
     <div style={outerStyle}>
@@ -459,7 +450,6 @@ export const DetailedStatus: React.FC<{
 
             {media}
             {hashtagBar}
-            {quote}
             {emojiReactionsBar}
           </>
         )}
