@@ -170,8 +170,8 @@ class ProcessReferencesService < BaseService
     @referrable = StatusPolicy.new(@status.account, target_status).show?
   end
 
-  def quotable?(target_status)
-    target_status.account.allow_quote? && StatusPolicy.new(@status.account, target_status).quote?
+  def quotable?(_target_status)
+    true # TODO: quote
   end
 
   def add_references
@@ -185,8 +185,8 @@ class ProcessReferencesService < BaseService
       next if status.blank?
 
       attribute_type = @added_items[status_id]
-      quote = quote_attribute?(attribute_type)
-      @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type, quote: quote)
+      quote_attribute?(attribute_type)
+      @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type)
 
       # TODO: quote
       # @status.update!(quote_of_id: status_id) if quote
@@ -239,7 +239,7 @@ class ProcessReferencesService < BaseService
       quote = quote_attribute?(attribute_type)
       quote_change = ref.quote != quote
 
-      ref.update!(attribute_type: attribute_type, quote: quote)
+      ref.update!(attribute_type: attribute_type)
 
       next unless quote_change
 
