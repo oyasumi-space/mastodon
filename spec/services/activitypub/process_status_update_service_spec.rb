@@ -788,8 +788,7 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
         '@context': [
           'https://www.w3.org/ns/activitystreams',
           {
-            toot: 'http://joinmastodon.org/ns#',
-            QuoteAuthorization: 'toot:QuoteAuthorization',
+            QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
             gts: 'https://gotosocial.org/ns#',
             interactionPolicy: {
               '@id': 'gts:interactionPolicy',
@@ -888,8 +887,7 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
         '@context': [
           'https://www.w3.org/ns/activitystreams',
           {
-            toot: 'http://joinmastodon.org/ns#',
-            QuoteAuthorization: 'toot:QuoteAuthorization',
+            QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
             gts: 'https://gotosocial.org/ns#',
             interactionPolicy: {
               '@id': 'gts:interactionPolicy',
@@ -1040,8 +1038,7 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
         '@context': [
           'https://www.w3.org/ns/activitystreams',
           {
-            toot: 'http://joinmastodon.org/ns#',
-            QuoteAuthorization: 'toot:QuoteAuthorization',
+            QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
             gts: 'https://gotosocial.org/ns#',
             interactionPolicy: {
               '@id': 'gts:interactionPolicy',
@@ -1111,8 +1108,7 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
         '@context': [
           'https://www.w3.org/ns/activitystreams',
           {
-            toot: 'http://joinmastodon.org/ns#',
-            QuoteAuthorization: 'toot:QuoteAuthorization',
+            QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
             gts: 'https://gotosocial.org/ns#',
             interactionPolicy: {
               '@id': 'gts:interactionPolicy',
