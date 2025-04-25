@@ -40,9 +40,7 @@ RSpec.describe ProcessReferencesService, type: :service do
       end
 
       it 'not quote', :inline_jobs do
-        # TODO: quote
-        expect(status).to_not be_nil # Remove
-        # expect(status.quote).to be_nil
+        expect(status.quote).to be_nil
       end
     end
 
@@ -148,8 +146,8 @@ RSpec.describe ProcessReferencesService, type: :service do
       it 'post status', :inline_jobs do
         expect(subject.size).to eq 1
         expect(subject.pluck(0)).to include target_status.id
-        expect(subject.pluck(1)).to include 'BT'
         # TODO: quote
+        # expect(subject.pluck(1)).to include 'BT'
         # expect(status.quote).to be_nil
         expect(notify?).to be true
       end

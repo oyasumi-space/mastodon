@@ -16,6 +16,7 @@
 #  poll_options                 :string           is an Array
 #  sensitive                    :boolean
 #  markdown                     :boolean          default(FALSE)
+#  quote_id                     :bigint(8)
 #
 
 class StatusEdit < ApplicationRecord

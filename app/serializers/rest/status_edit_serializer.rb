@@ -11,6 +11,8 @@ class REST::StatusEditSerializer < ActiveModel::Serializer
   has_many :ordered_media_attachments, key: :media_attachments, serializer: REST::MediaAttachmentSerializer
   has_many :emojis, serializer: REST::CustomEmojiSlimSerializer
 
+  has_one :quote, serializer: REST::QuoteSerializer, if: -> { object.quote_id.present? }
+
   attribute :poll, if: -> { object.poll_options.present? }
 
   def content
@@ -23,5 +25,9 @@ class REST::StatusEditSerializer < ActiveModel::Serializer
 
   def markdown_opt
     object.markdown
+  end
+
+  def quote
+    object.quote_id == status.quote&.id ? status.quote : Quote.new(state: :pending)
   end
 end

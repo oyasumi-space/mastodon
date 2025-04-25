@@ -123,6 +123,7 @@ class Status < ApplicationRecord
   has_one :scheduled_expiration_status, inverse_of: :status, dependent: :destroy
   has_one :circle_status, inverse_of: :status, dependent: :destroy
   has_many :list_status, inverse_of: :status, dependent: :destroy
+  has_one :quote, inverse_of: :status, dependent: :destroy
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
   validates :text, presence: true, unless: -> { with_media? || reblog? }
@@ -189,18 +190,20 @@ class Status < ApplicationRecord
                    :reference_objects,
                    :references,
                    :scheduled_expiration_status,
+                   quote: { status: { account: [:account_stat, user: :role] } },
                    preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
                    account: [:account_stat, user: :role],
                    active_mentions: :account,
                    reblog: [
                      :application,
-                     :tags,
                      :media_attachments,
                      :conversation,
                      :status_stat,
+                     :tags,
                      :preloadable_poll,
                      :reference_objects,
                      :scheduled_expiration_status,
+                     quote: { status: { account: [:account_stat, user: :role] } },
                      preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
                      account: [:account_stat, user: :role],
                      active_mentions: { account: :account_stat },
@@ -499,14 +502,6 @@ class Status < ApplicationRecord
 
     def mutes_map(conversation_ids, account_id)
       ConversationMute.select(:conversation_id).where(conversation_id: conversation_ids).where(account_id: account_id).each_with_object({}) { |m, h| h[m.conversation_id] = true }
-    end
-
-    def blocks_map(account_ids, account_id)
-      Block.where(account_id: account_id, target_account_id: account_ids).each_with_object({}) { |b, h| h[b.target_account_id] = true }
-    end
-
-    def domain_blocks_map(domains, account_id)
-      AccountDomainBlock.where(account_id: account_id, domain: domains).each_with_object({}) { |d, h| h[d.domain] = true }
     end
 
     def pins_map(status_ids, account_id)

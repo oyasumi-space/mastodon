@@ -189,7 +189,7 @@ class ProcessReferencesService < BaseService
       @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type)
 
       # TODO: quote
-      # @status.update!(quote_of_id: status_id) if quote
+      # Quote.create(status: @status, approval_uri: approval_uri) if quote
 
       status.increment_count!(:status_referred_by_count)
       @references_count += 1
@@ -236,14 +236,13 @@ class ProcessReferencesService < BaseService
 
     @status.reference_objects.where(target_status: @changed_items.keys).find_each do |ref|
       attribute_type = @changed_items[ref.target_status_id]
-      quote = quote_attribute?(attribute_type)
-      quote_change = ref.quote != quote
 
       ref.update!(attribute_type: attribute_type)
 
-      next unless quote_change
-
       # TODO: quote
+      # quote = quote_attribute?(attribute_type)
+      # quote_change = ref.quote != quote
+      # next unless quote_change
       # if quote
       # ref.status.update!(quote_of_id: ref.target_status.id)
       # else
