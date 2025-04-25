@@ -41,7 +41,7 @@ RSpec.describe Rack::Attack, type: :request do
   end
 
   shared_examples 'throttled endpoint' do
-    include_examples 'with throttled endpoint base'
+    it_behaves_like 'with throttled endpoint base'
 
     context 'when the number of requests is lower than the limit' do
       before do
@@ -73,7 +73,7 @@ RSpec.describe Rack::Attack, type: :request do
   end
 
   shared_examples 'does not throttle endpoint' do
-    include_examples 'with throttled endpoint base'
+    it_behaves_like 'with throttled endpoint base'
 
     context 'when the number of requests is lower than the limit' do
       before do
