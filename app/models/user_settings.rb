@@ -27,6 +27,7 @@ class UserSettings
   setting :default_searchability, default: :direct, in: %w(public private direct limited public_unlisted)
   setting :default_searchability_of_search, default: :public, in: %w(public private direct limited)
   setting :use_public_index, default: true
+  setting :reverse_search_quote, default: false
   setting :disallow_unlisted_public_searchability, default: false
   setting :public_post_to_unlisted, default: false
   setting :reject_public_unlisted_subscription, default: false
@@ -75,6 +76,7 @@ class UserSettings
     setting :boost_menu, default: false
     setting :show_relationships, default: true
     setting :hide_emoji_reaction_unavailable_server, default: false
+    setting :hide_status_reference_unavailable_server, default: false
     setting :hide_favourite_menu, default: false
     setting :hide_emoji_reaction_count, default: false
     setting :show_avatar_on_filter, default: true
