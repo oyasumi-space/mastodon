@@ -1606,8 +1606,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_224935) do
     t.json "data"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "access_token_id"
-    t.bigint "user_id"
+    t.bigint "access_token_id", null: false
+    t.bigint "user_id", null: false
     t.boolean "standard", default: false, null: false
     t.index ["access_token_id"], name: "index_web_push_subscriptions_on_access_token_id", where: "(access_token_id IS NOT NULL)"
     t.index ["user_id"], name: "index_web_push_subscriptions_on_user_id"
