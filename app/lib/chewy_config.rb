@@ -8,7 +8,7 @@ class ChewyConfig
 
   class InvalidElasticSearchVersionError < Mastodon::Error; end
 
-  CONFIG_VERSION = 1
+  CONFIG_VERSION = 2
 
   def initialize
     custom_config_file = Rails.root.join('.elasticsearch.yml')
