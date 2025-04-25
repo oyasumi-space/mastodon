@@ -412,14 +412,7 @@ class Status extends ImmutablePureComponent {
 
     let visibilityName = status.get('limited_scope') || status.get('visibility_ex') || status.get('visibility');
 
-    if (featured) {
-      prepend = (
-        <div className='status__prepend'>
-          <div className='status__prepend__icon'><Icon id='thumb-tack' icon={PushPinIcon} /></div>
-          <FormattedMessage id='status.pinned' defaultMessage='Pinned post' />
-        </div>
-      );
-    } else if (status.get('reblog', null) !== null && typeof status.get('reblog') === 'object') {
+    if (status.get('reblog', null) !== null && typeof status.get('reblog') === 'object') {
       const display_name_html = { __html: status.getIn(['account', 'display_name_html']) };
 
       prepend = (
