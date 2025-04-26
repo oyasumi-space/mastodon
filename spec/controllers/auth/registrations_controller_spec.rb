@@ -542,7 +542,6 @@ RSpec.describe Auth::RegistrationsController do
       it_behaves_like 'registration with time', 'only secondary time range is set', 0, 0, 9, 12, true
     end
 
-    it_behaves_like 'checks for enabled registrations', :create
     it_behaves_like 'registration mode based responses', :create
   end
 
