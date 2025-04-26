@@ -84,8 +84,6 @@ class Status < ApplicationRecord
   has_many :bookmarks, inverse_of: :status, dependent: :destroy
   has_many :reblogs, foreign_key: 'reblog_of_id', class_name: 'Status', inverse_of: :reblog, dependent: :destroy
   has_many :reblogged_by_accounts, through: :reblogs, class_name: 'Account', source: :account
-  has_many :quotes, foreign_key: 'quote_of_id', class_name: 'Status', inverse_of: :quote, dependent: nil
-  has_many :quoted_by_accounts, through: :quotes, class_name: 'Account', source: :account
   has_many :replies, foreign_key: 'in_reply_to_id', class_name: 'Status', inverse_of: :thread, dependent: nil
   has_many :mentions, dependent: :destroy, inverse_of: :status
   has_many :mentioned_accounts, through: :mentions, source: :account, class_name: 'Account'
@@ -123,7 +121,6 @@ class Status < ApplicationRecord
   has_one :scheduled_expiration_status, inverse_of: :status, dependent: :destroy
   has_one :circle_status, inverse_of: :status, dependent: :destroy
   has_many :list_status, inverse_of: :status, dependent: :destroy
-  has_one :quote, inverse_of: :status, dependent: :destroy
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
   validates :text, presence: true, unless: -> { with_media? || reblog? }
