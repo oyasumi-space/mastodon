@@ -13,7 +13,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
 
     @activity_json             = activity_json
     @json                      = object_json
-    @status_parser             = ActivityPub::Parser::StatusParser.new(@json, account: status.account)
+    @status_parser             = ActivityPub::Parser::StatusParser.new(@json, account: status.account, followers_collection: status.account.followers_url, actor_uri: ActivityPub::TagManager.instance.uri_for(status.account))
     @uri                       = @status_parser.uri
     @status                    = status
     @account                   = status.account
@@ -50,6 +50,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
       Status.transaction do
         record_previous_edit!
         update_media_attachments!
+        update_interaction_policies!
         update_poll!
         update_immediate_attributes!
         update_metadata!
@@ -73,10 +74,15 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
 
   def handle_implicit_update!
     with_redis_lock("create:#{@uri}") do
+      update_interaction_policies!
       update_poll!(allow_significant_changes: false)
       queue_poll_notifications!
       update_counts!
     end
+  end
+
+  def update_interaction_policies!
+    @status.quote_approval_policy = @status_parser.quote_policy
   end
 
   def update_media_attachments!

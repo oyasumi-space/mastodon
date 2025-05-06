@@ -20,6 +20,7 @@ class PostStatusService < BaseService
   # @param [Hash] options
   # @option [String] :text Message
   # @option [Status] :thread Optional status to reply to
+  # @option [Status] :quoted_status Optional status to quote
   # @option [Boolean] :sensitive
   # @option [String] :visibility
   # @option [Boolean] :force_visibility
@@ -41,6 +42,7 @@ class PostStatusService < BaseService
     @options     = options
     @text        = @options[:text] || ''
     @in_reply_to = @options[:thread]
+    @quoted_status = @options[:quoted_status]
 
     @antispam = Antispam.new
 
@@ -164,6 +166,8 @@ class PostStatusService < BaseService
     @status.limited_scope = :personal if @status.limited_visibility? && !@status.reply_limited? && !process_mentions_service.mentions?
 
     UpdateStatusExpirationService.new.call(@status)
+
+    attach_quote!(@status)
     @antispam.local_preflight_check!(@status)
 
     # The following transaction block is needed to wrap the UPDATEs to
@@ -172,6 +176,21 @@ class PostStatusService < BaseService
       @status.save!
       @status.capability_tokens.create! if @status.limited_visibility?
     end
+  end
+
+  def attach_quote!(status)
+    return if @quoted_status.nil?
+
+    # NOTE: for now this is only for convenience in testing, as we don't support the request flow nor serialize quotes in ActivityPub
+    # we only support incoming quotes so far
+
+    status.quote = Quote.new(quoted_status: @quoted_status)
+    status.quote.accept! if @status.account == @quoted_status.account || @quoted_status.active_mentions.exists?(mentions: { account_id: status.account_id })
+
+    # TODO: the following has yet to be implemented:
+    # - handle approval of local users (requires the interactionPolicy PR)
+    # - produce a QuoteAuthorization for quotes of local users
+    # - send a QuoteRequest for quotes of remote users
   end
 
   def safeguard_mentions!(status)
@@ -383,6 +402,7 @@ class PostStatusService < BaseService
     @options.dup.tap do |options_hash|
       options_hash[:in_reply_to_id]  = options_hash.delete(:thread)&.id
       options_hash[:application_id]  = options_hash.delete(:application)&.id
+      options_hash[:quoted_status_id] = options_hash.delete(:quoted_status)&.id
       options_hash[:scheduled_at]    = nil
       options_hash[:idempotency]     = nil
       options_hash[:with_rate_limit] = false

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_25_134308) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_28_095029) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1451,6 +1451,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_134308) do
     t.integer "limited_scope"
     t.bigint "quote_of_id"
     t.datetime "fetched_replies_at"
+    t.integer "quote_approval_policy", default: 0, null: false
     t.index ["account_id", "id", "visibility", "updated_at"], name: "index_statuses_20190820", order: { id: :desc }, where: "(deleted_at IS NULL)"
     t.index ["account_id", "reblog_of_id", "deleted_at", "searchability"], name: "index_statuses_for_get_following_accounts_to_search", where: "((deleted_at IS NULL) AND (reblog_of_id IS NULL) AND (searchability = ANY (ARRAY[0, 10, 1])))"
     t.index ["account_id"], name: "index_statuses_on_account_id"

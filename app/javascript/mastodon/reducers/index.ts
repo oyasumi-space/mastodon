@@ -4,14 +4,14 @@ import { loadingBarReducer } from 'react-redux-loading-bar';
 import { combineReducers } from 'redux-immutable';
 
 import { accountsReducer } from './accounts';
-import accounts_map from './accounts_map';
+import { accountsMapReducer } from './accounts_map';
 import { alertsReducer } from './alerts';
 import announcements from './announcements';
 import { antennasReducer } from './antennas';
 import { bookmarkCategoriesReducer } from './bookmark_categories';
 import { circlesReducer } from './circles';
 import { composeReducer } from './compose';
-import contexts from './contexts';
+import { contextsReducer } from './contexts';
 import conversations from './conversations';
 import custom_emojis from './custom_emojis';
 import { dropdownMenuReducer } from './dropdown_menu';
@@ -53,13 +53,13 @@ const reducers = {
   user_lists,
   status_lists,
   accounts: accountsReducer,
-  accounts_map,
+  accounts_map: accountsMapReducer,
   statuses,
   relationships: relationshipsReducer,
   settings,
   push_notifications,
   server,
-  contexts,
+  contexts: contextsReducer,
   compose: composeReducer,
   search: searchReducer,
   media_attachments,

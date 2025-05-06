@@ -98,7 +98,14 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_status_params
-    @status_parser = ActivityPub::Parser::StatusParser.new(@json, followers_collection: @account.followers_url, object: @object, account: @account, friend_domain: friend_domain?)
+    @status_parser = ActivityPub::Parser::StatusParser.new(
+      @json,
+      followers_collection: @account.followers_url,
+      actor_uri: ActivityPub::TagManager.instance.uri_for(@account),
+      object: @object,
+      account: @account,
+      friend_domain: friend_domain?
+    )
 
     attachment_ids = process_attachments.take(Status::MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE).map(&:id)
 
@@ -122,6 +129,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       media_attachment_ids: attachment_ids,
       ordered_media_attachment_ids: attachment_ids,
       poll: process_poll,
+      quote_approval_policy: @status_parser.quote_policy,
     }
   end
 

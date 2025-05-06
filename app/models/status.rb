@@ -32,6 +32,7 @@
 #  limited_scope                :integer
 #  quote_of_id                  :bigint(8)
 #  fetched_replies_at           :datetime
+#  quote_approval_policy        :integer          default(0), not null
 #
 
 require 'ostruct'
@@ -53,6 +54,13 @@ class Status < ApplicationRecord
   MEDIA_ATTACHMENTS_LIMIT = 4
   MEDIA_ATTACHMENTS_LIMIT_WITH_POLL = 4
   MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE = 16
+
+  QUOTE_APPROVAL_POLICY_FLAGS = {
+    unknown: (1 << 0),
+    public: (1 << 1),
+    followers: (1 << 2),
+    followed: (1 << 3),
+  }.freeze
 
   rate_limit by: :account, family: :statuses
 
