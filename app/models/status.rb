@@ -76,7 +76,6 @@ class Status < ApplicationRecord
   with_options class_name: 'Status', optional: true do
     belongs_to :thread, foreign_key: 'in_reply_to_id', inverse_of: :replies
     belongs_to :reblog, foreign_key: 'reblog_of_id', inverse_of: :reblogs
-    belongs_to :quote, foreign_key: 'quote_of_id', inverse_of: :quotes
   end
 
   has_many :favourites, inverse_of: :status, dependent: :destroy
@@ -121,6 +120,7 @@ class Status < ApplicationRecord
   has_one :scheduled_expiration_status, inverse_of: :status, dependent: :destroy
   has_one :circle_status, inverse_of: :status, dependent: :destroy
   has_many :list_status, inverse_of: :status, dependent: :destroy
+  has_one :quote, inverse_of: :status, dependent: :destroy
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
   validates :text, presence: true, unless: -> { with_media? || reblog? }
