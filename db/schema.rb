@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_28_095029) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_07_035927) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1449,7 +1449,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_095029) do
     t.integer "searchability"
     t.boolean "markdown", default: false
     t.integer "limited_scope"
-    t.bigint "quote_of_id"
     t.datetime "fetched_replies_at"
     t.integer "quote_approval_policy", default: 0, null: false
     t.index ["account_id", "id", "visibility", "updated_at"], name: "index_statuses_20190820", order: { id: :desc }, where: "(deleted_at IS NULL)"
@@ -1461,7 +1460,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_095029) do
     t.index ["id", "language", "account_id"], name: "index_statuses_public_20250210", order: { id: :desc }, where: "((deleted_at IS NULL) AND (visibility = ANY (ARRAY[0, 10, 11])) AND (reblog_of_id IS NULL) AND ((NOT reply) OR (in_reply_to_account_id = account_id)))"
     t.index ["in_reply_to_account_id"], name: "index_statuses_on_in_reply_to_account_id", where: "(in_reply_to_account_id IS NOT NULL)"
     t.index ["in_reply_to_id"], name: "index_statuses_on_in_reply_to_id", where: "(in_reply_to_id IS NOT NULL)"
-    t.index ["quote_of_id", "account_id"], name: "index_statuses_on_quote_of_id_and_account_id"
     t.index ["reblog_of_id", "account_id"], name: "index_statuses_on_reblog_of_id_and_account_id"
     t.index ["uri"], name: "index_statuses_on_uri", unique: true, opclass: :text_pattern_ops, where: "(uri IS NOT NULL)"
     t.index ["url"], name: "index_statuses_on_url", opclass: :text_pattern_ops, where: "((url IS NOT NULL) AND ((url)::text <> (uri)::text))"
