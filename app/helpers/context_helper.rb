@@ -35,6 +35,13 @@ module ContextHelper
     suspended: { 'toot' => 'http://joinmastodon.org/ns#', 'suspended' => 'toot:suspended' },
     attribution_domains: { 'toot' => 'http://joinmastodon.org/ns#', 'attributionDomains' => { '@id' => 'toot:attributionDomains', '@type' => '@id' } },
     misskey_license: { 'misskey' => 'https://misskey-hub.net/ns#', '_misskey_license' => 'misskey:_misskey_license' },
+    interaction_policies: {
+      'gts' => 'https://gotosocial.org/ns#',
+      'interactionPolicy' => { '@id' => 'gts:interactionPolicy', '@type' => '@id' },
+      'canQuote' => { '@id' => 'gts:canQuote', '@type' => '@id' },
+      'automaticApproval' => { '@id' => 'gts:automaticApproval', '@type' => '@id' },
+      'manualApproval' => { '@id' => 'gts:manualApproval', '@type' => '@id' },
+    },
   }.freeze
 
   def full_context
