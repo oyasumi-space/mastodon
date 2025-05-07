@@ -7,6 +7,8 @@ RSpec.describe Rack::Attack, type: :request do
     Rails.application
   end
 
+  # kmyblue original fix for test error
+
   def below_limit
     limit - 1
   end
@@ -26,6 +28,8 @@ RSpec.describe Rack::Attack, type: :request do
   def increment_counter
     described_class.cache.count("#{throttle}:#{discriminator}", period)
   end
+
+  # kmyblue original fix for test error (end)
 
   shared_context 'with throttled endpoint base' do
     before do
