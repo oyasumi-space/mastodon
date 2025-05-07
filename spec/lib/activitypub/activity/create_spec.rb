@@ -21,7 +21,7 @@ RSpec.describe ActivityPub::Activity::Create do
       type: 'Create',
       actor: ActivityPub::TagManager.instance.uri_for(sender),
       object: object_json,
-    }.with_indifferent_access
+    }.deep_stringify_keys
   end
 
   let(:conversation_hash) do
@@ -113,7 +113,7 @@ RSpec.describe ActivityPub::Activity::Create do
         type: 'Create',
         actor: ActivityPub::TagManager.instance.uri_for(sender),
         object: json,
-      }.with_indifferent_access
+      }.deep_stringify_keys
     end
 
     before do
@@ -2474,7 +2474,7 @@ RSpec.describe ActivityPub::Activity::Create do
           type: 'Create',
           actor: ActivityPub::TagManager.instance.uri_for(sender),
           object: Addressable::URI.new(scheme: 'bear', query_values: { t: token, u: object_json[:id] }).to_s,
-        }.with_indifferent_access
+        }.deep_stringify_keys
       end
 
       let(:object_json) do

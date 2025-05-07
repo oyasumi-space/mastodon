@@ -129,7 +129,6 @@ const BookmarkCategoryAdder: React.FC<{
   const bookmark_categories = useAppSelector((state) =>
     getOrderedBookmarkCategories(state),
   );
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
   const status = useAppSelector((state) => state.statuses.get(statusId));
   const [bookmark_categoryIds, setBookmarkCategoryIds] = useState<string[]>(
     [] as string[],
