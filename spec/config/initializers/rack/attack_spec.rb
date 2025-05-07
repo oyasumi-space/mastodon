@@ -7,6 +7,26 @@ RSpec.describe Rack::Attack, type: :request do
     Rails.application
   end
 
+  def below_limit
+    limit - 1
+  end
+
+  def above_limit
+    limit * 2
+  end
+
+  def throttle_count
+    described_class.cache.read("#{counter_prefix}:#{throttle}:#{discriminator}") || 0
+  end
+
+  def counter_prefix
+    (Time.now.to_i / period.seconds).to_i
+  end
+
+  def increment_counter
+    described_class.cache.count("#{throttle}:#{discriminator}", period)
+  end
+
   shared_context 'with throttled endpoint base' do
     before do
       # Rack::Attack periods are not rolling, so avoid flaky tests by setting the time in a way
@@ -17,26 +37,6 @@ RSpec.describe Rack::Attack, type: :request do
       # So we want to minimize `Time.now.to_i % period`
 
       travel_to Time.zone.at(counter_prefix * period.seconds)
-    end
-
-    def below_limit
-      limit - 1
-    end
-
-    def above_limit
-      limit * 2
-    end
-
-    def throttle_count
-      described_class.cache.read("#{counter_prefix}:#{throttle}:#{discriminator}") || 0
-    end
-
-    def counter_prefix
-      (Time.now.to_i / period.seconds).to_i
-    end
-
-    def increment_counter
-      described_class.cache.count("#{throttle}:#{discriminator}", period)
     end
   end
 
