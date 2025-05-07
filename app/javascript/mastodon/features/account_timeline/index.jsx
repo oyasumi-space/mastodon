@@ -22,6 +22,7 @@ import { RemoteHint } from 'mastodon/components/remote_hint';
 
 import { AccountHeader } from './components/account_header';
 import { LimitedAccountHint } from './components/limited_account_hint';
+import { fetchFeaturedTags } from 'mastodon/actions/featured_tags';
 
 const emptyList = ImmutableList();
 
@@ -80,6 +81,7 @@ class AccountTimeline extends ImmutablePureComponent {
     const { accountId, withReplies, params: { tagged }, dispatch } = this.props;
 
     dispatch(fetchAccount(accountId));
+    dispatch(fetchFeaturedTags({ accountId }));
 
     if (!withReplies) {
       dispatch(expandAccountFeaturedTimeline(accountId, { tagged }));
