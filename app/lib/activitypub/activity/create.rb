@@ -653,7 +653,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_references!
-    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, [quote].compact)
+    ProcessReferencesService.call_service_without_error(@status, [], reference_uris)
   end
 
   def free_friend_domain?
@@ -665,6 +665,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def quote
-    @quote ||= nil # TODO: quote
+    @quote ||= @status_parser.quote_uri
   end
 end

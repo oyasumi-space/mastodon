@@ -348,7 +348,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
   def update_references!
     references = reference_uris
 
-    ProcessReferencesService.call_service_without_error(@status, [], references, [quote_url].compact)
+    ProcessReferencesService.call_service_without_error(@status, [], references)
   end
 
   def reference_uris
