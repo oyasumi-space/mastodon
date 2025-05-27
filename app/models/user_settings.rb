@@ -21,6 +21,7 @@ class UserSettings
   setting :default_language, default: nil
   setting :default_sensitive, default: false
   setting :default_privacy, default: nil, in: %w(public public_unlisted login unlisted private)
+  setting :default_quote_policy, default: 'public', in: %w(public followers nobody)
   setting :stay_privacy, default: false
   setting :default_reblog_privacy, default: nil
   setting :disabled_visibilities, default: %w()

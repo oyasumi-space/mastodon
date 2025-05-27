@@ -42,6 +42,7 @@ class Status < ApplicationRecord
   include Paginable
   include RateLimitable
   include Status::DomainBlockConcern
+  include Status::FaspConcern
   include Status::FetchRepliesConcern
   include Status::SafeReblogInsert
   include Status::SearchConcern
@@ -214,7 +215,7 @@ class Status < ApplicationRecord
                    ],
                    thread: :account
 
-  delegate :domain, to: :account, prefix: true
+  delegate :domain, :indexable?, to: :account, prefix: true
 
   REAL_TIME_WINDOW = 6.hours
 

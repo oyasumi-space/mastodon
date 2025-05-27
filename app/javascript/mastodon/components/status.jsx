@@ -5,7 +5,6 @@ import { injectIntl, defineMessages, FormattedMessage } from 'react-intl';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 
-
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 
@@ -13,7 +12,6 @@ import { HotKeys } from 'react-hotkeys';
 
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
 import ReferenceIcon from '@/material-icons/400-24px/link.svg?react';
-import PushPinIcon from '@/material-icons/400-24px/push_pin.svg?react';
 import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import LimitedIcon from '@/material-icons/400-24px/shield.svg?react';
 import TimerIcon from '@/material-icons/400-24px/timer.svg?react';
@@ -91,6 +89,7 @@ class Status extends ImmutablePureComponent {
     status: ImmutablePropTypes.map,
     account: ImmutablePropTypes.record,
     contextType: PropTypes.string,
+    children: PropTypes.node,
     previousId: PropTypes.string,
     rootId: PropTypes.string,
     onClick: PropTypes.func,
@@ -120,6 +119,7 @@ class Status extends ImmutablePureComponent {
     onMoveUp: PropTypes.func,
     onMoveDown: PropTypes.func,
     showThread: PropTypes.bool,
+    isQuotedPost: PropTypes.bool,
     getScrollPosition: PropTypes.func,
     updateScrollBottom: PropTypes.func,
     cacheMediaWidth: PropTypes.func,
@@ -181,9 +181,8 @@ class Status extends ImmutablePureComponent {
     }
   };
 
-  handleMouseUp = e => {
+  handleHeaderClick = e => {
     // Only handle clicks on the empty space above the content
-
     if (e.target !== e.currentTarget && e.detail >= 1) {
       return;
     }
@@ -379,7 +378,7 @@ class Status extends ImmutablePureComponent {
   };
 
   render () {
-    const { intl, hidden, featured, unfocusable, unread, showThread, scrollKey, pictureInPicture, previousId, rootId, skipPrepend, avatarSize = 46 } = this.props;
+    const { intl, hidden, featured, unfocusable, unread, showThread, isQuotedPost = false, scrollKey, pictureInPicture, previousId, nextInReplyToId, rootId, skipPrepend, avatarSize = 46, children } = this.props;
 
     let { status, account, ...other } = this.props;
     
@@ -543,7 +542,7 @@ class Status extends ImmutablePureComponent {
           </Bundle>
         );
       }
-    } else if (status.get('card') && !this.props.muted) {
+    } else if (status.get('card') && !status.get('quote') && !this.props.muted) {
       media = (
         <Card
           onOpenMedia={this.handleOpenMedia}
@@ -577,17 +576,29 @@ class Status extends ImmutablePureComponent {
         <div className={classNames('status__wrapper', `status__wrapper-${status.get('visibility_ex')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), unread, focusable: !this.props.muted })} tabIndex={this.props.muted || unfocusable ? null : 0} data-featured={featured ? 'true' : null} aria-label={textForScreenReader(intl, status, rebloggedByText)} ref={this.handleRef} data-nosnippet={status.getIn(['account', 'noindex'], true) || undefined}>
           {!skipPrepend && prepend}
 
-          <div className={classNames('status', `status-${status.get('visibility_ex')}`, { 'status-reply': !!status.get('in_reply_to_id'), 'status--in-thread': !!rootId, 'status--first-in-thread': previousId && (!connectUp || connectToRoot), muted: this.props.muted })} data-id={status.get('id')}>
+          <div
+            className={
+              classNames('status', `status-${status.get('visibility_ex')}`,
+              {
+                'status-reply': !!status.get('in_reply_to_id'),
+                'status--in-thread': !!rootId,
+                'status--first-in-thread': previousId && (!connectUp || connectToRoot), muted: this.props.muted,
+                'status--is-quote': isQuotedPost,
+                'status--has-quote': !!status.get('quote'),
+              })
+            }
+            data-id={status.get('id')}
+          >
+            {(connectReply || connectUp || connectToRoot) && <div className={classNames('status__line', { 'status__line--full': connectReply, 'status__line--first': !status.get('in_reply_to_id') && !connectToRoot })} />}
 
-            {(!matchedFilters || expanded || isShowItem('avatar_on_filter')) && (
-              <div onMouseUp={this.handleMouseUp} className='status__info'>
-                <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} className='status__relative-time'>
-                  {withReference}
-                  {withExpiration}
-                  {withLimited}
-                  <span className='status__visibility-icon'><VisibilityIcon visibility={visibilityName} /></span>
-                  <RelativeTimestamp timestamp={status.get('created_at')} />{status.get('edited_at') && <abbr title={intl.formatMessage(messages.edited, { date: intl.formatDate(status.get('edited_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}> *</abbr>}
-                </Link>
+            <div onClick={this.handleHeaderClick} onAuxClick={this.handleHeaderClick} className='status__info'>
+              <Link to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} className='status__relative-time'>
+                {withReference}
+                {withExpiration}
+                {withLimited}
+                <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility_ex')} /></span>
+                <RelativeTimestamp timestamp={status.get('created_at')} />{status.get('edited_at') && <abbr title={intl.formatMessage(messages.edited, { date: intl.formatDate(status.get('edited_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}> *</abbr>}
+              </Link>
 
                 <Link to={`/@${status.getIn(['account', 'acct'])}`} title={status.getIn(['account', 'acct'])} data-hover-card-account={status.getIn(['account', 'id'])} className='status__display-name'>
                   <div className='status__avatar'>
@@ -614,13 +625,17 @@ class Status extends ImmutablePureComponent {
                   {...statusContentProps}
                 />
 
+                {children}
+
                 {media}
                 {hashtagBar}
                 {emojiReactionsBar}
               </>
             )}
 
-            {(!matchedFilters || this.state.showDespiteFilter) && <StatusActionBar scrollKey={scrollKey} status={status} account={account}  {...other} />}
+            {!isQuotedPost && (!matchedFilters || this.state.showDespiteFilter) &&
+              <StatusActionBar scrollKey={scrollKey} status={status} account={account}  {...other} />
+            }
           </div>
         </div>
       </HotKeys>

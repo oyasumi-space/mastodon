@@ -6,8 +6,7 @@ function padLeft(str, num) {
   return str;
 }
 
-// eslint-disable-next-line import/no-commonjs, no-undef
-exports.unicodeToUnifiedName = (str) => {
+export const unicodeToUnifiedName = (str) => {
   let output = '';
 
   for (let i = 0; i < str.length; i += 2) {

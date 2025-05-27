@@ -63,6 +63,7 @@ en:
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
+        setting_default_quote_policy: Mentioned users are always allowed to quote. This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation
         setting_default_searchability: On kmyblue and Fedibird, the search is based on the search permission setting; on Misskey, all public, local public, and non-public posts are searched regardless of this setting; on Mastodon and Firefish, instead of search permission, the "Make public posts freely searchable on other servers" setting in the profile settings is applied. In Mastodon and Firefish, the "Make public posts freely searchable on other servers" setting in the profile settings is applied instead of the search permission.
         setting_default_sensitive: Sensitive media is hidden by default and can be revealed with a click
         setting_disallow_unlisted_public_searchability: この設定を有効にすると、非収載投稿と検索範囲「誰でも」は両立できず不特定多数からの検索が不可になります。Fedibirdと同じ挙動になります
@@ -181,7 +182,9 @@ en:
         min_age: Should not be below the minimum age required by the laws of your jurisdiction.
       user:
         chosen_languages: When checked, only posts in selected languages will be displayed in public timelines
-        date_of_birth: We have to make sure you're at least %{age} to use Mastodon. We won't store this.
+        date_of_birth:
+          one: We have to make sure you're at least %{count} to use Mastodon. We won't store this.
+          other: We have to make sure you're at least %{count} to use Mastodon. We won't store this.
         role: The role controls which permissions the user has.
       user_role:
         color: Color to be used for the role throughout the UI, as RGB in hex format
@@ -285,6 +288,7 @@ en:
         setting_default_language: Posting language
         setting_default_privacy: Posting privacy
         setting_default_reblog_privacy: Reblogging privacy
+        setting_default_quote_policy: Who can quote
         setting_default_searchability: Searchability of your own post
         setting_default_searchability_of_search: Your search setting
         setting_default_sensitive: Always mark media as sensitive

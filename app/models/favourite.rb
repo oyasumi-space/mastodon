@@ -14,6 +14,7 @@
 
 class Favourite < ApplicationRecord
   include Paginable
+  include Favourite::FaspConcern
 
   update_index('statuses', :status)
 

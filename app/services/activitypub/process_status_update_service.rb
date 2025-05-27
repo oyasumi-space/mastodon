@@ -197,7 +197,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
                                       sensitive: @status.sensitive,
                                       media_count: @next_media_attachments.size,
                                       poll_count: @status.poll&.options&.size || 0,
-                                      quote: quote_url,
+                                      quote: @status_parser.quote_uri,
                                       reply: @status.reply?,
                                       mention_count: @status.mentions.count,
                                       reference_count: reference_uris.size,
@@ -356,11 +356,6 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
 
     @reference_uris = @json['references'].nil? ? [] : (ActivityPub::FetchReferencesService.new.call(@status.account, @json['references']) || [])
     @reference_uris += ProcessReferencesService.extract_uris(@json['content'] || '')
-  end
-
-  def quote_url
-    # TODO: quote
-    nil
   end
 
   def local_referred_accounts

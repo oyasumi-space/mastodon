@@ -640,7 +640,6 @@
   "lists.favourite": "お気に入りに登録",
   "lists.favourite_hint": "お気に入りに登録したリストは、PCのWebクライアントでナビゲーションに表示されます",
   "lists.find_users_to_add": "追加するユーザーを探しましょう",
-  "lists.list_members": "リストのメンバー",
   "lists.list_members_count": "{count, plural, other{#人のメンバー}}",
   "lists.list_name": "リスト名",
   "lists.memo_related_antenna": "アンテナ: {title}",
