@@ -5,11 +5,35 @@
                   @typescript-eslint/no-unsafe-assignment */
 
 import type { ReactNode } from 'react';
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 import { FormattedMessage, defineMessages, useIntl } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
+
+import type {
+  DragStartEvent,
+  DragEndEvent,
+  UniqueIdentifier,
+  // Announcements,
+  // ScreenReaderInstructions,
+} from '@dnd-kit/core';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
 import EmojiReactionIcon from '@/material-icons/400-24px/mood.svg?react';
@@ -37,13 +61,24 @@ const ReactionEmoji: React.FC<{
   onChange: (index: number, emoji: any) => void;
   onRemove: (index: number) => void;
 }> = ({ index, emoji, emojiMap, onChange, onRemove }) => {
-  const handleChange = useCallback((emoji: any) => {
-    onChange(index, emoji);
-  }, [index, onChange]);
+  const handleChange = useCallback(
+    (emoji: any) => {
+      onChange(index, emoji);
+    },
+    [index, onChange],
+  );
 
   const handleRemove = useCallback(() => {
     onRemove(index);
   }, [index, onRemove]);
+
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: index.toString() });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   let content: ReactNode;
   const mapEmoji = emojiMap.find((e: any) => e.get('shortcode') === emoji);
@@ -69,16 +104,25 @@ const ReactionEmoji: React.FC<{
   }
 
   return (
-    <div className='reaction_deck__emoji'>
-      <div className='reaction_deck__emoji__wrapper'>
-        <div className='reaction_deck__emoji__wrapper__content'>
-          <EmojiPickerDropdown onPickEmoji={handleChange} />
-          <div>
-            {content}
+    <div
+      className='reaction_deck_container__row'
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+    >
+      <span>
+        <Icon id='bars' icon={MenuIcon} className='handle' />
+      </span>
+      <div className='reaction_deck__emoji'>
+        <div className='reaction_deck__emoji__wrapper'>
+          <div className='reaction_deck__emoji__wrapper__content'>
+            <EmojiPickerDropdown onPickEmoji={handleChange} />
+            <div>{content}</div>
           </div>
-        </div>
-        <div className='reaction_deck__emoji__wrapper__options'>
-          <Button secondary text={'Remove'} onClick={handleRemove} />
+          <div className='reaction_deck__emoji__wrapper__options'>
+            <Button secondary text={'Remove'} onClick={handleRemove} />
+          </div>
         </div>
       </div>
     </div>
@@ -119,7 +163,7 @@ export const ReactionDeck: React.FC<{
       newDeck[index] = emoji.native || emoji.id.replace(':', '');
       onChange(newDeck);
     },
-    [onChange, deck]
+    [onChange, deck],
   );
 
   const handleRemove = useCallback(
@@ -134,10 +178,46 @@ export const ReactionDeck: React.FC<{
   const handleAdd = useCallback(
     (emoji: any) => {
       const newDeck = deckToArray(deck);
-      newDeck.push('👍');
+      const newEmoji = emoji.native || emoji.id.replace(':', '');
+      newDeck.push(newEmoji);
       onChange(newDeck);
     },
     [onChange, deck],
+  );
+
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragStart = useCallback(
+    (e: DragStartEvent) => {
+      const { active } = e;
+
+      setActiveId(active.id);
+    },
+    [setActiveId],
+  );
+
+  const handleDragEnd = useCallback(
+    (e: DragEndEvent) => {
+      const { active, over } = e;
+
+      if (over && active.id !== over.id) {
+        //onChange(deck);
+      }
+
+      setActiveId(null);
+    },
+    [dispatch, setActiveId],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -159,16 +239,28 @@ export const ReactionDeck: React.FC<{
         showBackButton
       />
 
-      {deck.map((emoji: any, index) => (
-        <ReactionEmoji
-          emojiMap={emojiMap}
-          key={index}
-          emoji={emoji.get('name')}
-          index={index}
-          onChange={handleChange}
-          onRemove={handleRemove}
-        />
-      ))}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={deck.toArray()} strategy={rectSortingStrategy}>
+          {deck.map((emoji: any, index) => (
+            <div key={index} id={index.toString()}>
+              <ReactionEmoji
+                emojiMap={emojiMap}
+                emoji={emoji.get('name')}
+                index={index}
+                onChange={handleChange}
+                onRemove={handleRemove}
+              />
+            </div>
+          ))}
+        </SortableContext>
+
+        <DragOverlay>{activeId ? <span>Test</span> : null}</DragOverlay>
+      </DndContext>
 
       <div>
         <EmojiPickerDropdown

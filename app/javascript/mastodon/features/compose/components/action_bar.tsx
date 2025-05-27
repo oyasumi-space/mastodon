@@ -71,6 +71,10 @@ export const ActionBar: React.FC = () => {
         text: intl.formatMessage(messages.emoji_reactions),
         to: '/emoji_reactions',
       },
+      {
+        text: intl.formatMessage(messages.reaction_deck),
+        to: '/reaction_deck',
+      },
       { text: intl.formatMessage(messages.lists), to: '/lists' },
       {
         text: intl.formatMessage(messages.followed_tags),
