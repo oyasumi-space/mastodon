@@ -42,7 +42,7 @@ class PostStatusService < BaseService
     @options     = options
     @text        = @options[:text] || ''
     @in_reply_to = @options[:thread]
-    @quoted_status = @options[:quoted_status]
+    @quoted_status = @options[:quoted_status] || quoted_status_from_text
 
     @antispam = Antispam.new
 
@@ -296,7 +296,13 @@ class PostStatusService < BaseService
 
   def quote_url
     ProcessReferencesService.extract_quote(@text)
-    # TODO: quote
+  end
+
+  def quoted_status_from_text
+    url = quote_url
+    return unless url
+
+    ActivityPub::TagManager.instance.uri_to_resource(url, Status, url: true)
   end
 
   def reference_urls

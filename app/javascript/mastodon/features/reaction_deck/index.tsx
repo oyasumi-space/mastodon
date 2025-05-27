@@ -2,7 +2,8 @@
                   @typescript-eslint/no-explicit-any,
                   @typescript-eslint/no-unsafe-call,
                   @typescript-eslint/no-unsafe-member-access,
-                  @typescript-eslint/no-unsafe-assignment */
+                  @typescript-eslint/no-unsafe-assignment,
+                  @typescript-eslint/no-confusing-void-expression */
 
 import type { ReactNode } from 'react';
 import { useState, useCallback } from 'react';
@@ -58,18 +59,19 @@ const ReactionEmoji: React.FC<{
   index: number;
   emoji: string;
   emojiMap: any;
-  onChange: (index: number, emoji: any) => void;
-  onRemove: (index: number) => void;
-}> = ({ index, emoji, emojiMap, onChange, onRemove }) => {
+  overlay?: boolean;
+  onChange?: (index: number, emoji: any) => void;
+  onRemove?: (index: number) => void;
+}> = ({ index, emoji, emojiMap, overlay, onChange, onRemove }) => {
   const handleChange = useCallback(
     (emoji: any) => {
-      onChange(index, emoji);
+      if (onChange) onChange(index, emoji);
     },
     [index, onChange],
   );
 
   const handleRemove = useCallback(() => {
-    onRemove(index);
+    if (onRemove) onRemove(index);
   }, [index, onRemove]);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -101,6 +103,10 @@ const ReactionEmoji: React.FC<{
   } else {
     const html = { __html: emojify(emoji) };
     content = <span dangerouslySetInnerHTML={html} />;
+  }
+
+  if (overlay) {
+    return <div>{content}</div>;
   }
 
   return (
@@ -148,15 +154,6 @@ export const ReactionDeck: React.FC<{
   const deckToArray = (deckData: any) =>
     deckData.map((item: any) => item.get('name')).toArray();
 
-  /*
-  const handleReorder = useCallback((result: any) => {
-    const newDeck = deckToArray(deck);
-    const deleted = newDeck.splice(result.source.index, 1);
-    newDeck.splice(result.destination.index, 0, deleted[0]);
-    onChange(newDeck);
-  }, [onChange, deck]);
-  */
-
   const handleChange = useCallback(
     (index: number, emoji: any) => {
       const newDeck = deckToArray(deck);
@@ -186,6 +183,7 @@ export const ReactionDeck: React.FC<{
   );
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [activeEmoji, setActiveEmoji] = useState<any>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -203,21 +201,38 @@ export const ReactionDeck: React.FC<{
       const { active } = e;
 
       setActiveId(active.id);
+      setActiveEmoji(deck.get(idToNumber(active.id)));
     },
-    [setActiveId],
+    [setActiveId, setActiveEmoji, deck],
   );
+
+  const idToNumber = (id: UniqueIdentifier): number => {
+    if (typeof id === 'string') {
+      return parseInt(id);
+    }
+    if (typeof id === 'number') {
+      return id;
+    }
+    return 0;
+  };
 
   const handleDragEnd = useCallback(
     (e: DragEndEvent) => {
       const { active, over } = e;
 
       if (over && active.id !== over.id) {
-        //onChange(deck);
+        const newDeck = deckToArray(deck);
+        const old = newDeck[idToNumber(active.id)];
+        newDeck[idToNumber(active.id)] = newDeck[idToNumber(over.id)];
+        newDeck[idToNumber(over.id)] = old;
+
+        onChange(newDeck);
       }
 
       setActiveId(null);
+      setActiveEmoji(null);
     },
-    [setActiveId],
+    [setActiveId, setActiveEmoji, deck],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -259,7 +274,16 @@ export const ReactionDeck: React.FC<{
           ))}
         </SortableContext>
 
-        <DragOverlay>{activeId ? <span>Test</span> : null}</DragOverlay>
+        <DragOverlay>
+          {activeId ? (
+            <ReactionEmoji
+              emojiMap={emojiMap}
+              emoji={activeEmoji.get('name')}
+              index={-1}
+              overlay
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       <div>
