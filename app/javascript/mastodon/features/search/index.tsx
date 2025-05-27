@@ -189,7 +189,11 @@ export const SearchResults: React.FC<{ multiColumn: boolean }> = ({
                   onClickMore={handleSelectStatuses}
                 >
                   {results.statuses.slice(0, INITIAL_DISPLAY).map((id) => (
-                    <StatusQuoteManager key={id} id={id} contextType='explore' />
+                    <StatusQuoteManager
+                      key={id}
+                      id={id}
+                      contextType='explore'
+                    />
                   ))}
                 </SearchSection>
               )}

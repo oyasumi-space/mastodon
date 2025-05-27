@@ -217,7 +217,7 @@ export const ReactionDeck: React.FC<{
 
       setActiveId(null);
     },
-    [dispatch, setActiveId],
+    [setActiveId],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
