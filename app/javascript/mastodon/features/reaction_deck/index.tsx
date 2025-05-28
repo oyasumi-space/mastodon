@@ -233,7 +233,7 @@ export const ReactionDeck: React.FC<{
       setActiveId(null);
       setActiveEmoji(null);
     },
-    [setActiveId, setActiveEmoji, deck],
+    [setActiveId, setActiveEmoji, onChange, deck],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
