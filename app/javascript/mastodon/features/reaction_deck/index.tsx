@@ -7,6 +7,7 @@
 
 import type { ReactNode } from 'react';
 import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 import { FormattedMessage, defineMessages, useIntl } from 'react-intl';
 
@@ -28,6 +29,7 @@ import {
   useSensors,
   DragOverlay,
 } from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
@@ -115,9 +117,8 @@ const ReactionEmoji: React.FC<{
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
     >
-      <span>
+      <span {...listeners}>
         <Icon id='bars' icon={MenuIcon} className='handle' />
       </span>
       <div className='reaction_deck__emoji'>
@@ -259,6 +260,7 @@ export const ReactionDeck: React.FC<{
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
       >
         <SortableContext items={deck.toArray()} strategy={rectSortingStrategy}>
           {deck.map((emoji: any, index) => (
@@ -274,16 +276,21 @@ export const ReactionDeck: React.FC<{
           ))}
         </SortableContext>
 
-        <DragOverlay>
-          {activeId ? (
-            <ReactionEmoji
-              emojiMap={emojiMap}
-              emoji={activeEmoji.get('name')}
-              index={-1}
-              overlay
-            />
-          ) : null}
-        </DragOverlay>
+        {createPortal(
+          <DragOverlay>
+            {activeId ? (
+              <div style={{ position: 'fixed' }}>
+                <ReactionEmoji
+                  emojiMap={emojiMap}
+                  emoji={activeEmoji.get('name')}
+                  index={-1}
+                  overlay
+                />
+              </div>
+            ) : null}
+          </DragOverlay>,
+          document.body,
+        )}
       </DndContext>
 
       <div>
