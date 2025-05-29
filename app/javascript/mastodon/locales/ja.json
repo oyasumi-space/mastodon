@@ -1044,6 +1044,7 @@
   "status.mute_conversation": "会話をミュート",
   "status.open": "詳細を表示",
   "status.quote": "リンク",
+  "status.quote_link": "引用リンクを挿入",
   "status.read_more": "もっと見る",
   "status.reblog": "ブースト",
   "status.reblog_private": "ブースト",

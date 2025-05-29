@@ -69,6 +69,7 @@ const messages = defineMessages({
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   copy: { id: 'status.copy', defaultMessage: 'Copy link to post' },
   reference: { id: 'status.reference', defaultMessage: 'Link' },
+  quoteLink: { id: 'status.quote_link', defaultMessage: 'Insert quote link' },
   blockDomain: { id: 'account.block_domain', defaultMessage: 'Block domain {domain}' },
   unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
@@ -109,6 +110,7 @@ class StatusActionBar extends ImmutablePureComponent {
     onFilter: PropTypes.func,
     onAddFilter: PropTypes.func,
     onReference: PropTypes.func,
+    onInsertQuoteLink: PropTypes.func,
     onInteractionModal: PropTypes.func,
     withDismiss: PropTypes.bool,
     withCounters: PropTypes.bool,
@@ -282,6 +284,10 @@ class StatusActionBar extends ImmutablePureComponent {
     navigator.clipboard.writeText(url);
   };
 
+  handleInsertQuoteLink = () => {
+    this.props.onInsertQuoteLink(this.props.status, this.props.history);
+  };
+
   handleReference = () => {
     this.props.onReference(this.props.status, this.props.history);
   };
@@ -328,6 +334,8 @@ class StatusActionBar extends ImmutablePureComponent {
       }
 
       if (!boostMenu) {
+        menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
         }
@@ -412,6 +420,8 @@ class StatusActionBar extends ImmutablePureComponent {
       }
   
       if (publicStatus) {
+        reblogMenu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
         }

@@ -65,6 +65,7 @@ const messages = defineMessages({
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   copy: { id: 'status.copy', defaultMessage: 'Copy link to post' },
   reference: { id: 'status.reference', defaultMessage: 'Link' },
+  quoteLink: { id: 'status.quote_link', defaultMessage: 'Insert quote link' },
   blockDomain: { id: 'account.block_domain', defaultMessage: 'Block domain {domain}' },
   unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
@@ -88,6 +89,7 @@ class ActionBar extends PureComponent {
     onFavourite: PropTypes.func.isRequired,
     onEmojiReact: PropTypes.func.isRequired,
     onReference: PropTypes.func.isRequired,
+    onInsertQuoteLink: PropTypes.func.isRequired,
     onBookmark: PropTypes.func.isRequired,
     onBookmarkCategoryAdder: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
@@ -219,6 +221,10 @@ class ActionBar extends PureComponent {
     navigator.clipboard.writeText(url);
   };
 
+  handleInsertQuoteLink = () => {
+    this.props.onInsertQuoteLink(this.props.status, this.props.history);
+  };
+
   handleReference = () => {
     this.props.onReference(this.props.status, this.props.history);
   };
@@ -262,6 +268,8 @@ class ActionBar extends PureComponent {
         menu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogForceModalClick, tag: 'reblog' });
 
         if (publicStatus) {
+          menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
           if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
             menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
           }
@@ -339,6 +347,8 @@ class ActionBar extends PureComponent {
       }
   
       if (publicStatus) {
+        reblogMenu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
         }
