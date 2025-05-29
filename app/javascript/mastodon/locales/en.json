@@ -1,8 +1,8 @@
 {
   "about.blocks": "Moderated servers",
   "about.contact": "Contact:",
-  "about.disabled": "Disabled",
   "about.default_locale": "Default",
+  "about.disabled": "Disabled",
   "about.disclaimer": "Mastodon is free, open-source software, and a trademark of Mastodon gGmbH.",
   "about.domain_blocks.no_reason_available": "Reason not available",
   "about.domain_blocks.noop.explanation": "This server is limited partically.",
