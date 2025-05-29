@@ -3,28 +3,24 @@ import { PureComponent } from 'react';
 
 import { defineMessages, injectIntl, FormattedMessage } from 'react-intl';
 
-import classNames from 'classnames';
 import { Helmet } from 'react-helmet';
 
-import { List as ImmutableList } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
-import DisabledIcon from '@/material-icons/400-24px/close-fill.svg?react';
-import EnabledIcon from '@/material-icons/400-24px/done-fill.svg?react';
-import ExpandMoreIcon from '@/material-icons/400-24px/expand_more.svg?react';
 import { fetchServer, fetchExtendedDescription, fetchDomainBlocks  } from 'mastodon/actions/server';
 import { Account } from 'mastodon/components/account';
 import Column from 'mastodon/components/column';
-import { Icon  }  from 'mastodon/components/icon';
 import { ServerHeroImage } from 'mastodon/components/server_hero_image';
 import { Skeleton } from 'mastodon/components/skeleton';
 import { LinkFooter} from 'mastodon/features/ui/components/link_footer';
 
+import { CapabilityIcon } from './components/capability_icon';
+import { Section } from './components/section';
+import { RulesSection } from './components/rules';
+
 const messages = defineMessages({
   title: { id: 'column.about', defaultMessage: 'About' },
-  rules: { id: 'about.rules', defaultMessage: 'Server rules' },
   blocks: { id: 'about.blocks', defaultMessage: 'Moderated servers' },
   fullTextSearch: { id: 'about.full_text_search', defaultMessage: 'Full text search' },
   localTimeline: { id: 'column.community', defaultMessage: 'Local timeline' },
@@ -65,67 +61,6 @@ const mapStateToProps = state => ({
   extendedDescription: state.getIn(['server', 'extendedDescription']),
   domainBlocks: state.getIn(['server', 'domainBlocks']),
 });
-
-class Section extends PureComponent {
-
-  static propTypes = {
-    title: PropTypes.string,
-    children: PropTypes.node,
-    open: PropTypes.bool,
-    onOpen: PropTypes.func,
-  };
-
-  state = {
-    collapsed: !this.props.open,
-  };
-
-  handleClick = () => {
-    const { onOpen } = this.props;
-    const { collapsed } = this.state;
-
-    this.setState({ collapsed: !collapsed }, () => onOpen && onOpen());
-  };
-
-  render () {
-    const { title, children } = this.props;
-    const { collapsed } = this.state;
-
-    return (
-      <div className={classNames('about__section', { active: !collapsed })}>
-        <div className='about__section__title' role='button' tabIndex={0} onClick={this.handleClick}>
-          <Icon id={collapsed ? 'chevron-right' : 'chevron-down'} icon={collapsed ? ChevronRightIcon : ExpandMoreIcon} /> {title}
-        </div>
-
-        {!collapsed && (
-          <div className='about__section__body'>{children}</div>
-        )}
-      </div>
-    );
-  }
-
-}
-
-class CapabilityIcon extends PureComponent {
-
-  static propTypes = {
-    intl: PropTypes.object.isRequired,
-    state: PropTypes.bool,
-  };
-
-  render () {
-    const { intl, state } = this.props;
-
-    if (state) {
-      return (
-        <span className='capability-icon enabled'><Icon id='check' icon={EnabledIcon} title={intl.formatMessage(messages.enabled)} />{intl.formatMessage(messages.enabled)}</span>
-      );
-    } else {
-      return (
-        <span className='capability-icon disabled'><Icon id='times' icon={DisabledIcon} title={intl.formatMessage(messages.disabled)} />{intl.formatMessage(messages.disabled)}</span>
-      );
-    }
-  }
-}
 
 class About extends PureComponent {
 
@@ -215,23 +150,7 @@ class About extends PureComponent {
             ))}
           </Section>
 
-          <Section title={intl.formatMessage(messages.rules)}>
-            {!isLoading && (server.get('rules', ImmutableList()).isEmpty() ? (
-              <p><FormattedMessage id='about.not_available' defaultMessage='This information has not been made available on this server.' /></p>
-            ) : (
-              <ol className='rules-list'>
-                {server.get('rules').map(rule => {
-                  const text = rule.getIn(['translations', locale, 'text']) || rule.getIn(['translations', locale.split('-')[0], 'text']) || rule.get('text');
-                  const hint = rule.getIn(['translations', locale, 'hint']) || rule.getIn(['translations', locale.split('-')[0], 'hint']) || rule.get('hint');
-                  return (
-                    <li key={rule.get('id')}>
-                      <div className='rules-list__text'>{text}</div>
-                      {hint.length > 0 && (<div className='rules-list__hint'>{hint}</div>)}
-                    </li>
-                  )})}
-              </ol>
-            ))}
-          </Section>
+          <RulesSection />
 
           <Section title={intl.formatMessage(messages.capabilities)}>
             <p><FormattedMessage id='about.kmyblue_capability' defaultMessage='This server is using kmyblue, a fork of Mastodon. On this server, kmyblues unique features are configured as follows.' /></p>
