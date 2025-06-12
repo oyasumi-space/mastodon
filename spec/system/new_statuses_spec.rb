@@ -13,7 +13,7 @@ RSpec.describe 'NewStatuses', :inline_jobs, :js, :streaming do
 
   before do
     as_a_logged_in_user
-    page.driver.browser.manage.window.resize_to(1600, 1050)
+    page.set_viewport_size(width: 1600, height: 1050)
   end
 
   it 'can be posted' do

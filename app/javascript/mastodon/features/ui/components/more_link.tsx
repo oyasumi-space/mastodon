@@ -63,11 +63,13 @@ export const MoreLink: React.FC = () => {
 
   const emojiReactionMenu = useMemo(() => {
     if (!enableEmojiReaction) return [];
-    return [{
-      text: intl.formatMessage(messages.emoji_reactions),
-      to: '/emoji_reactions',
-    }];
-  }, [enableEmojiReaction, intl]);
+    return [
+      {
+        text: intl.formatMessage(messages.emoji_reactions),
+        to: '/emoji_reactions',
+      },
+    ];
+  }, [intl]);
 
   const menu = useMemo(() => {
     const arr: MenuItem[] = [
