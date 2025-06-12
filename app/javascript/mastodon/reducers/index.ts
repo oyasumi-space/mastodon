@@ -24,6 +24,7 @@ import { markersReducer } from './markers';
 import media_attachments from './media_attachments';
 import meta from './meta';
 import { modalReducer } from './modal';
+import { navigationReducer } from './navigation';
 import { notificationGroupsReducer } from './notification_groups';
 import { notificationPolicyReducer } from './notification_policy';
 import { notificationRequestsReducer } from './notification_requests';
@@ -84,6 +85,7 @@ const reducers = {
   reaction_deck,
   notificationPolicy: notificationPolicyReducer,
   notificationRequests: notificationRequestsReducer,
+  navigation: navigationReducer,
 };
 
 // We want the root state to be an ImmutableRecord, which is an object with a defined list of keys,

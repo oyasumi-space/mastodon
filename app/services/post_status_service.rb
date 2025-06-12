@@ -185,7 +185,8 @@ class PostStatusService < BaseService
     # we only support incoming quotes so far
 
     status.quote = Quote.new(quoted_status: @quoted_status)
-    status.quote.accept! if @status.account == @quoted_status.account || @quoted_status.active_mentions.exists?(mentions: { account_id: status.account_id })
+    status.quote.accept!
+    # status.quote.accept! if @status.account == @quoted_status.account || @quoted_status.active_mentions.exists?(mentions: { account_id: status.account_id })
 
     # TODO: the following has yet to be implemented:
     # - handle approval of local users (requires the interactionPolicy PR)

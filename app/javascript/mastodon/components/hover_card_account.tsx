@@ -45,6 +45,19 @@ export const HoverCardAccount = forwardRef<
 
   const { familiarFollowers } = useFetchFamiliarFollowers({ accountId });
 
+  const relationship = useAppSelector((state) =>
+    accountId ? state.relationships.get(accountId) : undefined,
+  );
+  const isMutual = relationship?.followed_by && relationship.following;
+  const isFollower = relationship?.followed_by;
+  const hasRelationshipLoaded = !!relationship;
+
+  const shouldDisplayFamiliarFollowers =
+    familiarFollowers.length > 0 &&
+    hasRelationshipLoaded &&
+    !isMutual &&
+    !isFollower;
+
   return (
     <div
       ref={ref}
@@ -86,7 +99,7 @@ export const HoverCardAccount = forwardRef<
               renderer={FollowersCounter}
               isHide={account.other_settings.hide_followers_count}
             />
-            {familiarFollowers.length > 0 && (
+            {shouldDisplayFamiliarFollowers && (
               <>
                 &middot;
                 <div className='hover-card__familiar-followers'>
@@ -100,6 +113,22 @@ export const HoverCardAccount = forwardRef<
                     ))}
                   </AvatarGroup>
                 </div>
+              </>
+            )}
+            {(isMutual || isFollower) && (
+              <>
+                &middot;
+                {isMutual ? (
+                  <FormattedMessage
+                    id='account.mutual'
+                    defaultMessage='You follow each other'
+                  />
+                ) : (
+                  <FormattedMessage
+                    id='account.follows_you'
+                    defaultMessage='Follows you'
+                  />
+                )}
               </>
             )}
           </div>

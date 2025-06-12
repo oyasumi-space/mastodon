@@ -452,13 +452,13 @@ export const DetailedStatus: React.FC<{
               {...(statusContentProps as any)}
             />
 
-            {status.get('quote') && (
-              <QuotedStatus quote={status.get('quote')} />
-            )}
-
             {media}
             {hashtagBar}
             {emojiReactionsBar}
+
+            {status.get('quote') && (
+              <QuotedStatus quote={status.get('quote')} />
+            )}
           </>
         )}
 

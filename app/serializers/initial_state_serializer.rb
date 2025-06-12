@@ -26,7 +26,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:display_media]     = object_account_user.setting_display_media
       store[:expand_spoilers] = object_account_user.setting_expand_spoilers
       store[:enable_emoji_reaction] = object_account_user.setting_enable_emoji_reaction && Setting.enable_emoji_reaction
-      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu
+      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu && dtl_enabled?
       store[:reduce_motion]     = object_account_user.setting_reduce_motion
       store[:disable_swiping]   = object_account_user.setting_disable_swiping
       store[:disable_hover_cards] = object_account_user.setting_disable_hover_cards

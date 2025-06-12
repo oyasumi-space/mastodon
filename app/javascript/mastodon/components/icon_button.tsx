@@ -28,6 +28,7 @@ interface Props {
   href?: string;
   ariaHidden?: boolean;
   data_id?: string;
+  ariaControls?: string;
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, Props>(
@@ -54,6 +55,7 @@ export const IconButton = forwardRef<HTMLButtonElement, Props>(
       tabIndex = 0,
       ariaHidden = false,
       data_id = undefined,
+      ariaControls,
     },
     buttonRef,
   ) => {
@@ -155,6 +157,7 @@ export const IconButton = forwardRef<HTMLButtonElement, Props>(
         aria-label={title}
         aria-expanded={expanded}
         aria-hidden={ariaHidden}
+        aria-controls={ariaControls}
         title={title}
         className={classes}
         onClick={handleClick}

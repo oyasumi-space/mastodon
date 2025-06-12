@@ -41,3 +41,12 @@
   --detail-content-emoji-size: 24px;
   --detail-content-line-height: 24px;
 }
+
+body {
+  // Variable for easily inverting directional UI elements,
+  --text-x-direction: 1;
+
+  &.rtl {
+    --text-x-direction: -1;
+  }
+}
