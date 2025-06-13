@@ -42,7 +42,14 @@ import { WordmarkLogo } from 'mastodon/components/logo';
 import { NavigationPortal } from 'mastodon/components/navigation_portal';
 import { useBreakpoint } from 'mastodon/features/ui/hooks/useBreakpoint';
 import { useIdentity } from 'mastodon/identity_context';
-import { me, enableDtlMenu, timelinePreview, trendsEnabled, dtlTag, enableLocalTimeline } from 'mastodon/initial_state';
+import {
+  me,
+  enableDtlMenu,
+  timelinePreview,
+  trendsEnabled,
+  dtlTag,
+  enableLocalTimeline,
+} from 'mastodon/initial_state';
 import { transientSingleColumn } from 'mastodon/is_mobile';
 import { selectUnreadNotificationGroupsCount } from 'mastodon/selectors/notifications';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
@@ -339,7 +346,9 @@ export const NavigationPanel: React.FC = () => {
     );
   }
 
-  const handleRefresh = useCallback(() => { window.location.reload(); }, []);
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, []);
 
   const showOverlay = openable && open;
 
@@ -418,7 +427,9 @@ export const NavigationPanel: React.FC = () => {
             {(signedIn || timelinePreview) && (
               <ColumnLink
                 transparent
-                to={((signedIn || !enableLocalTimeline) ? '/public' : '/public/local')}
+                to={
+                  signedIn || !enableLocalTimeline ? '/public' : '/public/local'
+                }
                 isActive={isFirehoseActive}
                 icon='globe'
                 iconComponent={PublicIcon}

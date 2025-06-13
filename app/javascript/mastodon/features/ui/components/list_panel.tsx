@@ -33,7 +33,7 @@ export const ListPanel: React.FC = () => {
   const intl = useIntl();
   const dispatch = useAppDispatch();
   const lists = useAppSelector((state) => getOrderedLists(state));
-  const antennas = useAppSelector(state => getOrderedAntennas(state));
+  const antennas = useAppSelector((state) => getOrderedAntennas(state));
   const [expanded, setExpanded] = useState(false);
   const [expandedAntenna, setExpandedAntenna] = useState(false);
   const accessibilityId = useId();

@@ -69,12 +69,16 @@ export const ColumnLink: React.FC<{
       iconElement
     ));
   const active = !!match;
-  const childElement = typeof children !== 'undefined' ? <p>{children}</p> : null;
+  const childElement =
+    typeof children !== 'undefined' ? <p>{children}</p> : null;
 
-  const handleClick = useCallback((ev: React.MouseEvent<HTMLAnchorElement>) => {
-    ev.preventDefault();
-    onClick?.();
-  }, [onClick]);
+  const handleClick = useCallback(
+    (ev: React.MouseEvent<HTMLAnchorElement>) => {
+      ev.preventDefault();
+      onClick?.();
+    },
+    [onClick],
+  );
 
   if (href) {
     return (
