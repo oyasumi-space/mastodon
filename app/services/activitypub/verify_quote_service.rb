@@ -10,7 +10,13 @@ class ActivityPub::VerifyQuoteService < BaseService
     @fetching_error = nil
 
     fetch_quoted_post_if_needed!(fetchable_quoted_uri, prefetched_body: prefetched_quoted_object)
-    return if fast_track_approval! || quote.approval_uri.blank?
+    return if fast_track_approval!
+
+    # for current version of kmyblue, fedibird, misskey
+    if quote.approval_uri.blank?
+      quote.accept!
+      return
+    end
 
     @json = fetch_approval_object(quote.approval_uri, prefetched_body: prefetched_approval)
     return quote.reject! if @json.nil?

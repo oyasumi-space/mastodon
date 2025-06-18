@@ -168,7 +168,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
                                       sensitive: @params[:sensitive],
                                       media_count: @params[:media_attachment_ids]&.size,
                                       poll_count: @params[:poll]&.options&.size || 0,
-                                      quote: quote,
+                                      quote: @quote_uri,
                                       reply: in_reply_to_uri.present?,
                                       mention_count: mentioned_accounts.count,
                                       reference_count: reference_uris.size,
@@ -651,7 +651,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_references!
-    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, quote: quote)
+    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, quote: @quote_uri)
   end
 
   def free_friend_domain?
@@ -660,9 +660,5 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def friend_domain?
     FriendDomain.enabled.find_by(domain: @account.domain)&.accepted?
-  end
-
-  def quote
-    @quote ||= @status_parser.quote_uri
   end
 end
