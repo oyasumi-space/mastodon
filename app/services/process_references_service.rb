@@ -41,8 +41,8 @@ class ProcessReferencesService < BaseService
     launch_worker if @again
   end
 
-  def self.need_process?(status, reference_parameters, urls)
-    reference_parameters.any? || (urls || []).any? || FormattingHelper.extract_status_plain_text(status).scan(REFURL_EXP).pluck(3).uniq.any?
+  def self.need_process?(status, reference_parameters, urls, quote: nil)
+    reference_parameters.any? || [urls, quote].flatten.compact.any? || FormattingHelper.extract_status_plain_text(status).scan(REFURL_EXP).pluck(3).uniq.any?
   end
 
   def self.extract_uris(text, remote: false)
@@ -55,17 +55,17 @@ class ProcessReferencesService < BaseService
     text.scan(QUOTEURL_EXP).pick(3)
   end
 
-  def self.call_service(status, reference_parameters, urls)
-    return unless need_process?(status, reference_parameters, urls)
+  def self.call_service(status, reference_parameters, urls, quote: nil)
+    return unless need_process?(status, reference_parameters, urls, quote: quote)
 
-    ProcessReferencesService.new.call(status, reference_parameters || [], urls: urls || [], fetch_remote: false)
+    ProcessReferencesService.new.call(status, reference_parameters || [], urls: [urls, quote].flatten.compact || [], fetch_remote: false)
   end
 
-  def self.call_service_without_error(status, reference_parameters, urls)
-    return unless need_process?(status, reference_parameters, urls)
+  def self.call_service_without_error(status, reference_parameters, urls, quote: nil)
+    return unless need_process?(status, reference_parameters, urls, quote: quote)
 
     begin
-      ProcessReferencesService.new.call(status, reference_parameters || [], urls: urls || [])
+      ProcessReferencesService.new.call(status, reference_parameters || [], urls: [urls, quote].flatten.compact)
     rescue
       true
     end

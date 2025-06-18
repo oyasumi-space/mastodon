@@ -235,7 +235,7 @@ class PostStatusService < BaseService
     process_hashtags_service.call(@status)
     Trends.tags.register(@status)
     ProcessConversationService.new.call(@status) if @status.limited_visibility? && @status.reply_limited?
-    ProcessReferencesService.call_service(@status, @reference_ids, [])
+    ProcessReferencesService.call_service(@status, @reference_ids, [], quote: quote_url)
     LinkCrawlWorker.perform_async(@status.id)
     DistributionWorker.perform_async(@status.id)
     ActivityPub::DistributionWorker.perform_async(@status.id) unless @status.personal_limited?
@@ -295,15 +295,18 @@ class PostStatusService < BaseService
     statuses
   end
 
-  def quote_url
-    ProcessReferencesService.extract_quote(@text)
-  end
-
   def quoted_status_from_text
-    url = quote_url
+    url = ProcessReferencesService.extract_quote(@text)
     return unless url
 
     ActivityPub::TagManager.instance.uri_to_resource(url, Status, url: true)
+  end
+
+  def quote_url
+    status = @quoted_status || quoted_status_from_text
+    return unless status
+
+    ActivityPub::TagManager.instance.uri_for(status)
   end
 
   def reference_urls

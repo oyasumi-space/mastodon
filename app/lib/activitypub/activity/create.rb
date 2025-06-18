@@ -651,7 +651,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_references!
-    ProcessReferencesService.call_service_without_error(@status, [], reference_uris)
+    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, quote: quote)
   end
 
   def free_friend_domain?
