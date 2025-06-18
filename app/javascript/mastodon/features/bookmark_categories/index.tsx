@@ -97,7 +97,7 @@ const BookmarkCategories: React.FC<{
   );
 
   useEffect(() => {
-    dispatch(fetchBookmarkCategories());
+    void dispatch(fetchBookmarkCategories());
   }, [dispatch]);
 
   const emptyMessage = (

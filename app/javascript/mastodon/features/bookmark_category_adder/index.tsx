@@ -135,7 +135,7 @@ const BookmarkCategoryAdder: React.FC<{
   );
 
   useEffect(() => {
-    dispatch(fetchBookmarkCategories());
+    void dispatch(fetchBookmarkCategories());
 
     apiGetStatusBookmarkCategories(statusId)
       .then((data) => {

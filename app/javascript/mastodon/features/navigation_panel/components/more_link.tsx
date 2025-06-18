@@ -140,7 +140,7 @@ export const MoreLink: React.FC = () => {
     });
 
     return arr;
-  }, [intl, dispatch, permissions, emojiReactionMenu]);
+  }, [intl, dispatch, permissions, emojiReactionMenu, favouritesMenu]);
 
   return (
     <Dropdown items={menu}>

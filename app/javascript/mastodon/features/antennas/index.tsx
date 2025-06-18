@@ -115,7 +115,7 @@ const Antennas: React.FC<{
   const antennas = useAppSelector((state) => getOrderedAntennas(state));
 
   useEffect(() => {
-    dispatch(fetchAntennas());
+    void dispatch(fetchAntennas());
   }, [dispatch]);
 
   const emptyMessage = (
