@@ -248,8 +248,10 @@ RSpec.describe ActivityPub::VerifyQuoteService do
 
     context 'without any fast-track condition' do
       it 'does not update the status' do
+        # kmyblue special spec for fedibird/misskey
         expect { subject.call(quote) }
-          .to_not change(quote, :state)
+          .to change(quote, :state).to('accepted')
+        # .to_not change(quote, :state)
       end
     end
 

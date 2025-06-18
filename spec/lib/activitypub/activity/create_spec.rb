@@ -1637,8 +1637,9 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
+          # kmyblue special spec for fedibird/misskey
           expect(status.quote).to have_attributes(
-            state: 'pending',
+            state: 'accepted',
             approval_uri: nil
           )
         end
@@ -1665,8 +1666,9 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
+          # kmyblue special spec for fedibird/misskey
           expect(status.quote).to have_attributes(
-            state: 'pending',
+            state: 'accepted',
             approval_uri: nil
           )
         end

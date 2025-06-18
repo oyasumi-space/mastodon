@@ -850,7 +850,8 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
     it 'removes the approval URI and unverifies the quote' do
       expect { subject.call(status, json, json) }
         .to change(quote, :approval_uri).to(nil)
-        .and change(quote, :state).to('pending')
+      # kmyblue special spec for fedibird/misskey
+      # .and change(quote, :state).to('pending')
     end
   end
 
@@ -950,7 +951,8 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
       expect { subject.call(status, json, json) }
         .to change(status, :quote).from(nil)
       expect(status.quote.approval_uri).to be_nil
-      expect(status.quote.state).to eq 'pending'
+      # kmyblue special spec for fedibird/misskey
+      expect(status.quote.state).to eq 'accepted'
     end
   end
 
