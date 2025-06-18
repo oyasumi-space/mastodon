@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { defineMessages, useIntl, FormattedMessage } from 'react-intl';
 
-import { enableEmojiReaction } from '@/mastodon/initial_state';
+import { enableEmojiReaction, isHideItem } from '@/mastodon/initial_state';
 import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
 import { openModal } from 'mastodon/actions/modal';
 import { Dropdown } from 'mastodon/components/dropdown_menu';
@@ -13,16 +13,13 @@ import { canManageReports, canViewAdminDashboard } from 'mastodon/permissions';
 import { useAppDispatch } from 'mastodon/store';
 
 const messages = defineMessages({
-  followedTags: {
-    id: 'navigation_bar.followed_tags',
-    defaultMessage: 'Followed hashtags',
-  },
   blocks: { id: 'navigation_bar.blocks', defaultMessage: 'Blocked users' },
   domainBlocks: {
     id: 'navigation_bar.domain_blocks',
     defaultMessage: 'Blocked domains',
   },
   mutes: { id: 'navigation_bar.mutes', defaultMessage: 'Muted users' },
+  favourites: { id: 'navigation_bar.favourites', defaultMessage: 'Favorites' },
   filters: { id: 'navigation_bar.filters', defaultMessage: 'Muted words' },
   administration: {
     id: 'navigation_bar.administration',
@@ -71,18 +68,25 @@ export const MoreLink: React.FC = () => {
     ];
   }, [intl]);
 
+  const favouritesMenu = useMemo(() => {
+    if (!isHideItem('favourite_menu')) return [];
+    return [
+      {
+        text: intl.formatMessage(messages.favourites),
+        to: '/favourites',
+      },
+    ];
+  }, [intl]);
+
   const menu = useMemo(() => {
     const arr: MenuItem[] = [
-      {
-        text: intl.formatMessage(messages.followedTags),
-        to: '/followed_tags',
-      },
       ...emojiReactionMenu,
       {
         text: intl.formatMessage(messages.reaction_deck),
         to: '/reaction_deck',
       },
       null,
+      ...favouritesMenu,
       { text: intl.formatMessage(messages.filters), href: '/filters' },
       { text: intl.formatMessage(messages.mutes), to: '/mutes' },
       { text: intl.formatMessage(messages.blocks), to: '/blocks' },

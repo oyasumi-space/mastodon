@@ -6,10 +6,6 @@ export const BOOKMARK_CATEGORY_FETCH_REQUEST = 'BOOKMARK_CATEGORY_FETCH_REQUEST'
 export const BOOKMARK_CATEGORY_FETCH_SUCCESS = 'BOOKMARK_CATEGORY_FETCH_SUCCESS';
 export const BOOKMARK_CATEGORY_FETCH_FAIL    = 'BOOKMARK_CATEGORY_FETCH_FAIL';
 
-export const BOOKMARK_CATEGORIES_FETCH_REQUEST = 'BOOKMARK_CATEGORIES_FETCH_REQUEST';
-export const BOOKMARK_CATEGORIES_FETCH_SUCCESS = 'BOOKMARK_CATEGORIES_FETCH_SUCCESS';
-export const BOOKMARK_CATEGORIES_FETCH_FAIL    = 'BOOKMARK_CATEGORIES_FETCH_FAIL';
-
 export const BOOKMARK_CATEGORY_DELETE_REQUEST = 'BOOKMARK_CATEGORY_DELETE_REQUEST';
 export const BOOKMARK_CATEGORY_DELETE_SUCCESS = 'BOOKMARK_CATEGORY_DELETE_SUCCESS';
 export const BOOKMARK_CATEGORY_DELETE_FAIL    = 'BOOKMARK_CATEGORY_DELETE_FAIL';
@@ -24,6 +20,8 @@ export const BOOKMARK_CATEGORY_STATUSES_EXPAND_FAIL    = 'BOOKMARK_CATEGORY_STAT
 
 export const BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS = 'BOOKMARK_CATEGORY_EDITOR_ADD_SUCCESS';
 export const BOOKMARK_CATEGORY_EDITOR_REMOVE_SUCCESS = 'BOOKMARK_CATEGORY_EDITOR_REMOVE_SUCCESS';
+
+export * from './bookmark_categories_typed';
 
 export const fetchBookmarkCategory = id => (dispatch, getState) => {
   if (getState().getIn(['bookmark_categories', id])) {
@@ -50,28 +48,6 @@ export const fetchBookmarkCategorySuccess = bookmarkCategory => ({
 export const fetchBookmarkCategoryFail = (id, error) => ({
   type: BOOKMARK_CATEGORY_FETCH_FAIL,
   id,
-  error,
-});
-
-export const fetchBookmarkCategories = () => (dispatch, getState) => {
-  dispatch(fetchBookmarkCategoriesRequest());
-
-  api(getState).get('/api/v1/bookmark_categories')
-    .then(({ data }) => dispatch(fetchBookmarkCategoriesSuccess(data)))
-    .catch(err => dispatch(fetchBookmarkCategoriesFail(err)));
-};
-
-export const fetchBookmarkCategoriesRequest = () => ({
-  type: BOOKMARK_CATEGORIES_FETCH_REQUEST,
-});
-
-export const fetchBookmarkCategoriesSuccess = bookmarkCategories => ({
-  type: BOOKMARK_CATEGORIES_FETCH_SUCCESS,
-  bookmarkCategories,
-});
-
-export const fetchBookmarkCategoriesFail = error => ({
-  type: BOOKMARK_CATEGORIES_FETCH_FAIL,
   error,
 });
 

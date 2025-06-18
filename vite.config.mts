@@ -16,6 +16,7 @@ import postcssPresetEnv from 'postcss-preset-env';
 import { MastodonServiceWorkerLocales } from './config/vite/plugin-sw-locales';
 import { MastodonEmojiCompressed } from './config/vite/plugin-emoji-compressed';
 import { MastodonThemes } from './config/vite/plugin-mastodon-themes';
+import { MastodonNameLookup } from './config/vite/plugin-name-lookup';
 
 const jsRoot = path.resolve(__dirname, 'app/javascript');
 
@@ -126,6 +127,7 @@ export const config: UserConfigFnPromise = async ({ mode, command }) => {
       optimizeLodashImports() as PluginOption,
       // Disable in knyblue because kmyblue-developer cannot launch foreman
       // !!process.env.ANALYZE_BUNDLE_SIZE && (visualizer() as PluginOption),
+      MastodonNameLookup(),
     ],
   } satisfies UserConfig;
 };

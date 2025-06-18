@@ -6,10 +6,6 @@ export const CIRCLE_FETCH_REQUEST = 'CIRCLE_FETCH_REQUEST';
 export const CIRCLE_FETCH_SUCCESS = 'CIRCLE_FETCH_SUCCESS';
 export const CIRCLE_FETCH_FAIL    = 'CIRCLE_FETCH_FAIL';
 
-export const CIRCLES_FETCH_REQUEST = 'CIRCLES_FETCH_REQUEST';
-export const CIRCLES_FETCH_SUCCESS = 'CIRCLES_FETCH_SUCCESS';
-export const CIRCLES_FETCH_FAIL    = 'CIRCLES_FETCH_FAIL';
-
 export const CIRCLE_CREATE_REQUEST = 'CIRCLE_CREATE_REQUEST';
 export const CIRCLE_CREATE_SUCCESS = 'CIRCLE_CREATE_SUCCESS';
 export const CIRCLE_CREATE_FAIL    = 'CIRCLE_CREATE_FAIL';
@@ -29,6 +25,8 @@ export const CIRCLE_STATUSES_FETCH_FAIL    = 'CIRCLE_STATUSES_FETCH_FAIL';
 export const CIRCLE_STATUSES_EXPAND_REQUEST = 'CIRCLE_STATUSES_EXPAND_REQUEST';
 export const CIRCLE_STATUSES_EXPAND_SUCCESS = 'CIRCLE_STATUSES_EXPAND_SUCCESS';
 export const CIRCLE_STATUSES_EXPAND_FAIL    = 'CIRCLE_STATUSES_EXPAND_FAIL';
+
+export * from './circles_typed';
 
 export const fetchCircle = id => (dispatch, getState) => {
   if (getState().getIn(['circles', id])) {
@@ -55,28 +53,6 @@ export const fetchCircleSuccess = circle => ({
 export const fetchCircleFail = (id, error) => ({
   type: CIRCLE_FETCH_FAIL,
   id,
-  error,
-});
-
-export const fetchCircles = () => (dispatch, getState) => {
-  dispatch(fetchCirclesRequest());
-
-  api(getState).get('/api/v1/circles')
-    .then(({ data }) => dispatch(fetchCirclesSuccess(data)))
-    .catch(err => dispatch(fetchCirclesFail(err)));
-};
-
-export const fetchCirclesRequest = () => ({
-  type: CIRCLES_FETCH_REQUEST,
-});
-
-export const fetchCirclesSuccess = circles => ({
-  type: CIRCLES_FETCH_SUCCESS,
-  circles,
-});
-
-export const fetchCirclesFail = error => ({
-  type: CIRCLES_FETCH_FAIL,
   error,
 });
 

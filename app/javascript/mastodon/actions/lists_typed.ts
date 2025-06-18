@@ -1,4 +1,4 @@
-import { apiCreate, apiUpdate } from 'mastodon/api/lists';
+import { apiCreate, apiUpdate, apiGetLists } from 'mastodon/api/lists';
 import type { List } from 'mastodon/models/list';
 import { createDataLoadingThunk } from 'mastodon/store/typed_functions';
 
@@ -14,4 +14,6 @@ export const updateList = createDataLoadingThunk(
   (list: Partial<List>) => apiUpdate(list),
 );
 
-// Kmyblue tracking marker: copied antenna, circle, bookmark_category
+export const fetchLists = createDataLoadingThunk('lists/fetch', () =>
+  apiGetLists(),
+);

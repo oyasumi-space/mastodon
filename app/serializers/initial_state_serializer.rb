@@ -127,7 +127,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       domain: Addressable::IDNA.to_unicode(instance_presenter.domain),
       dtl_tag: dtl_enabled? ? dtl_tag_name : nil,
       enable_local_timeline: Setting.enable_local_timeline,
-      limited_federation_mode: Rails.configuration.x.limited_federation_mode,
+      limited_federation_mode: Rails.configuration.x.mastodon.limited_federation_mode,
       locale: I18n.locale,
       mascot: instance_presenter.mascot&.file&.url,
       profile_directory: Setting.profile_directory,
