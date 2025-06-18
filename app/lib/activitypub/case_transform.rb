@@ -5,6 +5,7 @@ module ActivityPub::CaseTransform
     NO_CONVERT_VALUES = %w(
       _misskey_content
       _misskey_license
+      _misskey_quote
     ).freeze
 
     def camel_lower_cache
