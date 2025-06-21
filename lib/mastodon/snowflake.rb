@@ -5,11 +5,6 @@ module Mastodon::Snowflake
 
   class Callbacks
     def self.around_create(record)
-      if record.class.name.split('::').last == 'Quote'
-        yield
-        return
-      end
-      
       now = Time.now.utc
 
       if record.created_at.nil? || record.created_at >= now || record.created_at == record.updated_at || record.override_timestamps
