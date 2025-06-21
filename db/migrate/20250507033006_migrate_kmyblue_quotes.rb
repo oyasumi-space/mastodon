@@ -14,6 +14,7 @@ class MigrateKmyblueQuotes < ActiveRecord::Migration[8.0]
           next unless quoted_status
 
           Quote.create!(
+            id: owner_status.id,
             status_id: owner_status.id,
             quoted_status_id: owner_status.quote_of_id,
             state: 1,
