@@ -5,7 +5,7 @@ module Mastodon::Snowflake
 
   class Callbacks
     def self.around_create(record)
-      if record.class.name == 'Quote'
+      if record.class.name.split('::').last == 'Quote'
         yield
         return
       end
