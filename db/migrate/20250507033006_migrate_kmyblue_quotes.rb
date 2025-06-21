@@ -5,20 +5,22 @@ class MigrateKmyblueQuotes < ActiveRecord::Migration[8.0]
   class Quote < ApplicationRecord; end
 
   def up
-    Status.where.not(quote_of_id: nil).select(:id, :quote_of_id, :account_id).in_batches do |owner_statuses|
-      quoted_statuses = Status.where(id: owner_statuses.pluck(:quote_of_id)).select(:id, :account_id)
+    ActiveRecord::Base.transaction do
+      Status.where.not(quote_of_id: nil).select(:id, :quote_of_id, :account_id).in_batches do |owner_statuses|
+        quoted_statuses = Status.where(id: owner_statuses.pluck(:quote_of_id)).select(:id, :account_id)
 
-      owner_statuses.each do |owner_status|
-        quoted_status = quoted_statuses.detect { |status| status.id == owner_status.quote_of_id }
-        next unless quoted_status
+        owner_statuses.each do |owner_status|
+          quoted_status = quoted_statuses.detect { |status| status.id == owner_status.quote_of_id }
+          next unless quoted_status
 
-        Quote.create!(
-          status_id: owner_status.id,
-          quoted_status_id: owner_status.quote_of_id,
-          state: 1,
-          account_id: owner_status.account_id,
-          quoted_account_id: quoted_status.account_id
-        )
+          Quote.create!(
+            status_id: owner_status.id,
+            quoted_status_id: owner_status.quote_of_id,
+            state: 1,
+            account_id: owner_status.account_id,
+            quoted_account_id: quoted_status.account_id
+          )
+        end
       end
     end
   end
