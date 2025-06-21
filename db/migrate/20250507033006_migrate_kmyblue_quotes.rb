@@ -14,13 +14,13 @@ class MigrateKmyblueQuotes < ActiveRecord::Migration[8.0]
           next unless quoted_status
 
           Quote.create!(
-            id: owner_status.id,
             status_id: owner_status.id,
             quoted_status_id: owner_status.quote_of_id,
             state: 1,
             account_id: owner_status.account_id,
             quoted_account_id: quoted_status.account_id,
-            created_at: owner_status.created_at
+            created_at: owner_status.created_at,
+            updated_at: owner_status.created_at
           )
         end
       end
