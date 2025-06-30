@@ -79,7 +79,7 @@ const Circles: React.FC<{
   const circles = useAppSelector((state) => getOrderedCircles(state));
 
   useEffect(() => {
-    dispatch(fetchCircles());
+    void dispatch(fetchCircles());
   }, [dispatch]);
 
   const emptyMessage = (

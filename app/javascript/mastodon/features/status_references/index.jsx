@@ -81,7 +81,7 @@ class StatusReferences extends ImmutablePureComponent {
           bindToDocument={!multiColumn}
         >
           {accountIds.map(id =>
-            <StatusContainer key={id} id={id} withNote={false} withoutQuote />,
+            <StatusContainer key={id} id={id} withNote={false} />,
           )}
         </ScrollableList>
 

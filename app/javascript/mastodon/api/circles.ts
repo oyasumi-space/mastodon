@@ -13,6 +13,8 @@ export const apiCreate = (circle: Partial<ApiCircleJSON>) =>
 export const apiUpdate = (circle: Partial<ApiCircleJSON>) =>
   apiRequestPut<ApiCircleJSON>(`v1/circles/${circle.id}`, circle);
 
+export const apiGetCircles = () => apiRequestGet<ApiCircleJSON[]>('v1/circles');
+
 export const apiGetAccounts = (circleId: string) =>
   apiRequestGet<ApiAccountJSON[]>(`v1/circles/${circleId}/accounts`, {
     limit: 0,

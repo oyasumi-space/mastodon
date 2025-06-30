@@ -21,12 +21,20 @@ export function normalizeFilterResult(result) {
   return normalResult;
 }
 
-export function normalizeStatus(status, normalOldStatus) {
+export function normalizeStatus(status, normalOldStatus, options = undefined) {
   const normalStatus   = { ...status };
+
   normalStatus.account = status.account.id;
 
   if (status.reblog && status.reblog.id) {
     normalStatus.reblog = status.reblog.id;
+  }
+
+  if (status.quote?.quoted_status ?? status.quote?.quoted_status_id) {
+    normalStatus.quote = {
+      ...status.quote,
+      quoted_status: status.quote.quoted_status?.id ?? status.quote?.quoted_status_id,
+    };
   }
 
   if (status.poll && status.poll.id) {
@@ -49,7 +57,11 @@ export function normalizeStatus(status, normalOldStatus) {
   }
 
   if (status.emoji_reactions) {
-    normalStatus.emoji_reactions = normalizeEmojiReactions(status.emoji_reactions);
+    if (!options?.withoutEmojiReaction) {
+      normalStatus.emoji_reactions = normalizeEmojiReactions(status.emoji_reactions);
+    } else {
+      normalStatus.emoji_reactions = normalOldStatus?.get('emoji_reactions') ?? [];
+    }
   }
 
   if (!status.visibility_ex) {
@@ -65,11 +77,6 @@ export function normalizeStatus(status, normalOldStatus) {
     normalStatus.spoilerHtml = normalOldStatus.get('spoilerHtml');
     normalStatus.spoiler_text = normalOldStatus.get('spoiler_text');
     normalStatus.hidden = normalOldStatus.get('hidden');
-
-    // for quoted post
-    if (!normalStatus.filtered && normalOldStatus.get('filtered')) {
-      normalStatus.filtered = normalOldStatus.get('filtered');
-    }
 
     if (normalOldStatus.get('translation')) {
       normalStatus.translation = normalOldStatus.get('translation');
@@ -94,6 +101,17 @@ export function normalizeStatus(status, normalOldStatus) {
     normalStatus.contentHtml  = emojify(normalStatus.content, emojiMap);
     normalStatus.spoilerHtml  = emojify(escapeTextContentForBrowser(spoilerText), emojiMap);
     normalStatus.hidden       = expandSpoilers ? false : spoilerText.length > 0 || normalStatus.sensitive;
+
+    if (normalStatus.url && !(normalStatus.url.startsWith('http://') || normalStatus.url.startsWith('https://'))) {
+      normalStatus.url = null;
+    }
+
+    normalStatus.url ||= normalStatus.uri;
+
+    normalStatus.media_attachments.forEach(item => {
+      if (item.remote_url && !(item.remote_url.startsWith('http://') || item.remote_url.startsWith('https://')))
+        item.remote_url = null;
+    });
   }
 
   if (normalOldStatus) {

@@ -19,6 +19,9 @@ export const apiUpdate = (bookmarkCategory: Partial<ApiBookmarkCategoryJSON>) =>
     bookmarkCategory,
   );
 
+export const apiGetBookmarkCategories = () =>
+  apiRequestGet<ApiBookmarkCategoryJSON[]>('v1/bookmark_categories');
+
 export const apiGetStatuses = (bookmarkCategoryId: string) =>
   apiRequestGet<ApiAccountJSON[]>(
     `v1/bookmark_categories/${bookmarkCategoryId}/statuses`,

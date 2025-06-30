@@ -74,7 +74,7 @@ export const SearchabilityIcon: React.FC<{ searchability: Searchability }> = ({
     <Icon
       id={searchabilityIcon.icon}
       icon={searchabilityIcon.iconComponent}
-      title={searchabilityIcon.text}
+      aria-label={searchabilityIcon.text}
     />
   );
 };

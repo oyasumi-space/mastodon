@@ -158,7 +158,7 @@ namespace :dangerous do
       %w(custom_filters exclude_follows),
       %w(custom_filters exclude_localusers),
       %w(custom_filters with_profile),
-      %w(custom_filters with_quote),
+      # Removed: custom_filters with_quote,
       %w(domain_blocks block_trends),
       %w(domain_blocks detect_invalid_subscription),
       %w(domain_blocks hidden),

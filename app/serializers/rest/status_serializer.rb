@@ -18,7 +18,6 @@ class REST::StatusSerializer < ActiveModel::Serializer
   attribute :pinned, if: :pinnable?
   attribute :reactions, if: :reactions?
   attribute :expires_at, if: :will_expire?
-  attribute :quote_id, if: :quote?
   attribute :markdown_opt, key: :markdown
   has_many :filtered, serializer: REST::FilterResultSerializer, if: :current_user?
 
@@ -34,25 +33,13 @@ class REST::StatusSerializer < ActiveModel::Serializer
   has_many :tags
   has_many :emojis, serializer: REST::CustomEmojiSlimSerializer
 
+  has_one :quote, key: :quote, serializer: REST::QuoteSerializer
   has_one :preview_card, key: :card, serializer: REST::PreviewCardSerializer
   has_one :preloadable_poll, key: :poll, serializer: REST::PollSerializer
 
-  class QuotedStatusSerializer < REST::StatusSerializer
-    attribute :quote_muted, if: :current_user?
-
-    def quote
-      nil
-    end
-
-    def quote_muted
-      if relationships
-        muted || relationships.blocks_map[object.account_id] || relationships.domain_blocks_map[object.account.domain] || false
-      else
-        muted || current_user.account.blocking?(object.account_id) || current_user.account.domain_blocking?(object.account.domain)
-      end
-    end
+  def quote
+    object.quote if object.quote&.acceptable?
   end
-  belongs_to :quote, if: :quote?, serializer: QuotedStatusSerializer, relationships: -> { relationships }
 
   def id
     object.id.to_s
@@ -181,12 +168,6 @@ class REST::StatusSerializer < ActiveModel::Serializer
       end
     end
   end
-
-  def quote_id
-    object.quote_of_id.to_s
-  end
-
-  delegate :quote?, to: :object
 
   def reblogged
     if relationships

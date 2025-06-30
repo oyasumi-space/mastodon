@@ -170,11 +170,9 @@ RSpec.describe 'Public' do
 
       let(:exclude_follows) { false }
       let(:exclude_localusers) { false }
-      let(:include_quotes) { false }
       let(:account) { user.account }
       let(:remote_account) { remote_status.account }
-      let!(:filter) { Fabricate(:custom_filter, account: account, exclude_follows: exclude_follows, exclude_localusers: exclude_localusers, with_quote: include_quotes) }
-      let!(:quote_status) { Fabricate(:status, quote: Fabricate(:status, text: 'ohagi')) }
+      let!(:filter) { Fabricate(:custom_filter, account: account, exclude_follows: exclude_follows, exclude_localusers: exclude_localusers) }
 
       it 'load statuses', :aggregate_failures do
         ids = subject
@@ -199,16 +197,6 @@ RSpec.describe 'Public' do
           ids = subject
           expect(ids).to include(local_status.id)
           expect(ids).to_not include(remote_status.id)
-        end
-      end
-
-      context 'when include_quotes' do
-        let(:with_quote) { true }
-
-        it 'load statuses', :aggregate_failures do
-          ids = subject
-          expect(ids).to_not include(local_status.id)
-          expect(ids).to include(quote_status.id)
         end
       end
     end

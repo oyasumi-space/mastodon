@@ -54,10 +54,13 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     @silenced_account_ids = []
     @params               = {}
     @raw_mention_uris     = []
+    @quote                = nil
+    @quote_uri            = nil
 
     process_status_params
     process_sensitive_words
     process_tags
+    process_quote
     process_audience
 
     return nil unless valid_status?
@@ -68,6 +71,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       attach_tags(@status)
       attach_mentions(@status)
       attach_counts(@status)
+      attach_quote(@status)
     end
 
     resolve_thread(@status)
@@ -94,7 +98,14 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_status_params
-    @status_parser = ActivityPub::Parser::StatusParser.new(@json, followers_collection: @account.followers_url, object: @object, account: @account, friend_domain: friend_domain?)
+    @status_parser = ActivityPub::Parser::StatusParser.new(
+      @json,
+      followers_collection: @account.followers_url,
+      actor_uri: ActivityPub::TagManager.instance.uri_for(@account),
+      object: @object,
+      account: @account,
+      friend_domain: friend_domain?
+    )
 
     attachment_ids = process_attachments.take(Status::MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE).map(&:id)
 
@@ -118,6 +129,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       media_attachment_ids: attachment_ids,
       ordered_media_attachment_ids: attachment_ids,
       poll: process_poll,
+      quote_approval_policy: @status_parser.quote_policy,
     }
   end
 
@@ -156,7 +168,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
                                       sensitive: @params[:sensitive],
                                       media_count: @params[:media_attachment_ids]&.size,
                                       poll_count: @params[:poll]&.options&.size || 0,
-                                      quote: quote,
+                                      quote: @quote_uri,
                                       reply: in_reply_to_uri.present?,
                                       mention_count: mentioned_accounts.count,
                                       reference_count: reference_uris.size,
@@ -258,6 +270,18 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     end
   end
 
+  def attach_quote(status)
+    return if @quote.nil?
+
+    @quote.status = status
+    @quote.save
+
+    embedded_quote = safe_prefetched_embed(@account, @status_parser.quoted_object, @json['context'])
+    ActivityPub::VerifyQuoteService.new.call(@quote, fetchable_quoted_uri: @quote_uri, prefetched_quoted_object: embedded_quote, request_id: @options[:request_id])
+  rescue Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
+    ActivityPub::RefetchAndVerifyQuoteWorker.perform_in(rand(30..600).seconds, @quote.id, @quote_uri, { 'request_id' => @options[:request_id] })
+  end
+
   def process_tags
     return if @object['tag'].nil?
 
@@ -270,6 +294,15 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
         process_emoji tag
       end
     end
+  end
+
+  def process_quote
+    @quote_uri = @status_parser.quote_uri
+    return if @quote_uri.blank?
+
+    approval_uri = @status_parser.quote_approval_uri
+    approval_uri = nil if unsupported_uri_scheme?(approval_uri)
+    @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
   end
 
   def process_hashtag(tag)
@@ -555,7 +588,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def related_to_local_activity?
     fetch? || followed_by_local_accounts? || requested_through_relay? ||
-      responds_to_followed_account? || addresses_local_accounts? || quote_local? || free_friend_domain?
+      responds_to_followed_account? || addresses_local_accounts? || free_friend_domain?
   end
 
   def responds_to_followed_account?
@@ -618,17 +651,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def process_references!
-    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, [quote].compact)
-  end
-
-  def quote_local?
-    url = quote
-
-    if url.present?
-      ActivityPub::TagManager.instance.uri_to_resource(url, Status)&.local?
-    else
-      false
-    end
+    ProcessReferencesService.call_service_without_error(@status, [], reference_uris, quote: @quote_uri)
   end
 
   def free_friend_domain?
@@ -637,18 +660,5 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def friend_domain?
     FriendDomain.enabled.find_by(domain: @account.domain)&.accepted?
-  end
-
-  def quote
-    @quote ||= quote_from_tags || @object['quote'] || @object['quoteUrl'] || @object['quoteURL'] || @object['_misskey_quote']
-  end
-
-  def quote_from_tags
-    return @quote_from_tags if defined?(@quote_from_tags)
-
-    hit_tag = as_array(@object['tag']).detect do |tag|
-      equals_or_includes?(tag['type'], 'Link') && LINK_MEDIA_TYPES.include?(tag['mediaType']) && tag['href'].present?
-    end
-    @quote_from_tags = hit_tag && hit_tag['href']
   end
 end

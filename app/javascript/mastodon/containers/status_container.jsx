@@ -152,7 +152,7 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     dispatch(insertReferenceCompose(0, status.get('url'), 'BT', router));
   },
 
-  onQuote (status, router) {
+  onInsertQuoteLink (status, router) {
     dispatch(insertReferenceCompose(0, status.get('url'), 'QT', router));
   },
 

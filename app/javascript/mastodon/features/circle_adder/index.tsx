@@ -122,7 +122,7 @@ const CircleAdder: React.FC<{
   const [circleIds, setCircleIds] = useState<string[]>([]);
 
   useEffect(() => {
-    dispatch(fetchCircles());
+    void dispatch(fetchCircles());
 
     apiGetAccountCircles(accountId)
       .then((data) => {

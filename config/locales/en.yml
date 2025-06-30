@@ -484,7 +484,7 @@ en:
       reject_media_hint: Removes locally stored media files and refuses to download any in the future. Irrelevant for suspensions
       reject_new_follow: Reject follows
       reject_new_follow_hint: Reject follows in the future
-      reject_reply_exclude_followers: Reject mentions/quotes exclude followers
+      reject_reply_exclude_followers: Reject mentions exclude followers
       reject_reply_exclude_followers_hint: Reject replies exclude followers in the future
       reject_reports: Reject reports
       reject_reports_hint: Ignore all reports coming from this domain. Irrelevant for suspensions
@@ -629,7 +629,7 @@ en:
           reject_hashtag: Reject hashtags
           reject_media: Reject media
           reject_new_follow: Reject follows
-          reject_reply_exclude_followers: Reject reply/quote exclude followers
+          reject_reply_exclude_followers: Reject reply exclude followers
           reject_reports: Reject reports
           reject_send_sensitive: No Sensitive Submission Delivery
           reject_straight_follow: Reject straight follow
@@ -666,6 +666,13 @@ en:
         all: All
         limited: Limited
         title: Moderation
+      moderation_notes:
+        create: Add Moderation Note
+        created_msg: Instance moderation note successfully created!
+        description_html: View and leave notes for other moderators and your future self
+        destroyed_msg: Instance moderation note successfully deleted!
+        placeholder: Information about this instance, actions taken, or anything else that will help you moderate this instance in the future.
+        title: Moderation Notes
       private_comment: Private comment
       public_comment: Public comment
       purge: Purge
@@ -781,7 +788,7 @@ en:
         needed: have
         no_needed: Should not have
         optional: Optional
-      status_allow_follower_mention: Check posts only if they contain mentions/quotes to non-followers
+      status_allow_follower_mention: Check posts only if they contain mentions to non-followers
       status_allow_follower_mention_hint: If enabled, mentions between other servers are unconditionally allowed
       status_cw_state: Has warning or not
       status_media_state: Has media or not
@@ -791,8 +798,8 @@ en:
       status_poll_state: Has poll or not
       status_poll_threshold: Poll items limit
       status_quote_state: Has quote or not
-      status_reference_state: Has quiet quote or not
-      status_reference_threshold: Has quiet quote or not
+      status_reference_state: Has link or not
+      status_reference_threshold: Has link or not
       status_reply_state: Is reply or not
       status_searchability: Searchability
       status_sensitive_state: Is sensitive or not
@@ -811,7 +818,7 @@ en:
       phrases:
         regexp_html: "<strong>Reg</strong> - If the <strong>Reg</strong> checkbox is checked, the comparison is performed using regular expressions."
         regexp_short: Reg
-        stranger_html: "<strong>UE</strong> - Items checked under <strong>Uem</strong> apply only to mentions, replies, quotes, etc. from accounts with which you have no follow relationship."
+        stranger_html: "<strong>UE</strong> - Items checked under <strong>Uem</strong> apply only to mentions, replies, links, etc. from accounts with which you have no follow relationship."
         stranger_short: Uem
       post_hash_tags_max: Hash tags limit of a post
       post_mentions_max: Mentions limit of a post
@@ -1016,11 +1023,17 @@ en:
       title: Roles
     rules:
       add_new: Add rule
+      add_translation: Add translation
       delete: Delete
       description_html: While most claim to have read and agree to the terms of service, usually people do not read through until after a problem arises. <strong>Make it easier to see your server's rules at a glance by providing them in a flat bullet point list.</strong> Try to keep individual rules short and simple, but try not to split them up into many separate items either.
       edit: Edit rule
       empty: No server rules have been defined yet.
+      move_down: Move down
+      move_up: Move up
       title: Server rules
+      translation: Translation
+      translations: Translations
+      translations_explanation: You can optionally add translations for the rules. The default value will be shown if no translated version is available. Please always ensure any provided translation is in sync with the default value.
     sensitive_words:
       alert: This post contains sensitive words, so alert added
       auto_warning_text: Custom warning text
@@ -1040,6 +1053,9 @@ en:
         preamble: Provide in-depth information about how the server is operated, moderated, funded.
         rules_hint: There is a dedicated area for rules that your users are expected to adhere to.
         title: About
+      allow_referrer_origin:
+        desc: When your users click links to external sites, their browser may send the address of your Mastodon server as the referrer. Disable this if this would uniquely identify your users, e.g. if this is a personal Mastodon server.
+        title: Allow external sites to see your Mastodon server as a traffic source
       appearance:
         preamble: Customize Mastodon's web interface.
         title: Appearance
@@ -1061,9 +1077,9 @@ en:
         follow_recommendations: Follow recommendations
         friend_servers: Friend servers
         preamble: Surfacing interesting content is instrumental in onboarding new users who may not know anyone Mastodon. Control how various discovery features work on your server.
+        privacy: Privacy
         profile_directory: Profile directory
         public_timelines: Public timelines
-        publish_discovered_servers: Publish discovered servers
         publish_statistics: Publish statistics
         title: Discovery
         trends: Trends
@@ -1106,7 +1122,7 @@ en:
     special_domains:
       stop_fetch_activity_domains:
         preamble: On servers with different domains for Web and Activity, you may not be able to retrieve Activity even if you access Web. In citations, this setting suppresses fetching when such a URL is specified in the body of a post. In most cases, this setting is rarely used.
-        title: Domains do not fetch for quotes
+        title: Domains do not fetch for links
       stop_link_preview_domains:
         preamble: If a site temporarily restricts connections from IP addresses that have received many hits, your server may be treated unfavorably. This setting suppresses the process of accessing such sites and generating link previews. In most cases, this setting is rarely used.
         title: Domains do not fetch for link previews
@@ -1167,6 +1183,8 @@ en:
     system_checks:
       database_schema_check:
         message_html: There are pending database migrations. Please run them to ensure the application behaves as expected
+      elasticsearch_analysis_index_mismatch:
+        message_html: Elasticsearch index analyzer settings are outdated. Please run <code>tootctl search deploy --only-mapping --only=%{value}</code>
       elasticsearch_health_red:
         message_html: Elasticsearch cluster is unhealthy (red status), search features are unavailable
       elasticsearch_health_yellow:
@@ -1435,7 +1453,6 @@ en:
       body: Mastodon is translated by volunteers.
       guide_link: https://crowdin.com/project/mastodon
       guide_link_text: Everyone can contribute.
-    quotes: Quotes
     remote_server_features: Other server features
     saved_posts: Saving posts
     sensitive_content: Sensitive content
@@ -2191,6 +2208,10 @@ en:
       limit: You have already pinned the maximum number of posts
       ownership: Someone else's post cannot be pinned
       reblog: A boost cannot be pinned
+    quote_policies:
+      followers: Followers and mentioned users
+      nobody: Only mentioned users
+      public: Everyone
     searchabilities:
       direct: Reactionners
       direct_long: Reacter of this post can find
@@ -2278,6 +2299,11 @@ en:
     does_not_match_previous_name: does not match the previous name
   terms_of_service:
     title: Terms of Service
+  terms_of_service_interstitial:
+    future_preamble_html: We're making some changes to our terms of service, which will be effective on <strong>%{date}</strong>. We encourage you to review the updated terms.
+    past_preamble_html: We have changed our terms of service since your last visit. We encourage you to review the updated terms.
+    review_link: Review terms of service
+    title: The terms of service of %{domain} are changing
   themes:
     contrast: Mastodon (High contrast)
     default: Mastodon (Dark)
@@ -2421,7 +2447,6 @@ en:
       post_action: Compose
       post_step: Say hello to the world with text, photos, videos, or polls.
       post_title: Make your first post
-      share_action: Share
       share_step: Let your friends know how to find you on Mastodon.
       share_title: Share your Mastodon profile
       sign_in_action: Sign in

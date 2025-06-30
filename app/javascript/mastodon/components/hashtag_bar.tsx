@@ -205,21 +205,6 @@ export function getHashtagBarForStatus(status: StatusLike) {
   };
 }
 
-export function getFeaturedHashtagBar(
-  accountId: string,
-  acct: string,
-  tags: string[],
-) {
-  return (
-    <HashtagBar
-      acct={acct}
-      hashtags={tags}
-      accountId={accountId}
-      defaultExpanded
-    />
-  );
-}
-
 const HashtagBar: React.FC<{
   hashtags: string[];
   accountId: string;

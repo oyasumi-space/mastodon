@@ -4,6 +4,11 @@ namespace :api, format: false do
   # OEmbed
   get '/oembed', to: 'oembed#show', as: :oembed
 
+  # Experimental JSON / REST API
+  namespace :v1_alpha do
+    resources :async_refreshes, only: :show
+  end
+
   # JSON / REST API
   namespace :v1 do
     resources :statuses, only: [:index, :create, :show, :update, :destroy] do
@@ -231,6 +236,8 @@ namespace :api, format: false do
       member do
         post :follow
         post :unfollow
+        post :feature
+        post :unfeature
       end
     end
 

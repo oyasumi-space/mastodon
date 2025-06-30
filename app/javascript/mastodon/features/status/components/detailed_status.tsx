@@ -13,7 +13,9 @@ import { Link } from 'react-router-dom';
 
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
 import { AnimatedNumber } from 'mastodon/components/animated_number';
+import { Avatar } from 'mastodon/components/avatar';
 import { ContentWarning } from 'mastodon/components/content_warning';
+import { DisplayName } from 'mastodon/components/display_name';
 import { EditedTimestamp } from 'mastodon/components/edited_timestamp';
 import { FilterWarning } from 'mastodon/components/filter_warning';
 import { FormattedDateWrapper } from 'mastodon/components/formatted_date';
@@ -21,20 +23,17 @@ import type { StatusLike } from 'mastodon/components/hashtag_bar';
 import { getHashtagBarForStatus } from 'mastodon/components/hashtag_bar';
 import { Icon } from 'mastodon/components/icon';
 import { IconLogo } from 'mastodon/components/logo';
-import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
+import MediaGallery from 'mastodon/components/media_gallery';
+import { PictureInPicturePlaceholder } from 'mastodon/components/picture_in_picture_placeholder';
 import { SearchabilityIcon } from 'mastodon/components/searchability_icon';
+import StatusContent from 'mastodon/components/status_content';
+import StatusEmojiReactionsBar from 'mastodon/components/status_emoji_reactions_bar';
+import { QuotedStatus } from 'mastodon/components/status_quoted';
 import { VisibilityIcon } from 'mastodon/components/visibility_icon';
+import { Audio } from 'mastodon/features/audio';
+import scheduleIdleTask from 'mastodon/features/ui/util/schedule_idle_task';
 import { Video } from 'mastodon/features/video';
 import { enableEmojiReaction, isHideItem } from 'mastodon/initial_state';
-
-import { Avatar } from '../../../components/avatar';
-import { DisplayName } from '../../../components/display_name';
-import MediaGallery from '../../../components/media_gallery';
-import StatusContent from '../../../components/status_content';
-import StatusEmojiReactionsBar from '../../../components/status_emoji_reactions_bar';
-import CompactedStatusContainer from '../../../containers/compacted_status_container';
-import Audio from '../../audio';
-import scheduleIdleTask from '../../ui/util/schedule_idle_task';
 
 import Card from './card';
 
@@ -77,7 +76,6 @@ export const DetailedStatus: React.FC<{
   onToggleHidden,
   onEmojiReact,
   onUnEmojiReact,
-  muted,
 }) => {
   const properStatus = status?.get('reblog') ?? status;
   const [height, setHeight] = useState(0);
@@ -200,18 +198,17 @@ export const DetailedStatus: React.FC<{
           src={attachment.get('url')}
           alt={description}
           lang={language}
-          duration={attachment.getIn(['meta', 'original', 'duration'], 0)}
           poster={
             attachment.get('preview_url') ||
             status.getIn(['account', 'avatar_static'])
           }
+          duration={attachment.getIn(['meta', 'original', 'duration'], 0)}
           backgroundColor={attachment.getIn(['meta', 'colors', 'background'])}
           foregroundColor={attachment.getIn(['meta', 'colors', 'foreground'])}
           accentColor={attachment.getIn(['meta', 'colors', 'accent'])}
           sensitive={status.get('sensitive')}
           visible={showMedia}
           blurhash={attachment.get('blurhash')}
-          height={150}
           onToggleVisibility={onToggleMediaVisibility}
           matchedFilters={status.get('matched_media_filters')}
         />
@@ -239,7 +236,7 @@ export const DetailedStatus: React.FC<{
         />
       );
     }
-  } else if (status.get('card')) {
+  } else if (status.get('card') && !status.get('quote')) {
     media = (
       <Card
         sensitive={status.get('sensitive') && !status.get('spoiler_text')}
@@ -330,7 +327,7 @@ export const DetailedStatus: React.FC<{
         <AnimatedNumber value={status.get('status_referred_by_count')} />
       </span>
       <FormattedMessage
-        id='status.quotes'
+        id='status.references'
         defaultMessage='{count, plural, one {boost} other {boosts}}'
         values={{ count: status.get('status_referred_by_count') }}
       />
@@ -383,16 +380,14 @@ export const DetailedStatus: React.FC<{
     (!matchedFilters || showDespiteFilter) &&
     (!status.get('hidden') || status.get('spoiler_text').length === 0);
 
-  const quote = !muted && status.get('quote_id') && (
-    <>
-      {/* @ts-expect-error: CompactedStatusContainer class is not typescript still. */}
-      <CompactedStatusContainer id={status.get('quote_id')} history={history} />
-    </>
-  );
-
   return (
     <div style={outerStyle}>
-      <div ref={handleRef} className={classNames('detailed-status')}>
+      <div
+        ref={handleRef}
+        className={classNames('detailed-status', {
+          'status--has-quote': !!status.get('quote'),
+        })}
+      >
         {status.get('visibility_ex') === 'direct' && (
           <div className='status__prepend'>
             <div className='status__prepend-icon-wrapper'>
@@ -459,8 +454,11 @@ export const DetailedStatus: React.FC<{
 
             {media}
             {hashtagBar}
-            {quote}
             {emojiReactionsBar}
+
+            {status.get('quote') && (
+              <QuotedStatus quote={status.get('quote')} />
+            )}
           </>
         )}
 

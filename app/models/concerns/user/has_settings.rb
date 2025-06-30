@@ -107,28 +107,12 @@ module User::HasSettings
     settings['web.content_font_size']
   end
 
-  def setting_show_quote_in_home
-    settings['web.show_quote_in_home']
-  end
-
-  def setting_show_quote_in_public
-    settings['web.show_quote_in_public']
-  end
-
-  def setting_hide_blocking_quote
-    settings['web.hide_blocking_quote']
-  end
-
   def setting_show_relationships
     settings['web.show_relationships']
   end
 
   def setting_show_avatar_on_filter
     settings['web.show_avatar_on_filter']
-  end
-
-  def setting_allow_quote
-    settings['allow_quote']
   end
 
   def setting_reject_send_limited_to_suspects
@@ -273,10 +257,6 @@ module User::HasSettings
 
   def setting_hide_emoji_reaction_unavailable_server
     settings['web.hide_emoji_reaction_unavailable_server']
-  end
-
-  def setting_hide_quote_unavailable_server
-    settings['web.hide_quote_unavailable_server']
   end
 
   def setting_hide_status_reference_unavailable_server

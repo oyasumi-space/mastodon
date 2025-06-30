@@ -7,6 +7,30 @@ RSpec.describe Rack::Attack, type: :request do
     Rails.application
   end
 
+  # kmyblue original fix for test error
+
+  def below_limit
+    limit - 1
+  end
+
+  def above_limit
+    limit * 2
+  end
+
+  def throttle_count
+    described_class.cache.read("#{counter_prefix}:#{throttle}:#{discriminator}") || 0
+  end
+
+  def counter_prefix
+    (Time.now.to_i / period.seconds).to_i
+  end
+
+  def increment_counter
+    described_class.cache.count("#{throttle}:#{discriminator}", period)
+  end
+
+  # kmyblue original fix for test error (end)
+
   shared_context 'with throttled endpoint base' do
     before do
       # Rack::Attack periods are not rolling, so avoid flaky tests by setting the time in a way
@@ -18,30 +42,10 @@ RSpec.describe Rack::Attack, type: :request do
 
       travel_to Time.zone.at(counter_prefix * period.seconds)
     end
-
-    def below_limit
-      limit - 1
-    end
-
-    def above_limit
-      limit * 2
-    end
-
-    def throttle_count
-      described_class.cache.read("#{counter_prefix}:#{throttle}:#{discriminator}") || 0
-    end
-
-    def counter_prefix
-      (Time.now.to_i / period.seconds).to_i
-    end
-
-    def increment_counter
-      described_class.cache.count("#{throttle}:#{discriminator}", period)
-    end
   end
 
   shared_examples 'throttled endpoint' do
-    include_examples 'with throttled endpoint base'
+    it_behaves_like 'with throttled endpoint base'
 
     context 'when the number of requests is lower than the limit' do
       before do
@@ -73,7 +77,7 @@ RSpec.describe Rack::Attack, type: :request do
   end
 
   shared_examples 'does not throttle endpoint' do
-    include_examples 'with throttled endpoint base'
+    it_behaves_like 'with throttled endpoint base'
 
     context 'when the number of requests is lower than the limit' do
       before do

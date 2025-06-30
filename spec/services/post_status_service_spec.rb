@@ -548,6 +548,18 @@ RSpec.describe PostStatusService do
     expect(hashtags_service).to have_received(:call).with(status)
   end
 
+  it 'creates a quote by kmyblue format' do
+    target_status = Fabricate(:status)
+
+    account = Fabricate(:account)
+
+    status = subject.call(account, text: "test status QT #{ActivityPub::TagManager.instance.uri_for(target_status)}")
+
+    expect(status).to be_persisted
+    expect(status.quote).to be_persisted
+    expect(status.quote.quoted_status_id).to eq target_status.id
+  end
+
   it 'gets distributed' do
     allow(DistributionWorker).to receive(:perform_async)
     allow(ActivityPub::DistributionWorker).to receive(:perform_async)

@@ -56,7 +56,6 @@ const AccountOtherSettingsFactory = ImmutableRecord<AccountOtherSettingsShape>({
   hide_statuses_count: false,
   translatable_private: false,
   link_preview: true,
-  allow_quote: true,
   emoji_reaction_policy: 'allow',
   subscription_policy: 'allow',
 });
@@ -69,7 +68,6 @@ const AccountServerFeaturesFactory =
   ImmutableRecord<AccountServerFeaturesShape>({
     circle: false,
     emoji_reaction: false,
-    quote: false,
     status_reference: false,
   });
 
@@ -127,7 +125,6 @@ export const accountDefaultValues: AccountShape = {
   moved: null,
   hide_collections: false,
   other_settings: AccountOtherSettingsFactory(),
-  subscribable: true,
   // This comes from `ApiMutedAccountJSON`, but we should eventually
   // store that in a different object.
   mute_expires_at: null,
@@ -178,5 +175,10 @@ export function createAccountFromServerJSON(serverJSON: ApiAccountJSON) {
     ),
     note_emojified: emojify(accountJSON.note, emojiMap),
     note_plain: unescapeHTML(accountJSON.note),
+    url:
+      accountJSON.url.startsWith('http://') ||
+      accountJSON.url.startsWith('https://')
+        ? accountJSON.url
+        : accountJSON.uri,
   });
 }

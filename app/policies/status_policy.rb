@@ -47,10 +47,6 @@ class StatusPolicy < ApplicationPolicy
     show? && !blocking_author?
   end
 
-  def quote?
-    %i(public public_unlisted unlisted).include?(record.visibility.to_sym) && show? && !blocking_author?
-  end
-
   def destroy?
     owned?
   end

@@ -3,6 +3,7 @@ import { Map as ImmutableMap } from 'immutable';
 
 import {
   createBookmarkCategory,
+  fetchBookmarkCategories,
   updateBookmarkCategory,
 } from 'mastodon/actions/bookmark_categories_typed';
 import type { ApiBookmarkCategoryJSON } from 'mastodon/api_types/bookmark_categories';
@@ -12,7 +13,6 @@ import type { BookmarkCategory } from 'mastodon/models/bookmark_category';
 import {
   BOOKMARK_CATEGORY_FETCH_SUCCESS,
   BOOKMARK_CATEGORY_FETCH_FAIL,
-  BOOKMARK_CATEGORIES_FETCH_SUCCESS,
   BOOKMARK_CATEGORY_DELETE_SUCCESS,
 } from '../actions/bookmark_categories';
 
@@ -48,17 +48,14 @@ export const bookmarkCategoriesReducer: Reducer<State> = (
     updateBookmarkCategory.fulfilled.match(action)
   ) {
     return normalizeBookmarkCategory(state, action.payload);
+  } else if (fetchBookmarkCategories.fulfilled.match(action)) {
+    return normalizeBookmarkCategories(state, action.payload);
   } else {
     switch (action.type) {
       case BOOKMARK_CATEGORY_FETCH_SUCCESS:
         return normalizeBookmarkCategory(
           state,
           action.bookmarkCategory as ApiBookmarkCategoryJSON,
-        );
-      case BOOKMARK_CATEGORIES_FETCH_SUCCESS:
-        return normalizeBookmarkCategories(
-          state,
-          action.bookmarkCategories as ApiBookmarkCategoryJSON[],
         );
       case BOOKMARK_CATEGORY_DELETE_SUCCESS:
       case BOOKMARK_CATEGORY_FETCH_FAIL:

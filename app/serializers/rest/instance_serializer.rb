@@ -51,7 +51,7 @@ class REST::InstanceSerializer < ActiveModel::Serializer
   def usage
     {
       users: {
-        active_month: object.active_user_count(4),
+        active_month: limited_federation? ? 0 : object.active_user_count(4),
       },
     }
   end
@@ -63,11 +63,11 @@ class REST::InstanceSerializer < ActiveModel::Serializer
         status: object.status_page_url,
         about: about_url,
         privacy_policy: privacy_policy_url,
-        terms_of_service: TermsOfService.live.exists? ? terms_of_service_url : nil,
+        terms_of_service: TermsOfService.current.present? ? terms_of_service_url : nil,
       },
 
       vapid: {
-        public_key: Rails.configuration.x.vapid_public_key,
+        public_key: Rails.configuration.x.vapid.public_key,
       },
 
       accounts: {
@@ -123,6 +123,8 @@ class REST::InstanceSerializer < ActiveModel::Serializer
       search: {
         enabled: Chewy.enabled?,
       },
+
+      limited_federation: limited_federation?,
     }
   end
 
@@ -150,6 +152,10 @@ class REST::InstanceSerializer < ActiveModel::Serializer
 
   def registrations_message
     markdown.render(Setting.closed_registrations_message) if Setting.closed_registrations_message.present?
+  end
+
+  def limited_federation?
+    Rails.configuration.x.mastodon.limited_federation_mode
   end
 
   def markdown

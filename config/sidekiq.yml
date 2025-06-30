@@ -8,6 +8,7 @@
   - [mailers, 2]
   - [pull]
   - [scheduler]
+  - [fasp]
 
 :scheduler:
   :listened_queues_only: true

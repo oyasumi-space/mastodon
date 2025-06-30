@@ -23,7 +23,7 @@ import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import { Account } from 'mastodon/components/account';
 import EmojiView from 'mastodon/components/emoji_view';
 import { Icon }  from 'mastodon/components/icon';
-import StatusContainer from 'mastodon/containers/status_container';
+import { StatusQuoteManager } from 'mastodon/components/status_quoted';
 import { me } from 'mastodon/initial_state';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
@@ -42,7 +42,7 @@ const messages = defineMessages({
   reblog: { id: 'notification.reblog', defaultMessage: '{name} boosted your post' },
   status: { id: 'notification.status', defaultMessage: '{name} just posted' },
   listStatus: { id: 'notification.list_status', defaultMessage: '{name} post is added to {listName}' },
-  statusReference: { id: 'notification.status_reference', defaultMessage: '{name} quoted your post' },
+  statusReference: { id: 'notification.status_reference', defaultMessage: '{name} linked your post' },
   update: { id: 'notification.update', defaultMessage: '{name} edited a post' },
   adminSignUp: { id: 'notification.admin.sign_up', defaultMessage: '{name} signed up' },
   adminReport: { id: 'notification.admin.report', defaultMessage: '{name} reported {target}' },
@@ -181,7 +181,7 @@ class Notification extends ImmutablePureComponent {
 
   renderMention (notification) {
     return (
-      <StatusContainer
+      <StatusQuoteManager
         id={notification.get('status')}
         withDismiss
         hidden={this.props.hidden}
@@ -211,7 +211,7 @@ class Notification extends ImmutablePureComponent {
             </span>
           </div>
 
-          <StatusContainer
+          <StatusQuoteManager
             id={notification.get('status')}
             account={notification.get('account')}
             muted
@@ -276,7 +276,7 @@ class Notification extends ImmutablePureComponent {
             </span>
           </div>
 
-          <StatusContainer
+          <StatusQuoteManager
             id={notification.get('status')}
             account={notification.get('account')}
             muted
@@ -305,7 +305,7 @@ class Notification extends ImmutablePureComponent {
             </div>
 
             <span title={notification.get('created_at')}>
-              <FormattedMessage id='notification.status_reference' defaultMessage='{name} quoted your post' values={{ name: link }} />
+              <FormattedMessage id='notification.status_reference' defaultMessage='{name} linked your post' values={{ name: link }} />
             </span>
           </div>
 
@@ -345,7 +345,7 @@ class Notification extends ImmutablePureComponent {
             </span>
           </div>
 
-          <StatusContainer
+          <StatusQuoteManager
             id={notification.get('status')}
             contextType='notifications'
             muted
@@ -415,7 +415,7 @@ class Notification extends ImmutablePureComponent {
             </span>
           </div>
 
-          <StatusContainer
+          <StatusQuoteManager
             id={notification.get('status')}
             account={notification.get('account')}
             contextType='notifications'
@@ -457,7 +457,7 @@ class Notification extends ImmutablePureComponent {
             </span>
           </div>
 
-          <StatusContainer
+          <StatusQuoteManager
             id={notification.get('status')}
             account={account}
             contextType='notifications'

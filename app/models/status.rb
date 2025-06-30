@@ -5,33 +5,33 @@
 # Table name: statuses
 #
 #  id                           :bigint(8)        not null, primary key
-#  uri                          :string
-#  text                         :text             default(""), not null
-#  created_at                   :datetime         not null
-#  updated_at                   :datetime         not null
-#  in_reply_to_id               :bigint(8)
-#  reblog_of_id                 :bigint(8)
-#  url                          :string
-#  sensitive                    :boolean          default(FALSE), not null
-#  visibility                   :integer          default("public"), not null
-#  spoiler_text                 :text             default(""), not null
-#  reply                        :boolean          default(FALSE), not null
-#  language                     :string
-#  conversation_id              :bigint(8)
-#  local                        :boolean
-#  account_id                   :bigint(8)        not null
-#  application_id               :bigint(8)
-#  in_reply_to_account_id       :bigint(8)
-#  poll_id                      :bigint(8)
 #  deleted_at                   :datetime
 #  edited_at                    :datetime
-#  trendable                    :boolean
-#  ordered_media_attachment_ids :bigint(8)        is an Array
-#  searchability                :integer
-#  markdown                     :boolean          default(FALSE)
-#  limited_scope                :integer
-#  quote_of_id                  :bigint(8)
 #  fetched_replies_at           :datetime
+#  language                     :string
+#  limited_scope                :integer
+#  local                        :boolean
+#  markdown                     :boolean          default(FALSE)
+#  ordered_media_attachment_ids :bigint(8)        is an Array
+#  quote_approval_policy        :integer          default(0), not null
+#  reply                        :boolean          default(FALSE), not null
+#  searchability                :integer
+#  sensitive                    :boolean          default(FALSE), not null
+#  spoiler_text                 :text             default(""), not null
+#  text                         :text             default(""), not null
+#  trendable                    :boolean
+#  uri                          :string
+#  url                          :string
+#  visibility                   :integer          default("public"), not null
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  account_id                   :bigint(8)        not null
+#  application_id               :bigint(8)
+#  conversation_id              :bigint(8)
+#  in_reply_to_account_id       :bigint(8)
+#  in_reply_to_id               :bigint(8)
+#  poll_id                      :bigint(8)
+#  reblog_of_id                 :bigint(8)
 #
 
 require 'ostruct'
@@ -42,6 +42,7 @@ class Status < ApplicationRecord
   include Paginable
   include RateLimitable
   include Status::DomainBlockConcern
+  include Status::FaspConcern
   include Status::FetchRepliesConcern
   include Status::SafeReblogInsert
   include Status::SearchConcern
@@ -53,6 +54,13 @@ class Status < ApplicationRecord
   MEDIA_ATTACHMENTS_LIMIT = 4
   MEDIA_ATTACHMENTS_LIMIT_WITH_POLL = 4
   MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE = 16
+
+  QUOTE_APPROVAL_POLICY_FLAGS = {
+    unknown: (1 << 0),
+    public: (1 << 1),
+    followers: (1 << 2),
+    followed: (1 << 3),
+  }.freeze
 
   rate_limit by: :account, family: :statuses
 
@@ -76,7 +84,6 @@ class Status < ApplicationRecord
   with_options class_name: 'Status', optional: true do
     belongs_to :thread, foreign_key: 'in_reply_to_id', inverse_of: :replies
     belongs_to :reblog, foreign_key: 'reblog_of_id', inverse_of: :reblogs
-    belongs_to :quote, foreign_key: 'quote_of_id', inverse_of: :quotes
   end
 
   has_many :favourites, inverse_of: :status, dependent: :destroy
@@ -84,8 +91,6 @@ class Status < ApplicationRecord
   has_many :bookmarks, inverse_of: :status, dependent: :destroy
   has_many :reblogs, foreign_key: 'reblog_of_id', class_name: 'Status', inverse_of: :reblog, dependent: :destroy
   has_many :reblogged_by_accounts, through: :reblogs, class_name: 'Account', source: :account
-  has_many :quotes, foreign_key: 'quote_of_id', class_name: 'Status', inverse_of: :quote, dependent: nil
-  has_many :quoted_by_accounts, through: :quotes, class_name: 'Account', source: :account
   has_many :replies, foreign_key: 'in_reply_to_id', class_name: 'Status', inverse_of: :thread, dependent: nil
   has_many :mentions, dependent: :destroy, inverse_of: :status
   has_many :mentioned_accounts, through: :mentions, source: :account, class_name: 'Account'
@@ -123,6 +128,7 @@ class Status < ApplicationRecord
   has_one :scheduled_expiration_status, inverse_of: :status, dependent: :destroy
   has_one :circle_status, inverse_of: :status, dependent: :destroy
   has_many :list_status, inverse_of: :status, dependent: :destroy
+  has_one :quote, inverse_of: :status, dependent: :destroy
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
   validates :text, presence: true, unless: -> { with_media? || reblog? }
@@ -140,6 +146,7 @@ class Status < ApplicationRecord
   scope :with_accounts, ->(ids) { where(id: ids).includes(:account) }
   scope :without_replies, -> { not_reply.or(reply_to_account) }
   scope :not_reply, -> { where(reply: false) }
+  scope :only_reblogs, -> { where.not(reblog_of_id: nil) }
   scope :reply_to_account, -> { where(arel_table[:in_reply_to_account_id].eq arel_table[:account_id]) }
   scope :without_reblogs, -> { where(statuses: { reblog_of_id: nil }) }
   scope :with_public_visibility, -> { where(visibility: [:public, :public_unlisted, :login]) }
@@ -189,38 +196,27 @@ class Status < ApplicationRecord
                    :reference_objects,
                    :references,
                    :scheduled_expiration_status,
+                   quote: { status: { account: [:account_stat, user: :role] } },
                    preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
                    account: [:account_stat, user: :role],
                    active_mentions: :account,
                    reblog: [
                      :application,
-                     :tags,
                      :media_attachments,
                      :conversation,
                      :status_stat,
+                     :tags,
                      :preloadable_poll,
                      :reference_objects,
                      :scheduled_expiration_status,
+                     quote: { status: { account: [:account_stat, user: :role] } },
                      preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
                      account: [:account_stat, user: :role],
                      active_mentions: { account: :account_stat },
                    ],
-                   quote: [
-                     :application,
-                     :tags,
-                     :media_attachments,
-                     :conversation,
-                     :status_stat,
-                     :preloadable_poll,
-                     :reference_objects,
-                     :scheduled_expiration_status,
-                     preview_cards_status: { preview_card: { author_account: [:account_stat, user: :role] } },
-                     account: [:account_stat, user: :role],
-                     active_mentions: :account,
-                   ],
                    thread: :account
 
-  delegate :domain, to: :account, prefix: true
+  delegate :domain, :indexable?, to: :account, prefix: true
 
   REAL_TIME_WINDOW = 6.hours
 
@@ -250,10 +246,6 @@ class Status < ApplicationRecord
 
   def reblog?
     !reblog_of_id.nil?
-  end
-
-  def quote?
-    !quote_of_id.nil? && !quote.nil?
   end
 
   def expires?
@@ -516,14 +508,6 @@ class Status < ApplicationRecord
 
     def mutes_map(conversation_ids, account_id)
       ConversationMute.select(:conversation_id).where(conversation_id: conversation_ids).where(account_id: account_id).each_with_object({}) { |m, h| h[m.conversation_id] = true }
-    end
-
-    def blocks_map(account_ids, account_id)
-      Block.where(account_id: account_id, target_account_id: account_ids).each_with_object({}) { |b, h| h[b.target_account_id] = true }
-    end
-
-    def domain_blocks_map(domains, account_id)
-      AccountDomainBlock.where(account_id: account_id, domain: domains).each_with_object({}) { |d, h| h[d.domain] = true }
     end
 
     def pins_map(status_ids, account_id)

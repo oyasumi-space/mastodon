@@ -1,4 +1,8 @@
-import { apiCreate, apiUpdate } from 'mastodon/api/bookmark_categories';
+import {
+  apiCreate,
+  apiGetBookmarkCategories,
+  apiUpdate,
+} from 'mastodon/api/bookmark_categories';
 import type { BookmarkCategory } from 'mastodon/models/bookmark_category';
 import { createDataLoadingThunk } from 'mastodon/store/typed_functions';
 
@@ -10,4 +14,9 @@ export const createBookmarkCategory = createDataLoadingThunk(
 export const updateBookmarkCategory = createDataLoadingThunk(
   'bookmark_category/update',
   (bookmarkCategory: Partial<BookmarkCategory>) => apiUpdate(bookmarkCategory),
+);
+
+export const fetchBookmarkCategories = createDataLoadingThunk(
+  'bookmark_categories/fetch',
+  () => apiGetBookmarkCategories(),
 );

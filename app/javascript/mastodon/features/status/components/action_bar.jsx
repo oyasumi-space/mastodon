@@ -64,8 +64,8 @@ const messages = defineMessages({
   admin_status: { id: 'status.admin_status', defaultMessage: 'Open this post in the moderation interface' },
   admin_domain: { id: 'status.admin_domain', defaultMessage: 'Open moderation interface for {domain}' },
   copy: { id: 'status.copy', defaultMessage: 'Copy link to post' },
-  reference: { id: 'status.reference', defaultMessage: 'Quiet quote' },
-  quote: { id: 'status.quote', defaultMessage: 'Quote' },
+  reference: { id: 'status.reference', defaultMessage: 'Link' },
+  quoteLink: { id: 'status.quote_link', defaultMessage: 'Insert quote link' },
   blockDomain: { id: 'account.block_domain', defaultMessage: 'Block domain {domain}' },
   unblockDomain: { id: 'account.unblock_domain', defaultMessage: 'Unblock domain {domain}' },
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
@@ -89,7 +89,7 @@ class ActionBar extends PureComponent {
     onFavourite: PropTypes.func.isRequired,
     onEmojiReact: PropTypes.func.isRequired,
     onReference: PropTypes.func.isRequired,
-    onQuote: PropTypes.func.isRequired,
+    onInsertQuoteLink: PropTypes.func.isRequired,
     onBookmark: PropTypes.func.isRequired,
     onBookmarkCategoryAdder: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
@@ -221,12 +221,12 @@ class ActionBar extends PureComponent {
     navigator.clipboard.writeText(url);
   };
 
-  handleReference = () => {
-    this.props.onReference(this.props.status, this.props.history);
+  handleInsertQuoteLink = () => {
+    this.props.onInsertQuoteLink(this.props.status, this.props.history);
   };
 
-  handleQuote = () => {
-    this.props.onQuote(this.props.status, this.props.history);
+  handleReference = () => {
+    this.props.onReference(this.props.status, this.props.history);
   };
 
   handleEmojiPick = (data) => {
@@ -244,7 +244,6 @@ class ActionBar extends PureComponent {
     const account            = status.get('account');
     const writtenByMe        = status.getIn(['account', 'id']) === me;
     const isRemote           = status.getIn(['account', 'username']) !== status.getIn(['account', 'acct']);
-    const allowQuote         = status.getIn(['account', 'other_settings', 'allow_quote']);
 
     let menu = [];
 
@@ -269,10 +268,8 @@ class ActionBar extends PureComponent {
         menu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogForceModalClick, tag: 'reblog' });
 
         if (publicStatus) {
-          if (allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-            menu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote, tag: 'reblog' });
-          }
-  
+          menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
           if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
             menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
           }
@@ -350,10 +347,8 @@ class ActionBar extends PureComponent {
       }
   
       if (publicStatus) {
-        if (allowQuote && (account.getIn(['server_features', 'quote']) || !isHideItem('quote_unavailable_server'))) {
-          reblogMenu.push({ text: intl.formatMessage(messages.quote), action: this.handleQuote });
-        }
-  
+        reblogMenu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
+
         if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
           reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
         }

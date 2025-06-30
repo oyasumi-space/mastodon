@@ -68,7 +68,7 @@ const NewAntenna: React.FC<{
   useEffect(() => {
     if (id) {
       dispatch(fetchAntenna(id));
-      dispatch(fetchLists());
+      void dispatch(fetchLists());
     }
   }, [dispatch, id]);
 

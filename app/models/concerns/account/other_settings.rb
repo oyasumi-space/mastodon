@@ -15,13 +15,6 @@ module Account::OtherSettings
       false
     end
 
-    def allow_quote?
-      return user.setting_allow_quote if local? && user.present?
-      return settings['allow_quote'] if settings.present? && settings.key?('allow_quote')
-
-      true
-    end
-
     def hide_statuses_count?
       return user&.setting_hide_statuses_count if local? && user.present?
       return settings['hide_statuses_count'] if settings.present? && settings.key?('hide_statuses_count')
@@ -88,7 +81,6 @@ module Account::OtherSettings
         'hide_following_count' => hide_following_count?,
         'hide_followers_count' => hide_followers_count?,
         'translatable_private' => translatable_private?,
-        'allow_quote' => allow_quote?,
         'emoji_reaction_policy' => Setting.enable_emoji_reaction ? emoji_reaction_policy.to_s : 'block',
       }
     end

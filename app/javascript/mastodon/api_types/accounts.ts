@@ -20,7 +20,6 @@ export interface ApiAccountOtherSettingsJSON {
   hide_followers_count: boolean;
   translatable_private: boolean;
   link_preview: boolean;
-  allow_quote: boolean;
   emoji_reaction_policy:
     | 'allow'
     | 'outside_only'
@@ -34,7 +33,6 @@ export interface ApiAccountOtherSettingsJSON {
 export interface ApiServerFeaturesJSON {
   circle: boolean;
   emoji_reaction: boolean;
-  quote: boolean;
   status_reference: boolean;
 }
 
@@ -63,7 +61,6 @@ export interface BaseApiAccountJSON {
   other_settings: ApiAccountOtherSettingsJSON;
   roles?: ApiAccountJSON[];
   server_features: ApiServerFeaturesJSON;
-  subscribable: boolean;
   statuses_count: number;
   uri: string;
   url: string;
@@ -83,3 +80,9 @@ export interface ApiMutedAccountJSON extends BaseApiAccountJSON {
 // For now, we have the same type representing both `Account` and `MutedAccount`
 // objects, but we should refactor this in the future.
 export type ApiAccountJSON = ApiMutedAccountJSON;
+
+// See app/serializers/rest/familiar_followers_serializer.rb
+export type ApiFamiliarFollowersJSON = {
+  id: string;
+  accounts: ApiAccountJSON[];
+}[];

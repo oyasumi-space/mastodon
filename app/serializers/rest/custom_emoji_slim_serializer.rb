@@ -53,7 +53,7 @@ class REST::CustomEmojiSlimSerializer < ActiveModel::Serializer
     object.is_sensitive
   end
 
-  def is_sensitive # rubocop:disable Naming/PredicateName
+  def is_sensitive # rubocop:disable Naming/PredicatePrefix
     sensitive
   end
 end

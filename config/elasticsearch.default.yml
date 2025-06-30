@@ -1,7 +1,7 @@
 # The standard ElasticSearch settings described in the original Mastodon code are stored.
 # This configuration file is overridden by creating a ".elasticsearch.yml" file in the Mastodon root directory.
 
-version: 1
+version: 2
 
 accounts:
   filter:
@@ -14,6 +14,10 @@ accounts:
     english_possessive_stemmer:
       type: stemmer
       language: possessive_english
+    word_joiner:
+      type: shingle
+      output_unigrams: true
+      token_separator: ''
 
   analyzer:
     natural:
@@ -32,6 +36,14 @@ accounts:
         - lowercase
         - asciifolding
         - cjk_width
+    word_join_analyzer:
+      type: custom
+      tokenizer: standard
+      filter:
+        - lowercase
+        - asciifolding
+        - cjk_width
+        - word_joiner
     edge_ngram:
       tokenizer: edge_ngram
       filter:

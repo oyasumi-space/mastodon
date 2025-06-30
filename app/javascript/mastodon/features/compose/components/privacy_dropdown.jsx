@@ -51,9 +51,6 @@ const messages = defineMessages({
 class PrivacyDropdown extends PureComponent {
 
   static propTypes = {
-    isUserTouching: PropTypes.func,
-    onModalOpen: PropTypes.func,
-    onModalClose: PropTypes.func,
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     noDirect: PropTypes.bool,

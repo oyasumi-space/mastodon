@@ -123,6 +123,7 @@ class MediaAttachment < ApplicationRecord
         output: {
           'loglevel' => 'fatal',
           'map_metadata' => '-1',
+          'movflags' => 'faststart', # Move metadata to start of file so playback can begin before download finishes
           'c:v' => 'copy',
           'c:a' => 'copy',
         }.freeze,
@@ -226,6 +227,10 @@ class MediaAttachment < ApplicationRecord
 
   def needs_redownload?
     file.blank? && remote_url.present?
+  end
+
+  def discarded?
+    status&.discarded? || (status_id.present? && status.nil?)
   end
 
   def significantly_changed?
@@ -421,7 +426,7 @@ class MediaAttachment < ApplicationRecord
 
   # Record the cache keys to burst before the file get actually deleted
   def prepare_cache_bust!
-    return unless Rails.configuration.x.cache_buster_enabled
+    return unless Rails.configuration.x.cache_buster.enabled
 
     @paths_to_cache_bust = MediaAttachment.attachment_definitions.keys.flat_map do |attachment_name|
       attachment = public_send(attachment_name)
@@ -438,7 +443,7 @@ class MediaAttachment < ApplicationRecord
   # Once Paperclip has deleted the files, we can't recover the cache keys,
   # so use the previously-saved ones
   def bust_cache!
-    return unless Rails.configuration.x.cache_buster_enabled
+    return unless Rails.configuration.x.cache_buster.enabled
 
     CacheBusterWorker.push_bulk(@paths_to_cache_bust) { |path| [path] }
   rescue => e
