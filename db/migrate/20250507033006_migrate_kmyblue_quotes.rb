@@ -5,7 +5,12 @@ class MigrateKmyblueQuotes < ActiveRecord::Migration[8.0]
   class Quote < ApplicationRecord; end
 
   def up
-    Status.where.not(quote_of_id: nil).select(:id, :quote_of_id, :account_id, :created_at).in_batches do |owner_statuses|
+    return if ENV.fetch('SKIP_QUOTE_MIGRATION', 'false') == 'true'
+
+    query = Status.where.not(quote_of_id: nil)
+    query = query.where(local: true) if ENV.fetch('QUOTE_MIGRATION_LOCAL_ONLY', 'false') == 'true'
+
+    query.select(:id, :quote_of_id, :account_id, :created_at).in_batches do |owner_statuses|
       quoted_statuses = Status.where(id: owner_statuses.pluck(:quote_of_id)).select(:id, :account_id)
       quotes = []
 

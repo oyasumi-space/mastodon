@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call,
-                  @typescript-eslint/no-unsafe-return,
-                  @typescript-eslint/no-unsafe-assignment,
-                  @typescript-eslint/no-unsafe-argument,
-                  @typescript-eslint/no-unsafe-member-access,
-                  @typescript-eslint/no-explicit-any
-                  -- the settings store is not yet typed */
+ 
 import { useCallback, useMemo } from 'react';
 
 import { defineMessages, useIntl, FormattedMessage } from 'react-intl';
@@ -48,7 +42,6 @@ import {
 import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { FollowButton } from 'mastodon/components/follow_button';
 import { FormattedDateWrapper } from 'mastodon/components/formatted_date';
-import { getFeaturedHashtagBar } from 'mastodon/components/hashtag_bar';
 import { Icon } from 'mastodon/components/icon';
 import { IconButton } from 'mastodon/components/icon_button';
 import { ShortNumber } from 'mastodon/components/short_number';
@@ -225,10 +218,6 @@ export const AccountHeader: React.FC<{
     state.relationships.get(accountId),
   );
   const hidden = useAppSelector((state) => getAccountHidden(state, accountId));
-  const featuredTags = useAppSelector(
-    (state) =>
-      state.user_lists.getIn(['featured_tags', accountId, 'items']) as any,
-  );
   const handleLinkClick = useLinks();
 
   const handleBlock = useCallback(() => {
@@ -869,13 +858,6 @@ export const AccountHeader: React.FC<{
   const username = account.acct.split('@')[0];
   const domain = isLocal ? localDomain : account.acct.split('@')[1];
   const isIndexable = !account.noindex;
-  const featuredTagsArr =
-    featuredTags?.map((tag: any) => tag.get('name')).toArray() || [];
-  const featuredTagsBar = getFeaturedHashtagBar(
-    account.id,
-    account.acct,
-    featuredTagsArr,
-  );
 
   const badges = [];
 
@@ -998,12 +980,6 @@ export const AccountHeader: React.FC<{
                     className='account__header__content translate'
                     dangerouslySetInnerHTML={content}
                   />
-                )}
-
-                {featuredTagsArr.length > 0 && (
-                  <div className='account__header__featured-tags'>
-                    {featuredTagsBar}
-                  </div>
                 )}
 
                 <div className='account__header__fields'>

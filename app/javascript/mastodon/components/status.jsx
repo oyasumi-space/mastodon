@@ -626,7 +626,7 @@ class Status extends ImmutablePureComponent {
 
                 {media}
                 {hashtagBar}
-                {emojiReactionsBar}
+                {!isQuotedPost && emojiReactionsBar}
 
                 {children}
               </>

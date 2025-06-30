@@ -21,7 +21,7 @@ export function normalizeFilterResult(result) {
   return normalResult;
 }
 
-export function normalizeStatus(status, normalOldStatus) {
+export function normalizeStatus(status, normalOldStatus, options = undefined) {
   const normalStatus   = { ...status };
 
   normalStatus.account = status.account.id;
@@ -57,7 +57,11 @@ export function normalizeStatus(status, normalOldStatus) {
   }
 
   if (status.emoji_reactions) {
-    normalStatus.emoji_reactions = normalizeEmojiReactions(status.emoji_reactions);
+    if (!options?.withoutEmojiReaction) {
+      normalStatus.emoji_reactions = normalizeEmojiReactions(status.emoji_reactions);
+    } else {
+      normalStatus.emoji_reactions = normalOldStatus?.get('emoji_reactions') ?? [];
+    }
   }
 
   if (!status.visibility_ex) {
