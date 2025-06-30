@@ -1,4 +1,3 @@
- 
 import { useCallback, useMemo } from 'react';
 
 import { defineMessages, useIntl, FormattedMessage } from 'react-intl';
@@ -846,7 +845,7 @@ export const AccountHeader: React.FC<{
       <Icon
         id='lock'
         icon={LockIcon}
-        title={intl.formatMessage(messages.account_locked)}
+        aria-label={intl.formatMessage(messages.account_locked)}
       />
     );
   }

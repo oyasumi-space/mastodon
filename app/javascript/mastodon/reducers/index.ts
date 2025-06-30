@@ -1,4 +1,4 @@
-import { Record as ImmutableRecord } from 'immutable';
+import { Record as ImmutableRecord, mergeDeep } from 'immutable';
 
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import { combineReducers } from 'redux-immutable';
@@ -40,6 +40,7 @@ import settings from './settings';
 import status_lists from './status_lists';
 import statuses from './statuses';
 import { suggestionsReducer } from './suggestions';
+import { followedTagsReducer } from './tags';
 import timelines from './timelines';
 import trends from './trends';
 import user_lists from './user_lists';
@@ -74,6 +75,7 @@ const reducers = {
   antennas: antennasReducer,
   circles: circlesReducer,
   bookmark_categories: bookmarkCategoriesReducer,
+  followedTags: followedTagsReducer,
   filters,
   conversations,
   suggestions: suggestionsReducer,
@@ -104,6 +106,15 @@ const initialRootState = Object.fromEntries(
 
 const RootStateRecord = ImmutableRecord(initialRootState, 'RootState');
 
-const rootReducer = combineReducers(reducers, RootStateRecord);
+export const rootReducer = combineReducers(reducers, RootStateRecord);
 
-export { rootReducer };
+export function reducerWithInitialState(
+  stateOverrides: Record<string, unknown> = {},
+) {
+  const initialStateRecord = mergeDeep(initialRootState, stateOverrides);
+  const PatchedRootStateRecord = ImmutableRecord(
+    initialStateRecord,
+    'RootState',
+  );
+  return combineReducers(reducers, PatchedRootStateRecord);
+}

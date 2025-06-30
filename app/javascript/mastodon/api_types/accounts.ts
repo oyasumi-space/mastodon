@@ -61,7 +61,6 @@ export interface BaseApiAccountJSON {
   other_settings: ApiAccountOtherSettingsJSON;
   roles?: ApiAccountJSON[];
   server_features: ApiServerFeaturesJSON;
-  subscribable: boolean;
   statuses_count: number;
   uri: string;
   url: string;

@@ -4,8 +4,10 @@ export { ConfirmDeleteListModal } from './delete_list';
 export { ConfirmDeleteAntennaModal } from './delete_antenna';
 export { ConfirmDeleteCircleModal } from './delete_circle';
 export { ConfirmDeleteBookmarkCategoryModal } from './delete_bookmark_category';
-export { ConfirmReplyModal } from './reply';
-export { ConfirmEditStatusModal } from './edit_status';
+export {
+  ConfirmReplyModal,
+  ConfirmEditStatusModal,
+} from './discard_draft_confirmation';
 export { ConfirmUnfollowModal } from './unfollow';
 export { ConfirmClearNotificationsModal } from './clear_notifications';
 export { ConfirmLogOutModal } from './log_out';

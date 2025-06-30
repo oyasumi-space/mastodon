@@ -24,7 +24,7 @@ export const CapabilityIcon: FC<CapabilityIconProps> = ({ intl, state }) => {
         <Icon
           id='check'
           icon={EnabledIcon}
-          title={intl.formatMessage(messages.enabled)}
+          aria-label={intl.formatMessage(messages.enabled)}
         />
         {intl.formatMessage(messages.enabled)}
       </span>
@@ -35,7 +35,7 @@ export const CapabilityIcon: FC<CapabilityIconProps> = ({ intl, state }) => {
         <Icon
           id='times'
           icon={DisabledIcon}
-          title={intl.formatMessage(messages.disabled)}
+          aria-label={intl.formatMessage(messages.disabled)}
         />
         {intl.formatMessage(messages.disabled)}
       </span>

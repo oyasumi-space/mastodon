@@ -146,6 +146,7 @@ class Status < ApplicationRecord
   scope :with_accounts, ->(ids) { where(id: ids).includes(:account) }
   scope :without_replies, -> { not_reply.or(reply_to_account) }
   scope :not_reply, -> { where(reply: false) }
+  scope :only_reblogs, -> { where.not(reblog_of_id: nil) }
   scope :reply_to_account, -> { where(arel_table[:in_reply_to_account_id].eq arel_table[:account_id]) }
   scope :without_reblogs, -> { where(statuses: { reblog_of_id: nil }) }
   scope :with_public_visibility, -> { where(visibility: [:public, :public_unlisted, :login]) }
