@@ -12,6 +12,7 @@ class SearchService < BaseService
     @resolve   = options[:resolve] || false
     @following = options[:following] || false
     @searchability = options[:searchability] || account&.user&.setting_default_searchability_of_search.to_s || 'public' # rubocop:disable Lint/UselessOr
+    @query_fasp = options[:query_fasp] || false
 
     default_results.tap do |results|
       next if @query.blank? || @limit.zero?
@@ -37,7 +38,8 @@ class SearchService < BaseService
       offset: @offset,
       use_searchable_text: true,
       following: @following,
-      start_with_hashtag: @query.start_with?('#')
+      start_with_hashtag: @query.start_with?('#'),
+      query_fasp: @options[:query_fasp]
     )
   end
 
