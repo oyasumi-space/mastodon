@@ -600,7 +600,17 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def related_to_local_activity?
     fetch? || followed_by_local_accounts? || through_relay? ||
-      responds_to_followed_account? || addresses_local_accounts? || free_friend_domain?
+      responds_to_followed_account? || addresses_local_accounts? || quote_local? || free_friend_domain?
+  end
+
+  def quote_local?
+    url = @object['quote'] || @object['quoteUrl'] || @object['quoteURL'] || @object['_misskey_quote']
+
+    if url.present?
+      ActivityPub::TagManager.instance.uri_to_resource(url, Status)&.local?
+    else
+      false
+    end
   end
 
   def responds_to_followed_account?
