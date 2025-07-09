@@ -125,3 +125,9 @@ export interface ApiStatusJSON {
   card?: ApiPreviewCardJSON;
   poll?: ApiPollJSON;
 }
+
+export interface ApiContextJSON {
+  ancestors: ApiStatusJSON[];
+  descendants: ApiStatusJSON[];
+  references: ApiStatusJSON[];
+}

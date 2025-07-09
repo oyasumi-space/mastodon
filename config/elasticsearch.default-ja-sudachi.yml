@@ -1,7 +1,7 @@
 # This is a configuration file for environments that use Japanese and Sudachi plug-ins.
 # To use this file, copy it to the Mastodon root directory and rename the file to ".elasticsearch.yml".
 
-version: 1
+version: 2
 
 accounts:
   filter:
@@ -14,6 +14,10 @@ accounts:
     english_possessive_stemmer:
       type: stemmer
       language: possessive_english
+    word_joiner:
+      type: shingle
+      output_unigrams: true
+      token_separator: ''
     my_posfilter:
       type: sudachi_part_of_speech
       stoptags:
@@ -45,6 +49,14 @@ accounts:
         - lowercase
         - asciifolding
         - cjk_width
+    word_join_analyzer:
+      type: custom
+      tokenizer: standard
+      filter:
+        - lowercase
+        - asciifolding
+        - cjk_width
+        - word_joiner
     edge_ngram:
       tokenizer: edge_ngram
       filter:

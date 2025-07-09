@@ -20,6 +20,7 @@ export type StatusLike = Record<{
   contentHTML: string;
   media_attachments: List<unknown>;
   spoiler_text?: string;
+  account: Record<{ id: string }>;
 }>;
 
 function normalizeHashtag(hashtag: string) {
@@ -195,19 +196,21 @@ export function getHashtagBarForStatus(status: StatusLike) {
 
   return {
     statusContentProps,
-    hashtagBar: <HashtagBar hashtags={hashtagsInBar} />,
+    hashtagBar: (
+      <HashtagBar
+        hashtags={hashtagsInBar}
+        accountId={status.getIn(['account', 'id']) as string}
+      />
+    ),
   };
-}
-
-export function getFeaturedHashtagBar(acct: string, tags: string[]) {
-  return <HashtagBar acct={acct} hashtags={tags} defaultExpanded />;
 }
 
 const HashtagBar: React.FC<{
   hashtags: string[];
+  accountId: string;
   acct?: string;
   defaultExpanded?: boolean;
-}> = ({ hashtags, acct, defaultExpanded }) => {
+}> = ({ hashtags, accountId, acct, defaultExpanded }) => {
   const [expanded, setExpanded] = useState(false);
   const handleClick = useCallback(() => {
     setExpanded(true);
@@ -228,6 +231,7 @@ const HashtagBar: React.FC<{
         <Link
           key={hashtag}
           to={acct ? `/@${acct}/tagged/${hashtag}` : `/tags/${hashtag}`}
+          data-menu-hashtag={accountId}
         >
           #<span>{hashtag}</span>
         </Link>

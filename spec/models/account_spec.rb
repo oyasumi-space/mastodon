@@ -3,8 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Account do
-  include_examples 'Account::Search'
-  include_examples 'Reviewable'
+  it_behaves_like 'Account::Search'
+  it_behaves_like 'Reviewable'
 
   context 'with an account record' do
     subject { Fabricate(:account) }
@@ -397,13 +397,9 @@ RSpec.describe Account do
   describe '#public_settings_for_local' do
     subject { account.public_settings_for_local }
 
-    let(:account) { Fabricate(:user, settings: { allow_quote: true, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+    let(:account) { Fabricate(:user, settings: { hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
 
     shared_examples 'some settings' do |permitted, emoji_reaction_policy|
-      it 'allow_quote is allowed' do
-        expect(subject['allow_quote']).to be permitted.include?(:allow_quote)
-      end
-
       it 'hide_statuses_count is allowed' do
         expect(subject['hide_statuses_count']).to be permitted.include?(:hide_statuses_count)
       end
@@ -417,24 +413,18 @@ RSpec.describe Account do
       end
     end
 
-    it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
+    it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
 
     context 'when default true setting is set false' do
-      let(:account) { Fabricate(:user, settings: { allow_quote: false, hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
+      let(:account) { Fabricate(:user, settings: { hide_statuses_count: true, emoji_reaction_policy: :followers_only }).account }
 
       it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
     end
 
     context 'when remote user' do
-      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', settings: { 'allow_quote' => true, 'hide_statuses_count' => true, 'emoji_reaction_policy' => 'followers_only' }) }
+      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor', settings: { 'hide_statuses_count' => true, 'emoji_reaction_policy' => 'followers_only' }) }
 
-      it_behaves_like 'some settings', %i(allow_quote hide_statuses_count), 'followers_only'
-    end
-
-    context 'when remote user by server other_settings is not supported' do
-      let(:account) { Fabricate(:account, domain: 'example.com', uri: 'https://example.com/actor') }
-
-      it_behaves_like 'some settings', %i(allow_quote), 'allow'
+      it_behaves_like 'some settings', %i(hide_statuses_count), 'followers_only'
     end
   end
 
@@ -579,36 +569,6 @@ RSpec.describe Account do
       expect(clean_status.association(:account).loaded?).to be false
       clean_status.destroy
       expect(subject.reload.statuses_count).to eq 0
-    end
-  end
-
-  describe '.following_map' do
-    it 'returns an hash' do
-      expect(described_class.following_map([], 1)).to be_a Hash
-    end
-  end
-
-  describe '.followed_by_map' do
-    it 'returns an hash' do
-      expect(described_class.followed_by_map([], 1)).to be_a Hash
-    end
-  end
-
-  describe '.blocking_map' do
-    it 'returns an hash' do
-      expect(described_class.blocking_map([], 1)).to be_a Hash
-    end
-  end
-
-  describe '.requested_map' do
-    it 'returns an hash' do
-      expect(described_class.requested_map([], 1)).to be_a Hash
-    end
-  end
-
-  describe '.requested_by_map' do
-    it 'returns an hash' do
-      expect(described_class.requested_by_map([], 1)).to be_a Hash
     end
   end
 
@@ -866,19 +826,6 @@ RSpec.describe Account do
       end
     end
 
-    describe 'alphabetic' do
-      it 'sorts by alphabetic order of domain and username' do
-        matches = [
-          { username: 'a', domain: 'a' },
-          { username: 'b', domain: 'a' },
-          { username: 'a', domain: 'b' },
-          { username: 'b', domain: 'b' },
-        ].map(&method(:Fabricate).curry(2).call(:account))
-
-        expect(described_class.without_internal.alphabetic).to eq matches
-      end
-    end
-
     describe 'matches_display_name' do
       it 'matches display name which starts with the given string' do
         match = Fabricate(:account, display_name: 'pattern and suffix')
@@ -1002,8 +949,8 @@ RSpec.describe Account do
     end
   end
 
-  include_examples 'AccountAvatar', :account
-  include_examples 'AccountHeader', :account
+  it_behaves_like 'AccountAvatar', :account
+  it_behaves_like 'AccountHeader', :account
 
   describe '#increment_count!' do
     subject { Fabricate(:account) }

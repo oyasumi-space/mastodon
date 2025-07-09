@@ -14,9 +14,9 @@ import { fetchBookmarkCategories } from 'mastodon/actions/bookmark_categories';
 import { openModal } from 'mastodon/actions/modal';
 import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { Icon } from 'mastodon/components/icon';
 import ScrollableList from 'mastodon/components/scrollable_list';
-import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
 import { getOrderedBookmarkCategories } from 'mastodon/selectors/bookmark_categories';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
@@ -76,12 +76,11 @@ const BookmarkCategoryItem: React.FC<{
         <span>{title}</span>
       </Link>
 
-      <DropdownMenuContainer
+      <Dropdown
         scrollKey='bookmark_categories'
         items={menu}
-        icons='ellipsis-h'
+        icon='ellipsis-h'
         iconComponent={MoreHorizIcon}
-        direction='right'
         title={intl.formatMessage(messages.more)}
       />
     </div>
@@ -98,7 +97,7 @@ const BookmarkCategories: React.FC<{
   );
 
   useEffect(() => {
-    dispatch(fetchBookmarkCategories());
+    void dispatch(fetchBookmarkCategories());
   }, [dispatch]);
 
   const emptyMessage = (

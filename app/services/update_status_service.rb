@@ -138,7 +138,11 @@ class UpdateStatusService < BaseService
   end
 
   def quote_url
-    ProcessReferencesService.extract_quote(text)
+    # ProcessReferencesService.extract_quote(text)
+    # TODO: quote
+    return unless @status.quote&.quoted_status
+
+    ActivityPub::TagManager.instance.uri_for(@status.quote.quoted_status)
   end
 
   def reference_urls

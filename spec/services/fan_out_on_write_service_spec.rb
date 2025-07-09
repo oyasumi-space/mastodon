@@ -678,7 +678,7 @@ RSpec.describe FanOutOnWriteService do
     end
   end
 
-  context 'when updated status is already boosted or quoted' do
+  context 'when updated status is already boosted' do
     let(:custom_before) { true }
 
     before do
@@ -690,13 +690,6 @@ RSpec.describe FanOutOnWriteService do
 
     it 'notified to boosted account', :inline_jobs do
       notification = Notification.find_by(account: bob, type: 'update')
-
-      expect(notification).to_not be_nil
-      expect(notification.activity_id).to eq status.id
-    end
-
-    it 'notified to quoted account', :inline_jobs do
-      notification = Notification.find_by(account: tom, type: 'update')
 
       expect(notification).to_not be_nil
       expect(notification.activity_id).to eq status.id

@@ -60,10 +60,10 @@ en:
         phrase: Will be matched regardless of casing in text or content warning of a post
         scopes: Which APIs the application will be allowed to access. If you select a top-level scope, you don't need to select individual ones.
         setting_aggregate_reblogs: Do not show new boosts for posts that have been recently boosted (only affects newly-received boosts)
-        setting_allow_quote: Subdued quotes are allowed regardless of this setting; you can quote freely from any source except kmyblue!
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
+        setting_default_quote_policy: Mentioned users are always allowed to quote. This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation
         setting_default_searchability: On kmyblue and Fedibird, the search is based on the search permission setting; on Misskey, all public, local public, and non-public posts are searched regardless of this setting; on Mastodon and Firefish, instead of search permission, the "Make public posts freely searchable on other servers" setting in the profile settings is applied. In Mastodon and Firefish, the "Make public posts freely searchable on other servers" setting in the profile settings is applied instead of the search permission.
         setting_default_sensitive: Sensitive media is hidden by default and can be revealed with a click
         setting_disallow_unlisted_public_searchability: この設定を有効にすると、非収載投稿と検索範囲「誰でも」は両立できず不特定多数からの検索が不可になります。Fedibirdと同じ挙動になります
@@ -182,7 +182,9 @@ en:
         min_age: Should not be below the minimum age required by the laws of your jurisdiction.
       user:
         chosen_languages: When checked, only posts in selected languages will be displayed in public timelines
-        date_of_birth: We have to make sure you're at least %{age} to use Mastodon. We won't store this.
+        date_of_birth:
+          one: We have to make sure you're at least %{count} to use Mastodon. We won't store this.
+          other: We have to make sure you're at least %{count} to use Mastodon. We won't store this.
         role: The role controls which permissions the user has.
       user_role:
         color: Color to be used for the role throughout the UI, as RGB in hex format
@@ -270,13 +272,13 @@ en:
         phrase: Keyword or phrase
         setting_advanced_layout: Enable advanced web interface
         setting_aggregate_reblogs: Group boosts in timelines
-        setting_allow_quote: Allow quote your posts
         setting_always_send_emails: Always send e-mail notifications
         setting_auto_play_gif: Auto-play animated GIFs
         setting_bio_markdown: Enable profile markdown
         setting_bookmark_category_needed: Category selection needed when registering bookmark on web
         setting_boost_menu: Show popup when click boost button
         setting_boost_modal: Show confirmation dialog before boosting
+        setting_community_timeline_instead_of_search_menu: Show local timeline on phone navigation instead of search
         setting_content_font_size: Font size of posts
         setting_content_font_size_items:
           large: Large
@@ -286,6 +288,7 @@ en:
         setting_custom_css: Custom CSS
         setting_default_language: Posting language
         setting_default_privacy: Posting privacy
+        setting_default_quote_policy: Who can quote
         setting_default_reblog_privacy: Reblogging privacy
         setting_default_searchability: Searchability of your own post
         setting_default_searchability_of_search: Your search setting
@@ -315,8 +318,7 @@ en:
         setting_expand_spoilers: Always expand posts marked with content warnings
         setting_hide_emoji_reaction_unavailable_server: Hide emoji reaction button from unavailable server
         setting_hide_network: Hide your social graph
-        setting_hide_quote_unavailable_server: Hide quote menu from unavailable server
-        setting_hide_status_reference_unavailable_server: Hide quiet quote (reference named by Fedibird) menu from unavailable server
+        setting_hide_status_reference_unavailable_server: Hide link (reference named by Fedibird) menu from unavailable server
         setting_lock_follow_from_bot: Request approval about bot follow
         setting_missing_alt_text_modal: Show confirmation dialog before posting media without alt text
         setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
@@ -327,14 +329,11 @@ en:
         setting_reverse_search_quote: Perform word-by-word search when search keywords are not enclosed in double quotes
         setting_show_application: Disclose application used to send posts
         setting_show_avatar_on_filter: Show filtered posts with avatar and user profile
-        setting_show_blocking_quote: Show posts which have a quote written by the user you are blocking
         setting_show_emoji_reaction_count: Show emoji reaction number
         setting_show_emoji_reaction_on_timeline: Show all emoji reactions on timeline
         setting_show_favourite_menu: Show favourite menu
         setting_show_followers_count: Show followers count
         setting_show_following_count: Show following count
-        setting_show_quote_in_home: Show quotes in home, list or antenna timelines
-        setting_show_quote_in_public: Show quotes in public timelines
         setting_show_recent_emojis: Show recent emojis
         setting_show_relationships: Show relationships on account page
         setting_show_statuses_count: Show statuses count
@@ -386,7 +385,6 @@ en:
           exclude_follows: Exclude following users
           exclude_localusers: Exclude local users
           exclude_profile: Exclude account name and bio
-          exclude_quote: Exclude quote or references
       form_admin_settings:
         activity_api_enabled: Publish aggregate statistics about user activity in the API
         app_icon: App icon

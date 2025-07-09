@@ -9,7 +9,7 @@ import { NotificationWithStatus } from './notification_with_status';
 const labelRenderer: LabelRenderer = (displayedName) => (
   <FormattedMessage
     id='notification.status_reference'
-    defaultMessage='{name} quoted your post'
+    defaultMessage='{name} linked your post'
     values={{ name: displayedName }}
   />
 );

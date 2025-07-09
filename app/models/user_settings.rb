@@ -21,6 +21,7 @@ class UserSettings
   setting :default_language, default: nil
   setting :default_sensitive, default: false
   setting :default_privacy, default: nil, in: %w(public public_unlisted login unlisted private)
+  setting :default_quote_policy, default: 'public', in: %w(public followers nobody)
   setting :stay_privacy, default: false
   setting :default_reblog_privacy, default: nil
   setting :disabled_visibilities, default: %w()
@@ -40,7 +41,6 @@ class UserSettings
   setting :dtl_force_visibility, default: :unchange, in: %w(unchange public public_unlisted unlisted)
   setting :dtl_force_searchability, default: :unchange, in: %w(unchange public public_unlisted)
   setting :lock_follow_from_bot, default: false
-  setting :allow_quote, default: true
   setting :reject_send_limited_to_suspects, default: false
 
   setting_inverse_alias :indexable, :noindex
@@ -75,18 +75,14 @@ class UserSettings
     setting :auto_play, default: true
     setting :simple_timeline_menu, default: false
     setting :boost_menu, default: false
-    setting :show_quote_in_home, default: true
-    setting :show_quote_in_public, default: false
     setting :show_relationships, default: true
-    setting :hide_blocking_quote, default: true
     setting :hide_emoji_reaction_unavailable_server, default: false
-    setting :hide_quote_unavailable_server, default: false
     setting :hide_status_reference_unavailable_server, default: false
     setting :hide_favourite_menu, default: false
     setting :hide_emoji_reaction_count, default: false
     setting :show_avatar_on_filter, default: true
+    setting :community_timeline_instead_of_search_menu, default: false
 
-    setting_inverse_alias :'web.show_blocking_quote', :'web.hide_blocking_quote'
     setting_inverse_alias :'web.show_emoji_reaction_count', :'web.hide_emoji_reaction_count'
     setting_inverse_alias :'web.show_favourite_menu', :'web.hide_favourite_menu'
     setting_inverse_alias :'web.show_recent_emojis', :'web.hide_recent_emojis'

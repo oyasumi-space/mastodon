@@ -1,15 +1,18 @@
-import { createSelector } from '@reduxjs/toolkit';
-import type { Map as ImmutableMap } from 'immutable';
+import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 
 import type { Antenna } from 'mastodon/models/antenna';
-import type { RootState } from 'mastodon/store';
+import { createAppSelector } from 'mastodon/store';
 
-export const getOrderedAntennas = createSelector(
-  [(state: RootState) => state.antennas],
-  (antennas: ImmutableMap<string, Antenna | null>) =>
+const getAntennas = createAppSelector(
+  [(state) => state.antennas],
+  (antennas: ImmutableMap<string, Antenna | null>): ImmutableList<Antenna> =>
+    antennas.toList().filter((item: Antenna | null): item is Antenna => !!item),
+);
+
+export const getOrderedAntennas = createAppSelector(
+  [(state) => getAntennas(state)],
+  (antennas) =>
     antennas
-      .toList()
-      .filter((item: Antenna | null) => !!item)
       .sort((a: Antenna, b: Antenna) => a.title.localeCompare(b.title))
       .toArray(),
 );

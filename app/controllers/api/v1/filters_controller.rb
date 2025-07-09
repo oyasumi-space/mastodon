@@ -32,7 +32,7 @@ class Api::V1::FiltersController < Api::BaseController
     ApplicationRecord.transaction do
       @filter.update!(keyword_params)
       @filter.custom_filter.assign_attributes(filter_params)
-      raise Mastodon::ValidationError, I18n.t('filters.errors.deprecated_api_multiple_keywords') if @filter.custom_filter.changed? && @filter.custom_filter.keywords.count > 1
+      raise Mastodon::ValidationError, I18n.t('filters.errors.deprecated_api_multiple_keywords') if @filter.custom_filter.changed? && @filter.custom_filter.keywords.many?
 
       @filter.custom_filter.save!
     end
@@ -56,11 +56,11 @@ class Api::V1::FiltersController < Api::BaseController
   end
 
   def resource_params
-    params.permit(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_quote, :with_profile, :whole_word, context: [])
+    params.permit(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_profile, :whole_word, context: [])
   end
 
   def filter_params
-    resource_params.slice(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_quote, :with_profile, :context)
+    resource_params.slice(:phrase, :expires_in, :irreversible, :exclude_follows, :exclude_localusers, :with_profile, :context)
   end
 
   def keyword_params

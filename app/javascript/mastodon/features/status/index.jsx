@@ -6,8 +6,6 @@ import classNames from 'classnames';
 import { Helmet } from 'react-helmet';
 import { withRouter } from 'react-router-dom';
 
-import { createSelector } from '@reduxjs/toolkit';
-import { List as ImmutableList } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
@@ -65,9 +63,10 @@ import {
 } from '../../actions/statuses';
 import ColumnHeader from '../../components/column_header';
 import { textForScreenReader, defaultMediaVisibility } from '../../components/status';
-import StatusContainer from '../../containers/status_container';
+import { StatusQuoteManager } from '../../components/status_quoted';
 import { bookmarkCategoryNeeded, deleteModal } from '../../initial_state';
 import { makeGetStatus, makeGetPictureInPicture } from '../../selectors';
+import { getAncestorsIds, getDescendantsIds, getReferencesIds } from 'mastodon/selectors/contexts';
 import Column from '../ui/components/column';
 import { attachFullscreenListener, detachFullscreenListener, isFullscreen } from '../ui/util/fullscreen';
 
@@ -86,77 +85,17 @@ const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
   const getPictureInPicture = makeGetPictureInPicture();
 
-  const getReferenceIds = createSelector([
-    (state, { id }) => state.getIn(['contexts', 'references', id]) || ImmutableList(),
-  ], (references) => {
-    return references;
-  });
-
-  const getAncestorsIds = createSelector([
-    (_, { id }) => id,
-    state => state.getIn(['contexts', 'inReplyTos']),
-  ], (statusId, inReplyTos) => {
-    let ancestorsIds = ImmutableList();
-    ancestorsIds = ancestorsIds.withMutations(mutable => {
-      let id = statusId;
-
-      while (id && !mutable.includes(id)) {
-        mutable.unshift(id);
-        id = inReplyTos.get(id);
-      }
-    });
-
-    return ancestorsIds;
-  });
-
-  const getDescendantsIds = createSelector([
-    (_, { id }) => id,
-    state => state.getIn(['contexts', 'replies']),
-    state => state.get('statuses'),
-  ], (statusId, contextReplies, statuses) => {
-    let descendantsIds = [];
-    const ids = [statusId];
-
-    while (ids.length > 0) {
-      let id        = ids.pop();
-      const replies = contextReplies.get(id);
-
-      if (statusId !== id) {
-        descendantsIds.push(id);
-      }
-
-      if (replies) {
-        replies.reverse().forEach(reply => {
-          if (!ids.includes(reply) && !descendantsIds.includes(reply) && statusId !== reply) ids.push(reply);
-        });
-      }
-    }
-
-    let insertAt = descendantsIds.findIndex((id) => statuses.get(id).get('in_reply_to_account_id') !== statuses.get(id).get('account'));
-    if (insertAt !== -1) {
-      descendantsIds.forEach((id, idx) => {
-        if (idx > insertAt && statuses.get(id).get('in_reply_to_account_id') === statuses.get(id).get('account')) {
-          descendantsIds.splice(idx, 1);
-          descendantsIds.splice(insertAt, 0, id);
-          insertAt += 1;
-        }
-      });
-    }
-
-    return ImmutableList(descendantsIds);
-  });
-
   const mapStateToProps = (state, props) => {
     const status = getStatus(state, { id: props.params.statusId, contextType: 'detailed' });
 
-    let ancestorsIds   = ImmutableList();
-    let descendantsIds = ImmutableList();
-    let referenceIds   = ImmutableList();
+    let ancestorsIds   = [];
+    let descendantsIds = [];
+    let referencesIds = [];
 
     if (status) {
-      ancestorsIds   = getAncestorsIds(state, { id: status.get('in_reply_to_id') });
-      descendantsIds = getDescendantsIds(state, { id: status.get('id') });
-      referenceIds   = getReferenceIds(state, { id: status.get('id') }).filter((id) => id !== status.get('quote_id'));
+      ancestorsIds   = getAncestorsIds(state, status.get('in_reply_to_id'));
+      descendantsIds = getDescendantsIds(state, status.get('id'));
+      referencesIds  = getReferencesIds(state, status.get('id'));
     }
 
     return {
@@ -164,7 +103,7 @@ const makeMapStateToProps = () => {
       status,
       ancestorsIds,
       descendantsIds,
-      referenceIds,
+      referencesIds,
       askReplyConfirmation: state.getIn(['compose', 'text']).trim().length !== 0,
       domain: state.getIn(['meta', 'domain']),
       pictureInPicture: getPictureInPicture(state, { id: props.params.statusId }),
@@ -200,9 +139,9 @@ class Status extends ImmutablePureComponent {
     dispatch: PropTypes.func.isRequired,
     status: ImmutablePropTypes.map,
     isLoading: PropTypes.bool,
-    ancestorsIds: ImmutablePropTypes.list.isRequired,
-    descendantsIds: ImmutablePropTypes.list.isRequired,
-    referenceIds: ImmutablePropTypes.list.isRequired,
+    ancestorsIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+    descendantsIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+    referencesIds: PropTypes.arrayOf(PropTypes.string).isRequired,
     intl: PropTypes.object.isRequired,
     askReplyConfirmation: PropTypes.bool,
     multiColumn: PropTypes.bool,
@@ -341,7 +280,7 @@ class Status extends ImmutablePureComponent {
     this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'BT', router));
   };
 
-  handleQuote = (status, router) => {
+  handleInsertQuoteLink = (status, router) => {
     this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'QT', router));
   };
 
@@ -444,8 +383,8 @@ class Status extends ImmutablePureComponent {
   };
 
   handleToggleAll = () => {
-    const { status, ancestorsIds, descendantsIds, referenceIds } = this.props;
-    const statusIds = [status.get('id')].concat(ancestorsIds.toJS(), descendantsIds.toJS(), referenceIds.toJS());
+    const { status, ancestorsIds, descendantsIds, referencesIds } = this.props;
+    const statusIds = [status.get('id')].concat(ancestorsIds, descendantsIds, referencesIds);
 
     if (status.get('hidden')) {
       this.props.dispatch(revealStatus(statusIds));
@@ -541,45 +480,45 @@ class Status extends ImmutablePureComponent {
   };
 
   handleMoveUp = id => {
-    const { status, ancestorsIds, descendantsIds, referenceIds } = this.props;
+    const { status, ancestorsIds, descendantsIds, referencesIds } = this.props;
 
     if (id === status.get('id')) {
-      this._selectChild(ancestorsIds.size + referenceIds.size - 1, true);
+      this._selectChild(ancestorsIds.length + referencesIds.length - 1, true);
     } else {
       let index = ancestorsIds.indexOf(id);
 
       if (index === -1) {
         index = descendantsIds.indexOf(id);
         if (index === -1) {
-          index = referenceIds.indexOf(id);
+          index = referencesIds.indexOf(id);
           this._selectChild(index - 1, true);
         } else {
-          this._selectChild(ancestorsIds.size + referenceIds.size + index, true);
+          this._selectChild(ancestorsIds.length + referencesIds.length + index, true);
         }
       } else {
-        this._selectChild(referenceIds.size + index - 1, true);
+        this._selectChild(referencesIds.length + index - 1, true);
       }
     }
   };
 
   handleMoveDown = id => {
-    const { status, ancestorsIds, descendantsIds, referenceIds } = this.props;
+    const { status, ancestorsIds, descendantsIds, referencesIds } = this.props;
 
     if (id === status.get('id')) {
-      this._selectChild(ancestorsIds.size + referenceIds.size + 1, false);
+      this._selectChild(ancestorsIds.length + referencesIds.length + 1, false);
     } else {
       let index = ancestorsIds.indexOf(id);
 
       if (index === -1) {
         index = descendantsIds.indexOf(id);
         if (index === -1) {
-          index = referenceIds.indexOf(id);
+          index = referencesIds.indexOf(id);
           this._selectChild(index + 1, false);
         } else {
-          this._selectChild(ancestorsIds.size + referenceIds.size + index + 2, false);
+          this._selectChild(ancestorsIds.length + referencesIds.length + index + 2, false);
         }
       } else {
-        this._selectChild(referenceIds.size + index + 1, false);
+        this._selectChild(referencesIds.length + index + 1, false);
       }
     }
   };
@@ -602,14 +541,14 @@ class Status extends ImmutablePureComponent {
     const { params: { statusId } } = this.props;
 
     return list.map((id, i) => (
-      <StatusContainer
+      <StatusQuoteManager
         key={id}
         id={id}
         onMoveUp={this.handleMoveUp}
         onMoveDown={this.handleMoveDown}
         contextType='thread'
-        previousId={i > 0 ? list.get(i - 1) : undefined}
-        nextId={list.get(i + 1) || (ancestors && statusId)}
+        previousId={i > 0 ? list[i - 1] : undefined}
+        nextId={list[i + 1] || (ancestors && statusId)}
         rootId={statusId}
       />
     ));
@@ -644,9 +583,9 @@ class Status extends ImmutablePureComponent {
   }
 
   componentDidUpdate (prevProps) {
-    const { status, ancestorsIds, referenceIds } = this.props;
+    const { status, ancestorsIds, referencesIds } = this.props;
 
-    if (status && (ancestorsIds.size + referenceIds.size > prevProps.ancestorsIds.size + prevProps.referenceIds.size || prevProps.status?.get('id') !== status.get('id'))) {
+    if (status && (ancestorsIds.length + referencesIds.length > prevProps.ancestorsIds.length + prevProps.referencesIds.length || prevProps.status?.get('id') !== status.get('id'))) {
       this._scrollStatusIntoView();
     }
   }
@@ -676,7 +615,7 @@ class Status extends ImmutablePureComponent {
 
   render () {
     let ancestors, descendants, references, remoteHint;
-    const { isLoading, status, ancestorsIds, descendantsIds, referenceIds, intl, domain, multiColumn, pictureInPicture } = this.props;
+    const { isLoading, status, ancestorsIds, descendantsIds, referencesIds, intl, domain, multiColumn, pictureInPicture } = this.props;
     const { fullscreen } = this.state;
 
     if (isLoading) {
@@ -693,15 +632,15 @@ class Status extends ImmutablePureComponent {
       );
     }
 
-    if (referenceIds && referenceIds.size > 0) {
-      references = <>{this.renderChildren(referenceIds, true)}</>;
+    if (referencesIds && referencesIds.length > 0) {
+      references = <>{this.renderChildren(referencesIds, true)}</>;
     }
 
-    if (ancestorsIds && ancestorsIds.size > 0) {
+    if (ancestorsIds && ancestorsIds.length > 0) {
       ancestors = <>{this.renderChildren(ancestorsIds, true)}</>;
     }
 
-    if (descendantsIds && descendantsIds.size > 0) {
+    if (descendantsIds && descendantsIds.length > 0) {
       descendants = <>{this.renderChildren(descendantsIds)}</>;
     }
 
@@ -774,7 +713,7 @@ class Status extends ImmutablePureComponent {
                   onReblog={this.handleReblogClick}
                   onReblogForceModal={this.handleReblogForceModalClick}
                   onReference={this.handleReference}
-                  onQuote={this.handleQuote}
+                  onInsertQuoteLink={this.handleInsertQuoteLink}
                   onBookmark={this.handleBookmarkClick}
                   onBookmarkCategoryAdder={this.handleBookmarkCategoryAdderClick}
                   onDelete={this.handleDeleteClick}

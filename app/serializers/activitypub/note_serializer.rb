@@ -158,7 +158,7 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags
-    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis + virtual_tags_of_quote
+    object.active_mentions.to_a.sort_by(&:id) + object.tags + object.emojis
   end
 
   class NoteLink < ActiveModelSerializers::Model
@@ -179,7 +179,7 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags_of_quote
-    return [] unless object.quote?
+    return [] unless quote?
 
     [NoteLink.new(href: quote_uri)]
   end
@@ -218,10 +218,12 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     object.account.local?
   end
 
-  delegate :quote?, to: :object
+  def quote?
+    object.quote.present?
+  end
 
   def quote_post
-    @quote_post ||= object.quote
+    @quote_post ||= object.quote&.quoted_status
   end
 
   def quote_uri

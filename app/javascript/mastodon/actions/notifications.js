@@ -33,7 +33,7 @@ const messages = defineMessages({
   message_poll: { id: 'notification.poll', defaultMessage: 'A poll you voted in has ended' },
   message_reblog: { id: 'notification.reblog', defaultMessage: '{name} boosted your post' },
   message_status: { id: 'notification.status', defaultMessage: '{name} just posted' },
-  message_status_reference: { id: 'notification.status_reference', defaultMessage: '{name} quoted your post' },
+  message_status_reference: { id: 'notification.status_reference', defaultMessage: '{name} linked your post' },
   message_update: { id: 'notification.update', defaultMessage: '{name} edited a post' },
 });
 

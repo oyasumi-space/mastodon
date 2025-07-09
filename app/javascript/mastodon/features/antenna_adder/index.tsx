@@ -126,7 +126,7 @@ const AntennaAdder: React.FC<{
   const [antennaIds, setAntennaIds] = useState<string[]>([]);
 
   useEffect(() => {
-    dispatch(fetchAntennas());
+    void dispatch(fetchAntennas());
 
     const api = isExclude
       ? apiGetExcludeAccountAntennas

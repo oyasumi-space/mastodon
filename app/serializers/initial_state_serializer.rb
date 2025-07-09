@@ -26,7 +26,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:display_media]     = object_account_user.setting_display_media
       store[:expand_spoilers] = object_account_user.setting_expand_spoilers
       store[:enable_emoji_reaction] = object_account_user.setting_enable_emoji_reaction && Setting.enable_emoji_reaction
-      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu
+      store[:enable_dtl_menu]   = object_account_user.setting_enable_dtl_menu && dtl_enabled?
       store[:reduce_motion]     = object_account_user.setting_reduce_motion
       store[:disable_swiping]   = object_account_user.setting_disable_swiping
       store[:disable_hover_cards] = object_account_user.setting_disable_hover_cards
@@ -37,17 +37,14 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:bookmark_category_needed] = object_account_user.setting_bookmark_category_needed
       store[:simple_timeline_menu] = object_account_user.setting_simple_timeline_menu
       store[:boost_menu] = object_account_user.setting_boost_menu
+      store[:community_timeline_instead_of_search_menu] = object_account_user.setting_community_timeline_instead_of_search_menu
       store[:hide_items] = [
         object_account_user.setting_hide_favourite_menu ? 'favourite_menu' : nil,
         object_account_user.setting_hide_recent_emojis ? 'recent_emojis' : nil,
-        object_account_user.setting_hide_blocking_quote ? 'blocking_quote' : nil,
         object_account_user.setting_hide_emoji_reaction_unavailable_server ? 'emoji_reaction_unavailable_server' : nil,
-        object_account_user.setting_hide_quote_unavailable_server ? 'quote_unavailable_server' : nil,
         object_account_user.setting_hide_status_reference_unavailable_server ? 'status_reference_unavailable_server' : nil,
         object_account_user.setting_hide_emoji_reaction_count ? 'emoji_reaction_count' : nil,
         object_account_user.setting_show_emoji_reaction_on_timeline ? nil : 'emoji_reaction_on_timeline',
-        object_account_user.setting_show_quote_in_home ? nil : 'quote_in_home',
-        object_account_user.setting_show_quote_in_public ? nil : 'quote_in_public',
         object_account_user.setting_show_relationships ? nil : 'relationships',
         object_account_user.setting_show_avatar_on_filter ? nil : 'avatar_on_filter',
       ].compact
@@ -131,7 +128,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       domain: Addressable::IDNA.to_unicode(instance_presenter.domain),
       dtl_tag: dtl_enabled? ? dtl_tag_name : nil,
       enable_local_timeline: Setting.enable_local_timeline,
-      limited_federation_mode: Rails.configuration.x.limited_federation_mode,
+      limited_federation_mode: Rails.configuration.x.mastodon.limited_federation_mode,
       locale: I18n.locale,
       mascot: instance_presenter.mascot&.file&.url,
       profile_directory: Setting.profile_directory,
@@ -149,7 +146,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       trends_as_landing_page: Setting.trends_as_landing_page,
       trends_enabled: Setting.trends,
       version: instance_presenter.version,
-      terms_of_service_enabled: TermsOfService.live.exists?,
+      terms_of_service_enabled: TermsOfService.current.present?,
     }
   end
 

@@ -78,6 +78,7 @@ const initialState = ImmutableMap({
   is_submitting: false,
   is_changing_upload: false,
   is_uploading: false,
+  should_redirect_to_compose_page: false,
   progress: 0,
   isUploadingThumbnail: false,
   thumbnailProgress: 0,
@@ -422,11 +423,21 @@ export const composeReducer = (state = initialState, action) => {
   case STORE_HYDRATE:
     return hydrate(state, action.state.get('compose'));
   case COMPOSE_MOUNT:
-    return state.set('mounted', state.get('mounted') + 1);
+    return state
+      .set('mounted', state.get('mounted') + 1)
+      .set('should_redirect_to_compose_page', false);
   case COMPOSE_UNMOUNT:
     return state
       .set('mounted', Math.max(state.get('mounted') - 1, 0))
-      .set('is_composing', false);
+      .set('is_composing', false)
+      .set(
+        'should_redirect_to_compose_page',
+        (state.get('mounted') === 1 &&
+          state.get('is_composing') === true &&
+          (state.get('text').trim() !== '' ||
+          state.get('media_attachments').size > 0)
+        )
+      );
   case COMPOSE_SENSITIVITY_CHANGE:
     return state.withMutations(map => {
       if (!state.get('spoiler')) {
@@ -624,9 +635,9 @@ export const composeReducer = (state = initialState, action) => {
 
       if (action.status.get('poll')) {
         map.set('poll', ImmutableMap({
-          options: action.status.getIn(['poll', 'options']).map(x => x.get('title')),
-          multiple: action.status.getIn(['poll', 'multiple']),
-          expires_in: expiresInFromExpiresAt(action.status.getIn(['poll', 'expires_at'])),
+          options: ImmutableList(action.status.get('poll').options.map(x => x.title)),
+          multiple: action.status.get('poll').multiple,
+          expires_in: expiresInFromExpiresAt(action.status.get('poll').expires_at),
         }));
       }
     });
@@ -660,9 +671,9 @@ export const composeReducer = (state = initialState, action) => {
 
       if (action.status.get('poll')) {
         map.set('poll', ImmutableMap({
-          options: action.status.getIn(['poll', 'options']).map(x => x.get('title')),
-          multiple: action.status.getIn(['poll', 'multiple']),
-          expires_in: expiresInFromExpiresAt(action.status.getIn(['poll', 'expires_at'])),
+          options: ImmutableList(action.status.get('poll').options.map(x => x.title)),
+          multiple: action.status.get('poll').multiple,
+          expires_in: expiresInFromExpiresAt(action.status.get('poll').expires_at),
         }));
       }
     });

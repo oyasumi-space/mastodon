@@ -1,7 +1,6 @@
 import { createPollFromServerJSON } from 'mastodon/models/poll';
 
-import { importAccounts } from '../accounts_typed';
-
+import { importAccounts } from './accounts';
 import { normalizeStatus } from './normalizer';
 import { importPolls } from './polls';
 
@@ -58,8 +57,8 @@ export function importFetchedStatuses(statuses) {
     const polls = [];
     const filters = [];
 
-    function processStatus(status) {
-      pushUnique(normalStatuses, normalizeStatus(status, getState().getIn(['statuses', status.id])));
+    function processStatus(status, options = undefined) {
+      pushUnique(normalStatuses, normalizeStatus(status, getState().getIn(['statuses', status.id]), options));
       pushUnique(accounts, status.account);
 
       if (status.filtered) {
@@ -70,8 +69,8 @@ export function importFetchedStatuses(statuses) {
         processStatus(status.reblog);
       }
 
-      if (status.quote?.id && !getState().getIn(['statuses', status.id])) {
-        processStatus(status.quote);
+      if (status.quote?.quoted_status) {
+        processStatus(status.quote.quoted_status, { withoutEmojiReaction: true });
       }
 
       if (status.poll?.id) {

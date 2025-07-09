@@ -12,9 +12,9 @@ import { length } from 'stringz';
 
 import { missingAltTextModal } from 'mastodon/initial_state';
 
-import AutosuggestInput from '../../../components/autosuggest_input';
-import AutosuggestTextarea from '../../../components/autosuggest_textarea';
-import { Button } from '../../../components/button';
+import AutosuggestInput from 'mastodon/components/autosuggest_input';
+import AutosuggestTextarea from 'mastodon/components/autosuggest_textarea';
+import { Button } from 'mastodon/components/button';
 import CircleDropdownContainer from '../containers/circle_dropdown_container';
 import EmojiPickerDropdown from '../containers/emoji_picker_dropdown_container';
 import ExpirationDropdownContainer from '../containers/expiration_dropdown_container';
@@ -246,9 +246,8 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   render () {
-    const { intl, onPaste, autoFocus, withoutNavigation, maxChars } = this.props;
+    const { intl, onPaste, autoFocus, withoutNavigation, maxChars, isSubmitting } = this.props;
     const { highlighted } = this.state;
-    const disabled = this.props.isSubmitting;
 
     return (
       <form className='compose-form' onSubmit={this.handleSubmit}>
@@ -267,7 +266,7 @@ class ComposeForm extends ImmutablePureComponent {
                 <AutosuggestInput
                   placeholder={intl.formatMessage(messages.spoiler_placeholder)}
                   value={this.props.spoilerText}
-                  disabled={disabled}
+                  disabled={isSubmitting}
                   onChange={this.handleChangeSpoilerText}
                   onKeyDown={this.handleKeyDown}
                   ref={this.setSpoilerText}
@@ -289,7 +288,7 @@ class ComposeForm extends ImmutablePureComponent {
             <AutosuggestTextarea
               ref={this.textareaRef}
               placeholder={intl.formatMessage(messages.placeholder)}
-              disabled={disabled}
+              disabled={isSubmitting}
               value={this.props.text}
               onChange={this.handleChange}
               suggestions={this.props.suggestions}
@@ -336,9 +335,15 @@ class ComposeForm extends ImmutablePureComponent {
                 <Button
                   type='submit'
                   compact
-                  text={intl.formatMessage(this.props.isEditing ? messages.saveChanges : (this.props.isInReply ? messages.reply : messages.publish))}
                   disabled={!this.canSubmit()}
-                />
+                  loading={isSubmitting}
+                >
+                  {intl.formatMessage(
+                    this.props.isEditing ?
+                      messages.saveChanges : 
+                      (this.props.isInReply ? messages.reply : messages.publish)
+                  )}
+                </Button>
               </div>
             </div>
           </div>

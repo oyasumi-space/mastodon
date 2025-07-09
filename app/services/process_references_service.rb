@@ -11,11 +11,10 @@ class ProcessReferencesService < BaseService
   QUOTEURL_EXP = /(QT|RN|RE)((:|;)?\s+|:|;)(#{URI::DEFAULT_PARSER.make_regexp(%w(http https))})/
   MAX_REFERENCES = 5
 
-  def call(status, reference_parameters, urls: nil, fetch_remote: true, no_fetch_urls: nil, quote_urls: nil)
+  def call(status, reference_parameters, urls: nil, fetch_remote: true, no_fetch_urls: nil)
     @status = status
     @reference_parameters = reference_parameters || []
-    @quote_urls = quote_urls || []
-    @urls = (urls - @quote_urls) || []
+    @urls = urls || []
     @no_fetch_urls = no_fetch_urls || []
     @fetch_remote = fetch_remote
     @again = false
@@ -42,8 +41,8 @@ class ProcessReferencesService < BaseService
     launch_worker if @again
   end
 
-  def self.need_process?(status, reference_parameters, urls, quote_urls)
-    reference_parameters.any? || (urls || []).any? || (quote_urls || []).any? || FormattingHelper.extract_status_plain_text(status).scan(REFURL_EXP).pluck(3).uniq.any?
+  def self.need_process?(status, reference_parameters, urls, quote: nil)
+    reference_parameters.any? || [urls, quote].flatten.compact.any? || FormattingHelper.extract_status_plain_text(status).scan(REFURL_EXP).pluck(3).uniq.any?
   end
 
   def self.extract_uris(text, remote: false)
@@ -56,23 +55,17 @@ class ProcessReferencesService < BaseService
     text.scan(QUOTEURL_EXP).pick(3)
   end
 
-  def self.perform_worker_async(status, reference_parameters, urls, quote_urls)
-    return unless need_process?(status, reference_parameters, urls, quote_urls)
+  def self.call_service(status, reference_parameters, urls, quote: nil)
+    return unless need_process?(status, reference_parameters, urls, quote: quote)
 
-    ProcessReferencesWorker.perform_async(status.id, reference_parameters, urls, [], quote_urls || [])
+    ProcessReferencesService.new.call(status, reference_parameters || [], urls: [urls, quote].flatten.compact || [], fetch_remote: false)
   end
 
-  def self.call_service(status, reference_parameters, urls, quote_urls = [])
-    return unless need_process?(status, reference_parameters, urls, quote_urls)
-
-    ProcessReferencesService.new.call(status, reference_parameters || [], urls: urls || [], fetch_remote: false, quote_urls: quote_urls)
-  end
-
-  def self.call_service_without_error(status, reference_parameters, urls, quote_urls = [])
-    return unless need_process?(status, reference_parameters, urls, quote_urls)
+  def self.call_service_without_error(status, reference_parameters, urls, quote: nil)
+    return unless need_process?(status, reference_parameters, urls, quote: quote)
 
     begin
-      ProcessReferencesService.new.call(status, reference_parameters || [], urls: urls || [], quote_urls: quote_urls)
+      ProcessReferencesService.new.call(status, reference_parameters || [], urls: [urls, quote].flatten.compact)
     rescue
       true
     end
@@ -119,7 +112,6 @@ class ProcessReferencesService < BaseService
     text = extract_status_plain_text(@status)
     url_to_attributes = @urls.index_with('BT')
                              .merge(text.scan(REFURL_EXP).to_h { |result| [result[3], result[0]] })
-                             .merge(@quote_urls.index_with('QT'))
 
     url_to_statuses = fetch_statuses(url_to_attributes.keys.uniq)
 
@@ -130,9 +122,9 @@ class ProcessReferencesService < BaseService
       status = url_to_statuses[url]
 
       if status.present?
-        quote = quote_attribute?(attribute)
+        quote_attribute?(attribute)
 
-        [status.id, !quote || quotable?(status) ? attribute : 'BT']
+        [status.id, attribute]
       else
         [url, attribute]
       end
@@ -170,10 +162,6 @@ class ProcessReferencesService < BaseService
     @referrable = StatusPolicy.new(@status.account, target_status).show?
   end
 
-  def quotable?(target_status)
-    target_status.account.allow_quote? && StatusPolicy.new(@status.account, target_status).quote?
-  end
-
   def add_references
     return if @added_items.empty?
 
@@ -185,10 +173,7 @@ class ProcessReferencesService < BaseService
       next if status.blank?
 
       attribute_type = @added_items[status_id]
-      quote = quote_attribute?(attribute_type)
-      @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type, quote: quote)
-
-      @status.update!(quote_of_id: status_id) if quote
+      @added_objects << @status.reference_objects.new(target_status: status, attribute_type: attribute_type)
 
       status.increment_count!(:status_referred_by_count)
       @references_count += 1
@@ -214,7 +199,6 @@ class ProcessReferencesService < BaseService
     @removed_objects = []
 
     @status.reference_objects.where(target_status: @removed_items.keys).destroy_all
-    @status.update!(quote_of_id: nil) if @status.quote_of_id.present? && @removed_items.key?(@status.quote_of_id)
 
     statuses = Status.where(id: @added_items.keys).to_a
     @removed_items.each_key do |status_id|
@@ -233,22 +217,12 @@ class ProcessReferencesService < BaseService
 
     @status.reference_objects.where(target_status: @changed_items.keys).find_each do |ref|
       attribute_type = @changed_items[ref.target_status_id]
-      quote = quote_attribute?(attribute_type)
-      quote_change = ref.quote != quote
 
-      ref.update!(attribute_type: attribute_type, quote: quote)
-
-      next unless quote_change
-
-      if quote
-        ref.status.update!(quote_of_id: ref.target_status.id)
-      else
-        ref.status.update!(quote_of_id: nil)
-      end
+      ref.update!(attribute_type: attribute_type)
     end
   end
 
   def launch_worker
-    ProcessReferencesWorker.perform_async(@status.id, @reference_parameters, @urls, @no_fetch_urls, @quote_urls)
+    ProcessReferencesWorker.perform_async(@status.id, @reference_parameters, @urls, @no_fetch_urls)
   end
 end

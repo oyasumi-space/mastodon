@@ -15,7 +15,6 @@ module KmyblueCapabilitiesHelper
       kmyblue_limited_scope
       kmyblue_antenna
       kmyblue_bookmark_category
-      kmyblue_quote
       kmyblue_searchability_limited
       kmyblue_circle_history
       kmyblue_list_notification
@@ -41,7 +40,6 @@ module KmyblueCapabilitiesHelper
     capabilities = %i(
       enable_wide_emoji
       status_reference
-      quote
       emoji_keywords
       circle
     )

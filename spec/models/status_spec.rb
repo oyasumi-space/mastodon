@@ -9,7 +9,7 @@ RSpec.describe Status do
   let(:bob)   { Fabricate(:account, username: 'bob') }
   let(:other) { Fabricate(:status, account: bob, text: 'Skulls for the skull god! The enemy\'s gates are sideways!') }
 
-  include_examples 'Status::Visibility'
+  it_behaves_like 'Status::Visibility'
 
   describe '#local?' do
     it 'returns true when no remote URI is set' do
@@ -83,39 +83,6 @@ RSpec.describe Status do
     it 'is comment when the status replies to another' do
       subject.thread = other
       expect(subject.object_type).to be :comment
-    end
-  end
-
-  describe '#quote' do
-    let(:target_status) { Fabricate(:status) }
-    let(:quote) { true }
-
-    before do
-      Fabricate(:status_reference, status: subject, target_status: target_status, quote: quote)
-    end
-
-    context 'when quoting single' do
-      it 'get quote' do
-        expect(subject.quote).to_not be_nil
-        expect(subject.quote.id).to eq target_status.id
-      end
-    end
-
-    context 'when multiple quotes' do
-      it 'get quote' do
-        target2 = Fabricate(:status)
-        Fabricate(:status_reference, status: subject, quote: quote)
-        expect(subject.quote).to_not be_nil
-        expect([target_status.id, target2.id].include?(subject.quote.id)).to be true
-      end
-    end
-
-    context 'when no quote but reference' do
-      let(:quote) { false }
-
-      it 'get quote' do
-        expect(subject.quote).to be_nil
-      end
     end
   end
 
@@ -353,38 +320,6 @@ RSpec.describe Status do
     end
   end
 
-  describe '.blocks_map' do
-    subject { described_class.blocks_map([status.account.id], account) }
-
-    let(:status)  { Fabricate(:status) }
-    let(:account) { Fabricate(:account) }
-
-    it 'returns a hash' do
-      expect(subject).to be_a Hash
-    end
-
-    it 'contains true value' do
-      account.block!(status.account)
-      expect(subject[status.account.id]).to be true
-    end
-  end
-
-  describe '.domain_blocks_map' do
-    subject { described_class.domain_blocks_map([status.account.domain], account) }
-
-    let(:status)  { Fabricate(:status, account: Fabricate(:account, domain: 'foo.bar', uri: 'https://foo.bar/status')) }
-    let(:account) { Fabricate(:account) }
-
-    it 'returns a hash' do
-      expect(subject).to be_a Hash
-    end
-
-    it 'contains true value' do
-      account.block_domain!(status.account.domain)
-      expect(subject[status.account.domain]).to be true
-    end
-  end
-
   describe '.favourites_map' do
     subject { described_class.favourites_map([status], account) }
 
@@ -438,6 +373,17 @@ RSpec.describe Status do
 
     it 'availables if misskey server' do
       expect(subject['misskey.com'][:emoji_reaction]).to be true
+    end
+  end
+
+  describe '.only_reblogs' do
+    let!(:status) { Fabricate :status }
+    let!(:reblog) { Fabricate :status, reblog: Fabricate(:status) }
+
+    it 'returns the expected statuses' do
+      expect(described_class.only_reblogs)
+        .to include(reblog)
+        .and not_include(status)
     end
   end
 

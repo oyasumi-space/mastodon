@@ -16,14 +16,9 @@ RSpec.describe ActivityPub::NoteSerializer do
   let!(:reply_by_account_third) { Fabricate(:status, account: account, thread: parent, visibility: :public) }
   let!(:reply_by_account_visibility_direct) { Fabricate(:status, account: account, thread: parent, visibility: :direct) }
   let!(:referred) { nil }
-  let!(:quote) { nil }
 
   before do
     parent.references << referred if referred.present?
-    if quote.present?
-      parent.references << quote
-      parent.quote = quote
-    end
   end
 
   it 'has the expected shape and replies collection' do
@@ -98,23 +93,7 @@ RSpec.describe ActivityPub::NoteSerializer do
     end
 
     it 'has as reference' do
-      expect(subject['quoteUri']).to be_nil
       expect(subject['references']['first']['items']).to include referred.uri
-    end
-  end
-
-  context 'when has a quote' do
-    let(:quote) { Fabricate(:status) }
-
-    it 'has a quote as transitional type' do
-      expect(subject['quoteUri']).to eq ActivityPub::TagManager.instance.uri_for(quote)
-    end
-
-    it 'has a quote as feb-e232 object link' do
-      tag = subject['tag'].detect { |t| t['type'] == 'Link' }
-      expect(tag).to_not be_nil
-      expect(tag['mediaType']).to eq 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'
-      expect(tag['href']).to eq ActivityPub::TagManager.instance.uri_for(quote)
     end
   end
 end

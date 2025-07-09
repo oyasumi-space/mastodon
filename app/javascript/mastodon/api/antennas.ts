@@ -13,6 +13,9 @@ export const apiCreate = (antenna: Partial<ApiAntennaJSON>) =>
 export const apiUpdate = (antenna: Partial<ApiAntennaJSON>) =>
   apiRequestPut<ApiAntennaJSON>(`v1/antennas/${antenna.id}`, antenna);
 
+export const apiGetAntennas = () =>
+  apiRequestGet<ApiAntennaJSON[]>('v1/antennas');
+
 export const apiGetAccounts = (antennaId: string) =>
   apiRequestGet<ApiAccountJSON[]>(`v1/antennas/${antennaId}/accounts`, {
     limit: 0,

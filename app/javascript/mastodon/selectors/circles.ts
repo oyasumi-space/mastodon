@@ -1,15 +1,18 @@
-import { createSelector } from '@reduxjs/toolkit';
-import type { Map as ImmutableMap } from 'immutable';
+import type { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 
 import type { Circle } from 'mastodon/models/circle';
-import type { RootState } from 'mastodon/store';
+import { createAppSelector } from 'mastodon/store';
 
-export const getOrderedCircles = createSelector(
-  [(state: RootState) => state.circles],
-  (circles: ImmutableMap<string, Circle | null>) =>
-    circles
-      .toList()
-      .filter((item: Circle | null) => !!item)
+const getCircles = createAppSelector(
+  [(state) => state.circles],
+  (circles: ImmutableMap<string, Circle | null>): ImmutableList<Circle> =>
+    circles.toList().filter((item: Circle | null): item is Circle => !!item),
+);
+
+export const getOrderedCircles = createAppSelector(
+  [(state) => getCircles(state)],
+  (lists) =>
+    lists
       .sort((a: Circle, b: Circle) => a.title.localeCompare(b.title))
       .toArray(),
 );

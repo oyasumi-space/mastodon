@@ -19,7 +19,7 @@ export interface SelectItem {
   iconComponent?: IconProp;
   extraIconComponent?: IconProp;
   text: string;
-  meta: string;
+  meta?: string;
   extra?: string;
 }
 

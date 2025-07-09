@@ -13,9 +13,9 @@ import { fetchAntennas } from 'mastodon/actions/antennas';
 import { openModal } from 'mastodon/actions/modal';
 import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { Icon } from 'mastodon/components/icon';
 import ScrollableList from 'mastodon/components/scrollable_list';
-import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
 import { getOrderedAntennas } from 'mastodon/selectors/antennas';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
@@ -96,12 +96,11 @@ const AntennaItem: React.FC<{
         </span>
       </Link>
 
-      <DropdownMenuContainer
+      <Dropdown
         scrollKey='antennas'
         items={menu}
-        icons='ellipsis-h'
+        icon='ellipsis-h'
         iconComponent={MoreHorizIcon}
-        direction='right'
         title={intl.formatMessage(messages.more)}
       />
     </div>
@@ -116,7 +115,7 @@ const Antennas: React.FC<{
   const antennas = useAppSelector((state) => getOrderedAntennas(state));
 
   useEffect(() => {
-    dispatch(fetchAntennas());
+    void dispatch(fetchAntennas());
   }, [dispatch]);
 
   const emptyMessage = (

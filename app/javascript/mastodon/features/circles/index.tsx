@@ -13,9 +13,9 @@ import { fetchCircles } from 'mastodon/actions/circles';
 import { openModal } from 'mastodon/actions/modal';
 import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
+import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { Icon } from 'mastodon/components/icon';
 import ScrollableList from 'mastodon/components/scrollable_list';
-import DropdownMenuContainer from 'mastodon/containers/dropdown_menu_container';
 import { getOrderedCircles } from 'mastodon/selectors/circles';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
@@ -60,12 +60,11 @@ const CircleItem: React.FC<{
         <span>{title}</span>
       </Link>
 
-      <DropdownMenuContainer
+      <Dropdown
         scrollKey='circles'
         items={menu}
-        icons='ellipsis-h'
+        icon='ellipsis-h'
         iconComponent={MoreHorizIcon}
-        direction='right'
         title={intl.formatMessage(messages.more)}
       />
     </div>
@@ -80,7 +79,7 @@ const Circles: React.FC<{
   const circles = useAppSelector((state) => getOrderedCircles(state));
 
   useEffect(() => {
-    dispatch(fetchCircles());
+    void dispatch(fetchCircles());
   }, [dispatch]);
 
   const emptyMessage = (

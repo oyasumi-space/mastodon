@@ -9,7 +9,7 @@ module Mastodon
     # If you change the version number, also change the image version in docker-compose.yml.
 
     def kmyblue_major
-      18
+      19
     end
 
     def kmyblue_minor
@@ -17,9 +17,9 @@ module Mastodon
     end
 
     def kmyblue_flag
-      # 'LTS'
+      'lts'
       # 'dev'
-      nil
+      # nil
     end
 
     def major
@@ -35,7 +35,7 @@ module Mastodon
     end
 
     def default_prerelease
-      'alpha.5'
+      ''
     end
 
     def prerelease
@@ -96,7 +96,7 @@ module Mastodon
 
     def api_versions
       {
-        mastodon: 5,
+        mastodon: 6,
         kmyblue: KMYBLUE_API_VERSION,
       }
     end
@@ -127,7 +127,7 @@ module Mastodon
     end
 
     def user_agent
-      @user_agent ||= "Mastodon/#{Version} (#{HTTP::Request::USER_AGENT}; +http#{Rails.configuration.x.use_https ? 's' : ''}://#{Rails.configuration.x.web_domain}/)"
+      @user_agent ||= "Mastodon/#{Version} (#{HTTP::Request::USER_AGENT}; +http#{'s' if Rails.configuration.x.use_https}://#{Rails.configuration.x.web_domain}/)"
     end
 
     def version_configuration

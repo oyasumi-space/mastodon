@@ -32,26 +32,40 @@ RSpec.describe Fasp::Request do
     context 'when the response is not signed' do
       before do
         stub_request(method, 'https://reqprov.example.com/fasp/test_path')
-          .to_return(status: 200)
+          .to_return(status:)
       end
 
-      it 'raises an error' do
-        expect do
-          subject.send(method, '/test_path')
-        end.to raise_error(Mastodon::SignatureVerificationError)
+      context 'when the request was successful' do
+        let(:status) { 200 }
+
+        it 'raises a signature verification error' do
+          expect do
+            subject.send(method, '/test_path')
+          end.to raise_error(Mastodon::SignatureVerificationError)
+        end
+      end
+
+      context 'when an error response is received' do
+        let(:status) { 401 }
+
+        it 'raises an unexpected response error' do
+          expect do
+            subject.send(method, '/test_path')
+          end.to raise_error(Mastodon::UnexpectedResponseError)
+        end
       end
     end
   end
 
   describe '#get' do
-    include_examples 'a provider request', :get
+    it_behaves_like 'a provider request', :get
   end
 
   describe '#post' do
-    include_examples 'a provider request', :post
+    it_behaves_like 'a provider request', :post
   end
 
   describe '#delete' do
-    include_examples 'a provider request', :delete
+    it_behaves_like 'a provider request', :delete
   end
 end
