@@ -267,6 +267,10 @@ module User::HasSettings
     settings['web.hide_favourite_menu']
   end
 
+  def setting_community_timeline_instead_of_search_menu
+    settings['web.community_timeline_instead_of_search_menu']
+  end
+
   def setting_use_server_css
     settings['web.use_server_css']
   end

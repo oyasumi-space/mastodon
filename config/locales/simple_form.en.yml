@@ -283,6 +283,7 @@ en:
         setting_bio_markdown: Enable profile markdown
         setting_bookmark_category_needed: Category selection needed when registering bookmark on web
         setting_boost_modal: Show confirmation dialog before boosting
+        setting_community_timeline_instead_of_search_menu: Show local timeline on phone navigation instead of search
         setting_content_font_size: Font size of posts
         setting_content_font_size_items:
           large: Large
