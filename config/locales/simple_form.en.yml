@@ -74,6 +74,7 @@ en:
         setting_dtl_force_visibility: 'With using #%{tag} tag, your post settings will be changed forcibly'
         setting_emoji_reaction_policy: Even with this setting, users on non-kmyblue servers are free to put their emoji reaction on the post and share it within the same server. If you simply want to remove the emoji reaction from your own screen, you can disable it from the appearance settings
         setting_emoji_reaction_streaming_notify_impl2: 当該サーバーの独自機能に対応したアプリを利用時に、絵文字リアクション機能を利用できます。動作確認していないため（そもそもそのようなアプリ自体を確認できていないため）正しく動かない場合があります
+        setting_emoji_style: How to display emojis. "Auto" will try using native emoji, but falls back to Twemoji for legacy browsers.
         setting_enable_emoji_reaction: If turn off, other users still can react your posts
         setting_enabled_visibilities: If turn off, you cannot select and post the privacy.
         setting_hide_network: フォローとフォロワーの情報がプロフィールページで見られないようにします
@@ -312,6 +313,7 @@ en:
           mutuals_only: Mutuals only
           outside_only: Followings or followers only
         setting_emoji_reaction_streaming_notify_impl2: Enable emoji reaction notification compat with Nyastodon, Catstodon, glitch-soc
+        setting_emoji_style: Emoji style
         setting_enable_emoji_reaction: Use emoji reaction function
         setting_enabled_visibilities: Enabled visibilities
         setting_expand_spoilers: Always expand posts marked with content warnings
