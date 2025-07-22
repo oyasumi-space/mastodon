@@ -147,7 +147,10 @@ class Status < ApplicationRecord
   scope :without_replies, -> { not_reply.or(reply_to_account) }
   scope :not_reply, -> { where(reply: false) }
   scope :only_reblogs, -> { where.not(reblog_of_id: nil) }
+  scope :only_polls, -> { where.not(poll_id: nil) }
+  scope :without_polls, -> { where(poll_id: nil) }
   scope :reply_to_account, -> { where(arel_table[:in_reply_to_account_id].eq arel_table[:account_id]) }
+  scope :not_replying_to_account, ->(account) { where.not(in_reply_to_account: account) }
   scope :without_reblogs, -> { where(statuses: { reblog_of_id: nil }) }
   scope :with_public_visibility, -> { where(visibility: [:public, :public_unlisted, :login]) }
   scope :with_public_search_visibility, -> { merge(where(visibility: [:public, :public_unlisted, :login]).or(Status.where(searchability: [:public, :public_unlisted]))) }
