@@ -77,6 +77,7 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
       update_interaction_policies!
       update_poll!(allow_significant_changes: false)
       queue_poll_notifications!
+      update_quote_approval!
       update_counts!
     end
   end
@@ -366,6 +367,23 @@ class ActivityPub::ProcessStatusUpdateService < BaseService
     end.compact
 
     @local_referred_accounts = local_referred_statuses.map(&:account)
+  end
+
+  # This method is only concerned with approval and skips other meaningful changes,
+  # as it is used instead of `update_quote!` in implicit updates
+  def update_quote_approval!
+    quote_uri = @status_parser.quote_uri
+    return unless quote_uri.present? && @status.quote.present?
+
+    quote = @status.quote
+    return if quote.quoted_status.present? && ActivityPub::TagManager.instance.uri_for(quote.quoted_status) != quote_uri
+
+    approval_uri = @status_parser.quote_approval_uri
+    approval_uri = nil if unsupported_uri_scheme?(approval_uri)
+
+    quote.update(approval_uri: approval_uri, state: :pending, legacy: @status_parser.legacy_quote?) if quote.approval_uri != @status_parser.quote_approval_uri
+
+    fetch_and_verify_quote!(quote, quote_uri)
   end
 
   def update_quote!

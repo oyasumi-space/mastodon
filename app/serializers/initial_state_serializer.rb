@@ -7,7 +7,7 @@ class InitialStateSerializer < ActiveModel::Serializer
 
   attributes :meta, :compose, :accounts,
              :media_attachments, :settings,
-             :languages
+             :languages, :features
 
   attribute :critical_updates_pending, if: -> { object&.role&.can?(:view_devops) && SoftwareUpdate.check_enabled? }
 
@@ -115,6 +115,10 @@ class InitialStateSerializer < ActiveModel::Serializer
     vs -= %w(public_unlisted) unless Setting.enable_public_unlisted_visibility
     vs -= %w(public) unless Setting.enable_public_visibility
     vs
+  end
+
+  def features
+    Mastodon::Feature.enabled_features
   end
 
   private
