@@ -36,6 +36,12 @@ module ContextHelper
     attribution_domains: { 'toot' => 'http://joinmastodon.org/ns#', 'attributionDomains' => { '@id' => 'toot:attributionDomains', '@type' => '@id' } },
     misskey_license: { 'misskey' => 'https://misskey-hub.net/ns#', '_misskey_license' => 'misskey:_misskey_license' },
     quote_requests: { 'QuoteRequest' => 'https://w3id.org/fep/044f#QuoteRequest' },
+    quotes: {
+      'quote' => 'https://w3id.org/fep/044f#quote',
+      'quoteUri' => 'http://fedibird.com/ns#quoteUri',
+      '_misskey_quote' => 'https://misskey-hub.net/ns#_misskey_quote',
+      'quoteAuthorization' => { '@id' => 'https://w3id.org/fep/044f#quoteAuthorization', '@type' => '@id' },
+    },
     interaction_policies: {
       'gts' => 'https://gotosocial.org/ns#',
       'interactionPolicy' => { '@id' => 'gts:interactionPolicy', '@type' => '@id' },

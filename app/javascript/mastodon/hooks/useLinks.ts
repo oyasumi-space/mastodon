@@ -8,16 +8,14 @@ import { openURL } from 'mastodon/actions/search';
 import { useAppDispatch } from 'mastodon/store';
 
 const isMentionClick = (element: HTMLAnchorElement) =>
-  element.classList.contains('mention');
+  element.classList.contains('mention') &&
+  !element.classList.contains('hashtag');
 
 const isHashtagClick = (element: HTMLAnchorElement) =>
   element.textContent?.[0] === '#' ||
   element.previousSibling?.textContent?.endsWith('#');
 
-const isFeaturedHashtagClick = (element: HTMLAnchorElement) =>
-  isHashtagClick(element) && element.href.includes('/tagged/');
-
-export const useLinks = () => {
+export const useLinks = (skipHashtags?: boolean) => {
   const history = useHistory();
   const dispatch = useAppDispatch();
 
@@ -28,19 +26,6 @@ export const useLinks = () => {
       if (!textContent) return;
 
       history.push(`/tags/${textContent.replace(/^#/, '')}`);
-    },
-    [history],
-  );
-
-  const handleFeaturedHashtagClick = useCallback(
-    (element: HTMLAnchorElement) => {
-      const { textContent, href } = element;
-
-      if (!textContent) return;
-
-      const url = new URL(href);
-
-      history.push(url.pathname);
     },
     [history],
   );
@@ -77,15 +62,12 @@ export const useLinks = () => {
       if (isMentionClick(target)) {
         e.preventDefault();
         void handleMentionClick(target);
-      } else if (isFeaturedHashtagClick(target)) {
-        e.preventDefault();
-        handleFeaturedHashtagClick(target);
-      } else if (isHashtagClick(target)) {
+      } else if (isHashtagClick(target) && !skipHashtags) {
         e.preventDefault();
         handleHashtagClick(target);
       }
     },
-    [handleMentionClick, handleFeaturedHashtagClick, handleHashtagClick],
+    [skipHashtags, handleMentionClick, handleHashtagClick],
   );
 
   return handleClick;
