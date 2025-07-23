@@ -53,6 +53,21 @@ RSpec.describe ActivityPub::Activity::Accept do
   context 'when sender is from friend server' do
     subject { described_class.new(json, sender) }
 
+    let(:json) do
+      {
+        '@context': 'https://www.w3.org/ns/activitystreams',
+        id: 'foo',
+        type: 'Accept',
+        actor: ActivityPub::TagManager.instance.uri_for(sender),
+        object: {
+          id: 'bar',
+          type: 'Follow',
+          actor: ActivityPub::TagManager.instance.uri_for(recipient),
+          object: ActivityPub::TagManager.instance.uri_for(sender),
+        },
+      }.with_indifferent_access
+    end
+
     let(:sender) { Fabricate(:account, domain: 'abc.com', url: 'https://abc.com/#actor') }
     let!(:friend) { Fabricate(:friend_domain, domain: 'abc.com', active_state: :pending, active_follow_activity_id: 'https://abc-123/456') }
 

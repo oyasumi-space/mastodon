@@ -6,6 +6,15 @@ RSpec.describe ActivityPub::Activity::Reject do
   let(:sender)    { Fabricate(:account) }
   let(:recipient) { Fabricate(:account) }
 
+  let(:object_json) do
+    {
+      id: 'bar',
+      type: 'Follow',
+      actor: ActivityPub::TagManager.instance.uri_for(recipient),
+      object: ActivityPub::TagManager.instance.uri_for(sender),
+    }
+  end
+
   let(:json) do
     {
       '@context': 'https://www.w3.org/ns/activitystreams',
