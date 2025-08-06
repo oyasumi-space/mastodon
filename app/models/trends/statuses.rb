@@ -105,7 +105,7 @@ class Trends::Statuses < Trends::Base
   end
 
   def sensitive_content?(status)
-    status.account.sensitized? || status.spoiler_text.present? || status.sensitive? || status.media_attachments.none?
+    status.account.sensitized? || status.spoiler_text.present? || (status.sensitive? && status.media_attachments.any?)
   end
 
   def trendable_quote?(quote)
