@@ -271,7 +271,7 @@ RSpec.describe ActivityPub::VerifyQuoteService do
 
       it 'does not the status' do
         expect { subject.call(quote) }
-          .to_not change(quote, :state).from('pending')
+          .to change(quote, :state).from('pending').to('accepted')
       end
     end
   end
