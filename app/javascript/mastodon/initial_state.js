@@ -68,6 +68,7 @@
  * @property {string} sso_redirect
  * @property {string} status_page_url
  * @property {boolean} terms_of_service_enabled
+ * @property {string?} emoji_style
  */
 
 /**
@@ -138,6 +139,7 @@ export const dtlTag = getMeta('dtl_tag');
 export const enableEmojiReaction = getMeta('enable_emoji_reaction');
 export const enableLocalTimeline = getMeta('enable_local_timeline');
 export const enableDtlMenu = getMeta('enable_dtl_menu');
+export const emojiStyle = getMeta('emoji_style') || 'auto';
 export const expandSpoilers = getMeta('expand_spoilers');
 export const featuredTags = getMeta('featured_tags') || [];
 export const forceSingleColumn = !getMeta('advanced_layout');
@@ -185,14 +187,6 @@ export const languages = initialState?.languages?.map(lang => {
  */
 export function getAccessToken() {
   return getMeta('access_token');
-}
-
-/**
- * @param {string} feature
- * @returns {boolean}
- */
-export function isFeatureEnabled(feature) {
-  return initialState?.features?.includes(feature) || false;
 }
 
 export default initialState;

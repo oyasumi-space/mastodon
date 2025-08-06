@@ -63,7 +63,7 @@ en:
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
-        setting_default_quote_policy: Mentioned users are always allowed to quote. This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation
+        setting_default_quote_policy: This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation.
         setting_default_searchability: On kmyblue and Fedibird, the search is based on the search permission setting; on Misskey, all public, local public, and non-public posts are searched regardless of this setting; on Mastodon and Firefish, instead of search permission, the "Make public posts freely searchable on other servers" setting in the profile settings is applied. In Mastodon and Firefish, the "Make public posts freely searchable on other servers" setting in the profile settings is applied instead of the search permission.
         setting_default_sensitive: Sensitive media is hidden by default and can be revealed with a click
         setting_disallow_unlisted_public_searchability: この設定を有効にすると、非収載投稿と検索範囲「誰でも」は両立できず不特定多数からの検索が不可になります。Fedibirdと同じ挙動になります
@@ -193,6 +193,10 @@ en:
         name: Public name of the role, if role is set to be displayed as a badge
         permissions_as_keys: Users with this role will have access to...
         position: Higher role decides conflict resolution in certain situations. Certain actions can only be performed on roles with a lower priority
+      username_block:
+        allow_with_approval: Instead of preventing sign-up outright, matching sign-ups will require your approval
+        comparison: Please be mindful of the Scunthorpe Problem when blocking partial matches
+        username: Will be matched regardless of casing and common homoglyphs like "4" for "a" or "3" for "e"
       webhook:
         events: Select events to send
         template: Compose your own JSON payload using variable interpolation. Leave blank for default JSON.
@@ -460,6 +464,7 @@ en:
         mention: Someone mentioned you
         pending_account: New account needs review
         pending_friend_server: New friend server requires review
+        quote: Someone quoted you
         reblog: Someone boosted your post
         report: New report is submitted
         software_updates:
@@ -506,6 +511,10 @@ en:
         name: Name
         permissions_as_keys: Permissions
         position: Priority
+      username_block:
+        allow_with_approval: Allow registrations with approval
+        comparison: Method of comparison
+        username: Word to match
       webhook:
         events: Enabled events
         template: Payload template

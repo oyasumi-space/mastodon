@@ -201,6 +201,14 @@ RSpec.describe JsonLdHelper do
         expect(compacted.dig('object', 'searchableBy')).to eq []
         expect(compacted.dig('object', 'references', 'first', 'items')).to eq ['https://kmy.blue/users/askyq/statuses/111086477431146139']
       end
+
+      context 'when array size mismatch exists' do
+        subject { helper.patch_for_forwarding!(json, alternate) }
+
+        let(:alternate) { json.merge('to' => %w(one two three)) }
+
+        it { is_expected.to be_nil }
+      end
     end
 
     describe 'safe_for_forwarding?' do

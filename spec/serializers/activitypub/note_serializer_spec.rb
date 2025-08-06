@@ -96,4 +96,19 @@ RSpec.describe ActivityPub::NoteSerializer do
       expect(subject['references']['first']['items']).to include referred.uri
     end
   end
+
+  context 'with a quote' do
+    let(:quoted_status) { Fabricate(:status) }
+    let!(:quote) { Fabricate(:quote, status: parent, quoted_status: quoted_status, state: :accepted) }
+
+    it 'has the expected shape' do
+      expect(subject).to include({
+        'type' => 'Note',
+        'quote' => ActivityPub::TagManager.instance.uri_for(quote.quoted_status),
+        'quoteUri' => ActivityPub::TagManager.instance.uri_for(quote.quoted_status),
+        '_misskey_quote' => ActivityPub::TagManager.instance.uri_for(quote.quoted_status),
+        'quoteAuthorization' => ActivityPub::TagManager.instance.approval_uri_for(quote),
+      })
+    end
+  end
 end

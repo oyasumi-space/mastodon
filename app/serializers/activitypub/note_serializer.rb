@@ -3,7 +3,7 @@
 class ActivityPub::NoteSerializer < ActivityPub::Serializer
   include FormattingHelper
 
-  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :searchable_by, :references, :limited_scope, :quote_uri
+  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :searchable_by, :references, :limited_scope, :quote_uri, :quotes
 
   attributes :id, :type, :summary,
              :in_reply_to, :published, :url,
@@ -15,9 +15,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   attribute :content_map, if: :language?
   attribute :updated, if: :edited?
   attribute :limited_scope, if: :limited_visibility?
-
-  attribute :quote_uri, if: :quote?
-  attribute :misskey_quote, key: :_misskey_quote, if: :quote?
 
   has_many :virtual_attachments, key: :attachment
   has_many :virtual_tags, key: :tag
@@ -34,6 +31,11 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   attribute :closed, if: :poll_and_expired?
 
   attribute :voters_count, if: :poll_and_voters_count?
+
+  attribute :quote, if: :quote?
+  attribute :quote, key: :_misskey_quote, if: :quote?
+  attribute :quote, key: :quote_uri, if: :quote?
+  attribute :quote_authorization, if: :quote_authorization?
 
   def id
     ActivityPub::TagManager.instance.uri_for(object)
@@ -266,6 +268,19 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def poll_and_voters_count?
     object.preloadable_poll&.voters_count
+  end
+
+  def quote_authorization?
+    object.quote.present? && ActivityPub::TagManager.instance.approval_uri_for(object.quote).present?
+  end
+
+  def quote
+    # TODO: handle inlining self-quotes
+    ActivityPub::TagManager.instance.uri_for(object.quote.quoted_status)
+  end
+
+  def quote_authorization
+    ActivityPub::TagManager.instance.approval_uri_for(object.quote)
   end
 
   class MediaAttachmentSerializer < ActivityPub::Serializer

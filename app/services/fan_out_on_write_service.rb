@@ -45,6 +45,7 @@ class FanOutOnWriteService < BaseService
     deliver_to_self!
 
     unless @options[:skip_notifications]
+      notify_quoted_account!
       notify_mentioned_accounts!
       notify_for_conversation! if @status.limited_visibility?
       notify_about_update! if update?
@@ -84,6 +85,12 @@ class FanOutOnWriteService < BaseService
 
   def deliver_to_self!
     FeedManager.instance.push_to_home(@account, @status, update: update?) if @account.local?
+  end
+
+  def notify_quoted_account!
+    return unless @status.quote&.quoted_account&.local? && @status.quote&.accepted?
+
+    LocalNotificationWorker.perform_async(@status.quote.quoted_account_id, @status.quote.id, 'Quote', 'quote')
   end
 
   def notify_mentioned_accounts!
