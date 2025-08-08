@@ -1,4 +1,5 @@
 {
+  "about.accept_legacy_quotes": "Auto accept legacy quotes",
   "about.blocks": "Moderated servers",
   "about.contact": "Contact:",
   "about.default_locale": "Default",

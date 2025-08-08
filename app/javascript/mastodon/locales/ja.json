@@ -1,4 +1,5 @@
 {
+  "about.accept_legacy_quotes": "Misskey形式引用の自動承認",
   "about.blocks": "制限中のサーバー",
   "about.contact": "連絡先",
   "about.disabled": "無効",
