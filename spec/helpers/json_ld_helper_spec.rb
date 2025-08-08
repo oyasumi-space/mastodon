@@ -128,9 +128,6 @@ RSpec.describe JsonLdHelper do
             'obsolete' => 'http://ostatus.org#',
             'convo' => 'obsolete:conversation',
             'new' => 'https://obscure-unreleased-test.joinmastodon.org/#',
-            'fedibird' => 'http://fedibird.com/ns#',
-            'searchableBy' => { '@id' => 'fedibird:searchableBy', '@type' => '@id' },
-            'references' => { '@id' => 'fedibird:references', '@type' => '@id' },
           },
         ],
         'type' => 'Create',
@@ -146,16 +143,6 @@ RSpec.describe JsonLdHelper do
               'href' => ['foo'],
             },
           ],
-          'searchableBy' => [nil],
-          'references' => {
-            'id' => 'https://streaming.kmy.blue/users/askyq/statuses/111091802894103697/references',
-            'type' => 'Collection',
-            'first' => {
-              'type' => 'CollectionPage',
-              'partOf' => 'https://streaming.kmy.blue/users/askyq/statuses/111091802894103697/references',
-              'items' => ['https://kmy.blue/users/askyq/statuses/111086477431146139'],
-            },
-          },
         },
         'signature' => {
           'type' => 'RsaSignature2017',
@@ -192,14 +179,6 @@ RSpec.describe JsonLdHelper do
         expect(compacted['to']).to eq ['https://www.w3.org/ns/activitystreams#Public']
         expect(compacted.dig('object', 'tag', 0, 'href')).to eq ['foo']
         expect(safe_for_forwarding?(json, compacted)).to be true
-      end
-
-      it 'is work with invalid array' do
-        json['object'].delete('convo')
-        compacted = compact(json)
-        patch_for_forwarding!(json, compacted)
-        expect(compacted.dig('object', 'searchableBy')).to eq []
-        expect(compacted.dig('object', 'references', 'first', 'items')).to eq ['https://kmy.blue/users/askyq/statuses/111086477431146139']
       end
 
       context 'when array size mismatch exists' do

@@ -106,6 +106,7 @@ en:
       form_admin_settings:
         activity_api_enabled: Counts of locally published posts, active users, and new registrations in weekly buckets
         app_icon: WEBP, PNG, GIF or JPG. Overrides the default app icon on mobile devices with a custom icon.
+        auto_accept_legacy_quotes: Misskey unconditionally accepts Fedibird-style quotes. Each user's quote permission settings are ignored.
         backups_retention_period: Users have the ability to generate archives of their posts to download later. When set to a positive value, these archives will be automatically deleted from your storage after the specified number of days.
         bootstrap_timeline_accounts: These accounts will be pinned to the top of new users' follow recommendations.
         closed_registrations_message: Displayed when sign-ups are closed
@@ -393,6 +394,7 @@ en:
       form_admin_settings:
         activity_api_enabled: Publish aggregate statistics about user activity in the API
         app_icon: App icon
+        auto_accept_legacy_quotes: Automatically approve old-style citations using a remote server
         backups_retention_period: User archive retention period
         bootstrap_timeline_accounts: Always recommend these accounts to new users
         check_lts_version_only: Check kmyblue LTS version only when update check

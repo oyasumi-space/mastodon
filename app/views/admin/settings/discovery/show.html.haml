@@ -51,6 +51,9 @@
               label: t('admin.settings.allow_referrer_origin.title'),
               wrapper: :with_label
 
+  .fields-group
+    = f.input :auto_accept_legacy_quotes, as: :boolean, wrapper: :with_label, kmyblue: true
+
   %h4= t('admin.settings.discovery.emoji_reactions')
 
   .fields-group

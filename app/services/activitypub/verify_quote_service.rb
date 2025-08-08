@@ -15,6 +15,12 @@ class ActivityPub::VerifyQuoteService < BaseService
     fetch_quoted_post_if_needed!(fetchable_quoted_uri, prefetched_body: prefetched_quoted_object)
 
     return handle_local_quote! if quote.quoted_account&.local?
+
+    if @quote.legacy && Setting.auto_accept_legacy_quotes
+      quote.accept!
+      return
+    end
+
     return if fast_track_approval! || quote.approval_uri.blank?
 
     @json = fetch_approval_object(quote.approval_uri, prefetched_body: prefetched_approval)

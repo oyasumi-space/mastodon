@@ -48,6 +48,7 @@ defaults: &defaults
   enable_local_timeline: true
   emoji_reaction_disallow_domains: []
   allow_referer_origin: false
+  auto_accept_legacy_quotes: false
 
 development:
   <<: *defaults

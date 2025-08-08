@@ -1121,7 +1121,42 @@ RSpec.describe ActivityPub::ProcessStatusUpdateService do
       expect { subject.call(status, json, json) }
         .to change(status, :quote).from(nil)
       expect(status.quote.approval_uri).to be_nil
-      # kmyblue special spec for fedibird/misskey
+      expect(status.quote.state).to eq 'pending'
+    end
+  end
+
+  context 'when the status adds a legacy quote' do
+    let(:quoted_account) { Fabricate(:account, domain: 'quoted.example.com') }
+    let(:quoted_status) { Fabricate(:status, account: quoted_account) }
+    let(:approval_uri) { 'https://quoted.example.com/approvals/1' }
+
+    let(:payload) do
+      {
+        '@context': [
+          'https://www.w3.org/ns/activitystreams',
+        ],
+        id: 'foo',
+        type: 'Note',
+        summary: 'Show more',
+        content: 'Hello universe',
+        updated: '2021-09-08T22:39:25Z',
+        _misskey_quote: ActivityPub::TagManager.instance.uri_for(quoted_status),
+      }
+    end
+
+    it 'updates the approval URI but does not verify the quote' do
+      expect { subject.call(status, json, json) }
+        .to change(status, :quote).from(nil)
+      expect(status.quote.approval_uri).to be_nil
+      expect(status.quote.state).to eq 'pending'
+    end
+
+    it 'updates the approval URI as legacy quote' do
+      Setting.auto_accept_legacy_quotes = true
+
+      expect { subject.call(status, json, json) }
+        .to change(status, :quote).from(nil)
+      expect(status.quote.approval_uri).to be_nil
       expect(status.quote.state).to eq 'accepted'
     end
   end
