@@ -71,7 +71,7 @@ import { attachFullscreenListener, detachFullscreenListener, isFullscreen } from
 
 import ActionBar from './components/action_bar';
 import { DetailedStatus } from './components/detailed_status';
-
+import { RefreshController } from './components/refresh_controller';
 
 const messages = defineMessages({
   revealAll: { id: 'status.show_more_all', defaultMessage: 'Show more for all' },
@@ -614,7 +614,7 @@ class Status extends ImmutablePureComponent {
 
   render () {
     let ancestors, descendants, references, remoteHint;
-    const { isLoading, status, ancestorsIds, descendantsIds, referencesIds, intl, domain, multiColumn, pictureInPicture } = this.props;
+    const { isLoading, status, ancestorsIds, descendantsIds, referencesIds, refresh, intl, domain, multiColumn, pictureInPicture } = this.props;
     const { fullscreen } = this.state;
 
     if (isLoading) {
@@ -648,11 +648,8 @@ class Status extends ImmutablePureComponent {
 
     if (!isLocal) {
       remoteHint = (
-        <TimelineHint
-          className={classNames(!!descendants && 'timeline-hint--with-descendants')}
-          url={status.get('url')}
-          message={<FormattedMessage id='hints.threads.replies_may_be_missing' defaultMessage='Replies from other servers may be missing.' />}
-          label={<FormattedMessage id='hints.threads.see_more' defaultMessage='See more replies on {domain}' values={{ domain: <strong>{status.getIn(['account', 'acct']).split('@')[1]}</strong> }} />}
+        <RefreshController
+          statusId={status.get('id')}
         />
       );
     }
@@ -733,8 +730,8 @@ class Status extends ImmutablePureComponent {
               </div>
             </Hotkeys>
 
-            {descendants}
             {remoteHint}
+            {descendants}
           </div>
         </ScrollContainer>
 

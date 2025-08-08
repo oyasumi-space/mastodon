@@ -36,6 +36,7 @@ class List < ApplicationRecord
   validate :validate_account_lists_limit, on: :create
 
   before_destroy :clean_feed_manager
+  scope :with_list_account, ->(account) { joins(:list_accounts).where(list_accounts: { account: }) }
 
   def favourite!
     update!(favourite: true)

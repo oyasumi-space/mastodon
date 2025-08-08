@@ -25,9 +25,11 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     end
 
     with_redis_lock("create:#{object_uri}") do
-      return if delete_arrived_first?(object_uri) || poll_vote?
+      Status.uncached do
+        return if delete_arrived_first?(object_uri) || poll_vote?
 
-      @status = find_existing_status
+        @status = find_existing_status
+      end
 
       if @status.nil?
         process_status
@@ -77,6 +79,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     resolve_thread(@status)
     resolve_unresolved_mentions(@status)
     fetch_replies(@status)
+    fetch_and_verify_quote
     process_conversation! if @status.limited_visibility?
     process_references!
     distribute
@@ -275,11 +278,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
     @quote.status = status
     @quote.save
-
-    embedded_quote = safe_prefetched_embed(@account, @status_parser.quoted_object, @json['context'])
-    ActivityPub::VerifyQuoteService.new.call(@quote, fetchable_quoted_uri: @quote_uri, prefetched_quoted_object: embedded_quote, request_id: @options[:request_id])
-  rescue Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
-    ActivityPub::RefetchAndVerifyQuoteWorker.perform_in(rand(30..600).seconds, @quote.id, @quote_uri, { 'request_id' => @options[:request_id] })
   end
 
   def process_tags
@@ -301,7 +299,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return if @quote_uri.blank?
 
     approval_uri = @status_parser.quote_approval_uri
-    approval_uri = nil if unsupported_uri_scheme?(approval_uri)
+    approval_uri = nil if unsupported_uri_scheme?(approval_uri) || TagManager.instance.local_url?(approval_uri)
     @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
   end
 
@@ -479,6 +477,15 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def conversation_from_activity
     conversation_from_context(@object['context']) || conversation_from_uri(@object['conversation'])
+  end
+
+  def fetch_and_verify_quote
+    return if @quote.nil?
+
+    embedded_quote = safe_prefetched_embed(@account, @status_parser.quoted_object, @json['context'])
+    ActivityPub::VerifyQuoteService.new.call(@quote, fetchable_quoted_uri: @quote_uri, prefetched_quoted_object: embedded_quote, request_id: @options[:request_id], depth: @options[:depth])
+  rescue Mastodon::RecursionLimitExceededError, Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
+    ActivityPub::RefetchAndVerifyQuoteWorker.perform_in(rand(30..600).seconds, @quote.id, @quote_uri, { 'request_id' => @options[:request_id] })
   end
 
   def conversation_from_uri(uri)

@@ -50,17 +50,11 @@ class Status < ApplicationRecord
   include Status::ThreadingConcern
   include Status::Visibility
   include DtlHelper
+  include Status::InteractionPolicyConcern
 
   MEDIA_ATTACHMENTS_LIMIT = 4
   MEDIA_ATTACHMENTS_LIMIT_WITH_POLL = 4
   MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE = 16
-
-  QUOTE_APPROVAL_POLICY_FLAGS = {
-    unknown: (1 << 0),
-    public: (1 << 1),
-    followers: (1 << 2),
-    followed: (1 << 3),
-  }.freeze
 
   rate_limit by: :account, family: :statuses
 
@@ -94,7 +88,8 @@ class Status < ApplicationRecord
   has_many :replies, foreign_key: 'in_reply_to_id', class_name: 'Status', inverse_of: :thread, dependent: nil
   has_many :mentions, dependent: :destroy, inverse_of: :status
   has_many :mentioned_accounts, through: :mentions, source: :account, class_name: 'Account'
-  has_many :media_attachments, dependent: :nullify, inverse_of: false
+  has_many :media_attachments, dependent: :nullify
+  has_many :quotes, foreign_key: 'quoted_status_id', inverse_of: :quoted_status, dependent: :nullify
   has_many :reference_objects, class_name: 'StatusReference', inverse_of: :status, dependent: :destroy
   has_many :references, through: :reference_objects, class_name: 'Status', source: :target_status
   has_many :referenced_by_status_objects, foreign_key: 'target_status_id', class_name: 'StatusReference', inverse_of: :target_status, dependent: :destroy

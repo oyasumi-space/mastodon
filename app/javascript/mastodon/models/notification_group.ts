@@ -61,6 +61,7 @@ export type NotificationGroupListStatus =
 export type NotificationGroupMention = BaseNotificationWithStatus<'mention'>;
 export type NotificationGroupStatusReference =
   BaseNotificationWithStatus<'status_reference'>;
+export type NotificationGroupQuote = BaseNotificationWithStatus<'quote'>;
 export type NotificationGroupPoll = BaseNotificationWithStatus<'poll'>;
 export type NotificationGroupUpdate = BaseNotificationWithStatus<'update'>;
 export type NotificationGroupFollow = BaseNotification<'follow'>;
@@ -116,6 +117,7 @@ export type NotificationGroup =
   | NotificationGroupListStatus
   | NotificationGroupMention
   | NotificationGroupStatusReference
+  | NotificationGroupQuote
   | NotificationGroupPoll
   | NotificationGroupUpdate
   | NotificationGroupFollow
@@ -182,6 +184,7 @@ export function createNotificationGroupFromJSON(
     case 'list_status':
     case 'mention':
     case 'status_reference':
+    case 'quote':
     case 'poll':
     case 'update': {
       const { status_id: statusId, ...groupWithoutStatus } = group;
@@ -279,6 +282,7 @@ export function createNotificationGroupFromNotificationJSON(
     case 'status':
     case 'mention':
     case 'status_reference':
+    case 'quote':
     case 'poll':
     case 'update':
       return {

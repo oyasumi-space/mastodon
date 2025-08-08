@@ -1621,7 +1621,7 @@ RSpec.describe ActivityPub::Activity::Create do
       end
 
       context 'with an unverifiable quote of a known post' do
-        let(:quoted_status) { Fabricate(:status) }
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
 
         let(:object_json) do
           build_object(
@@ -1637,7 +1637,44 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
-          # kmyblue special spec for fedibird/misskey
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
+        end
+      end
+
+      context 'with a legacy quote of a known post' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            _misskey_quote: ActivityPub::TagManager.instance.uri_for(quoted_status)
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
+        end
+
+        it 'creates a status with an unverified quote with auto accepting' do
+          Setting.auto_accept_legacy_quotes = true
+
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
           expect(status.quote).to have_attributes(
             state: 'accepted',
             approval_uri: nil
@@ -1666,9 +1703,8 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
-          # kmyblue special spec for fedibird/misskey
           expect(status.quote).to have_attributes(
-            state: 'accepted',
+            state: 'pending',
             approval_uri: nil
           )
         end

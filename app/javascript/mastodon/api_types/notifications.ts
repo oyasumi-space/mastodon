@@ -16,6 +16,7 @@ export const allNotificationTypes = [
   'reblog',
   'mention',
   'status_reference',
+  'quote',
   'poll',
   'status',
   'list_status',
@@ -35,6 +36,7 @@ export type NotificationWithStatusType =
   | 'list_status'
   | 'mention'
   | 'status_reference'
+  | 'quote'
   | 'poll'
   | 'update';
 

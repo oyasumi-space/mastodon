@@ -63,7 +63,6 @@ ja:
         setting_always_send_emails: 通常、Mastodon からメール通知は行われません。
         setting_bookmark_category_needed: すべてのカテゴリから削除したとき、ブックマークが自動で外れるようになります
         setting_custom_css_lead: '必ず覚えてください: 万が一カスタムCSSの入力を誤り、画面が正常に表示されなくなった場合は、サインイン画面の下にあるリンクよりカスタムCSSを無効化することができます。ブラウザのプライベートモードなどでサインイン画面を開き、無効化してください。'
-        setting_default_quote_policy: メンションされたユーザーが常にその投稿を引用できるようになる。 この設定はMastodonの次のバージョンからしか効力を発揮しませんが、現時点で設定を選択しておくことができます
         setting_default_searchability: kmyblue・Fedibirdでは検索許可設定に基づき検索されます。Misskeyでは当設定に関係なく、全ての公開・ローカル公開・非収載投稿が検索されます。Mastodon・Firefishでは検索許可の代わりにプロフィール設定の「公開投稿を他のサーバーで自由に検索できるようにする」設定が適用されます
         setting_default_sensitive: 閲覧注意状態のメディアはデフォルトでは内容が伏せられ、クリックして初めて閲覧できるようになります
         setting_disallow_unlisted_public_searchability: この設定を有効にすると、非収載投稿と検索範囲「誰でも」は両立できず不特定多数からの検索が不可になります。Fedibirdと同じ挙動になります
@@ -105,6 +104,7 @@ ja:
       form_admin_settings:
         activity_api_enabled: 週単位でローカルで公開された投稿数、アクティブユーザー数、新規登録者数を表示します
         app_icon: モバイル端末で表示されるデフォルトのアプリアイコンを独自のアイコンで上書きします。WEBP、PNG、GIF、JPGが利用可能です。
+        auto_accept_legacy_quotes: Misskey、Fedibird形式の引用を無条件で承認します。各ユーザーの引用許可設定は無視されます
         backups_retention_period: ユーザーには、後でダウンロードするために投稿のアーカイブを生成する機能があります。正の値に設定すると、これらのアーカイブは指定された日数後に自動的にストレージから削除されます。
         bootstrap_timeline_accounts: これらのアカウントは、新しいユーザー向けのおすすめユーザーの一番上にピン留めされます。
         closed_registrations_message: アカウント作成を停止している時に表示されます
@@ -384,6 +384,7 @@ ja:
       form_admin_settings:
         activity_api_enabled: APIでユーザーアクティビティに関する集計統計を公開する
         app_icon: アプリアイコン
+        auto_accept_legacy_quotes: リモートサーバーによる旧形式の引用を自動で承認する
         backups_retention_period: ユーザーアーカイブの保持期間
         bootstrap_timeline_accounts: おすすめユーザーに常に表示するアカウント
         check_lts_version_only: 更新チェックの時、LTSバージョンのみ確認する

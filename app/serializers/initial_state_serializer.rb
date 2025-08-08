@@ -49,6 +49,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       ].compact
       store[:enabled_visibilities] = enabled_visibilities
       store[:featured_tags] = object.current_account.featured_tags.pluck(:name)
+      store[:emoji_style] = object_account_user.settings['web.emoji_style'] if Mastodon::Feature.modern_emojis_enabled?
     else
       store[:auto_play_gif] = Setting.auto_play_gif
       store[:display_media] = Setting.display_media
