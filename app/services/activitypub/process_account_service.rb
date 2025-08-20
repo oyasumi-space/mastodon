@@ -341,7 +341,9 @@ class ActivityPub::ProcessAccountService < BaseService
   end
 
   def instance_info
-    @instance_info ||= InstanceInfo.find_by(domain: @domain)
+    return @instance_info if defined?(@instance_info)
+
+    @instance_info = InstanceInfo.find_by(domain: @domain)
   end
 
   def invalid_subscription_software?

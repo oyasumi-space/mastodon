@@ -315,6 +315,17 @@ class Status extends ImmutablePureComponent {
     }
   };
 
+  handleRevokeQuoteClick = (status) => {
+    const { dispatch } = this.props;
+
+    dispatch(openModal({ modalType: 'CONFIRM_REVOKE_QUOTE', modalProps: { statusId: status.get('id'), quotedStatusId: status.getIn(['quote', 'quoted_status']) }}));
+  };
+
+  handleQuotePolicyChange = (status) => {
+    const { dispatch } = this.props;
+    dispatch(openModal({ modalType: 'COMPOSE_PRIVACY', modalProps: { statusId: status.get('id') } }));
+  };
+
   handleEditClick = (status) => {
     const { dispatch, askReplyConfirmation } = this.props;
 
@@ -713,6 +724,8 @@ class Status extends ImmutablePureComponent {
                   onBookmark={this.handleBookmarkClick}
                   onBookmarkCategoryAdder={this.handleBookmarkCategoryAdderClick}
                   onDelete={this.handleDeleteClick}
+                  onRevokeQuote={this.handleRevokeQuoteClick}
+                  onQuotePolicyChange={this.handleQuotePolicyChange}
                   onEdit={this.handleEditClick}
                   onDirect={this.handleDirectClick}
                   onMention={this.handleMentionClick}
