@@ -30,6 +30,7 @@ import { IconButton } from '../../../components/icon_button';
 import { Dropdown } from 'mastodon/components/dropdown_menu';
 import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem, boostMenu, boostModal } from '../../../initial_state';
 import EmojiPickerDropdown from '../../compose/containers/emoji_picker_dropdown_container';
+import { isFeatureEnabled } from '@/mastodon/utils/environment';
 
 const messages = defineMessages({
   delete: { id: 'status.delete', defaultMessage: 'Delete' },
@@ -72,17 +73,24 @@ const messages = defineMessages({
   unblock: { id: 'account.unblock', defaultMessage: 'Unblock @{name}' },
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
   pickEmoji: { id: 'status.emoji_reaction.pick', defaultMessage: 'Pick emoji' },
+  revokeQuote: { id: 'status.revoke_quote', defaultMessage: 'Remove my post from @{name}’s post' },
+  quotePolicyChange: { id: 'status.quote_policy_change', defaultMessage: 'Change who can quote' },
 });
 
-const mapStateToProps = (state, { status }) => ({
-  relationship: state.getIn(['relationships', status.getIn(['account', 'id'])]),
-});
+const mapStateToProps = (state, { status }) => {
+  const quotedStatusId = status.getIn(['quote', 'quoted_status']);
+  return ({
+    relationship: state.getIn(['relationships', status.getIn(['account', 'id'])]),
+    quotedAccountId: quotedStatusId ? state.getIn(['statuses', quotedStatusId, 'account']) : null,
+  });
+};
 
 class ActionBar extends PureComponent {
   static propTypes = {
     identity: identityContextPropShape,
     status: ImmutablePropTypes.map.isRequired,
     relationship: ImmutablePropTypes.record,
+    quotedAccountId: ImmutablePropTypes.string,
     onReply: PropTypes.func.isRequired,
     onReblog: PropTypes.func.isRequired,
     onReblogForceModal: PropTypes.func.isRequired,
@@ -93,6 +101,8 @@ class ActionBar extends PureComponent {
     onBookmark: PropTypes.func.isRequired,
     onBookmarkCategoryAdder: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
+    onRevokeQuote: PropTypes.func,
+    onQuotePolicyChange: PropTypes.func,
     onEdit: PropTypes.func.isRequired,
     onDirect: PropTypes.func.isRequired,
     onMention: PropTypes.func.isRequired,
@@ -140,6 +150,14 @@ class ActionBar extends PureComponent {
 
   handleDeleteClick = () => {
     this.props.onDelete(this.props.status);
+  };
+
+  handleRevokeQuoteClick = () => {
+    this.props.onRevokeQuote(this.props.status);
+  };
+
+  handleQuotePolicyChange = () => {
+    this.props.onQuotePolicyChange(this.props.status);
   };
 
   handleRedraftClick = () => {
@@ -234,7 +252,7 @@ class ActionBar extends PureComponent {
   };
 
   render () {
-    const { status, relationship, intl } = this.props;
+    const { status, relationship, quotedAccountId, intl } = this.props;
     const { signedIn, permissions } = this.props.identity;
 
     const publicStatus       = ['public', 'unlisted', 'public_unlisted', 'login'].includes(status.get('visibility_ex'));
@@ -289,6 +307,9 @@ class ActionBar extends PureComponent {
         }
         
         menu.push({ text: intl.formatMessage(mutingConversation ? messages.unmuteConversation : messages.muteConversation), action: this.handleConversationMuteClick });
+        if (isFeatureEnabled('outgoing_quotes') && !['private', 'direct'].includes(status.get('visibility'))) {
+          menu.push({ text: intl.formatMessage(messages.quotePolicyChange), action: this.handleQuotePolicyChange });
+        }
         menu.push(null);
         menu.push({ text: intl.formatMessage(messages.edit), action: this.handleEditClick });
         menu.push({ text: intl.formatMessage(messages.delete), action: this.handleDeleteClick, dangerous: true });
@@ -296,6 +317,10 @@ class ActionBar extends PureComponent {
       } else {
         menu.push({ text: intl.formatMessage(messages.mention, { name: status.getIn(['account', 'username']) }), action: this.handleMentionClick });
         menu.push(null);
+
+        if (quotedAccountId === me) {
+          menu.push({ text: intl.formatMessage(messages.revokeQuote, { name: account.get('username') }), action: this.handleRevokeQuoteClick, dangerous: true });
+        }
 
         if (relationship && relationship.get('muting')) {
           menu.push({ text: intl.formatMessage(messages.unmute, { name: account.get('username') }), action: this.handleMuteClick });

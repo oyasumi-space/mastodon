@@ -205,6 +205,7 @@ class UpdateStatusService < BaseService
     @status.markdown     = @options[:markdown] || false
     @status.sensitive    = @options[:sensitive] || @options[:spoiler_text].present? if @options.key?(:sensitive) || @options.key?(:spoiler_text)
     @status.language     = valid_locale_cascade(@options[:language], @status.language, @status.account.user&.preferred_posting_language, I18n.default_locale)
+    @status.quote_approval_policy = @options[:quote_approval_policy] if @options[:quote_approval_policy].present?
     process_sensitive_words
 
     # We raise here to rollback the entire transaction
