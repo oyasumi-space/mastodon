@@ -490,7 +490,7 @@ RSpec.describe Auth::RegistrationsController do
         post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
       end
 
-      shared_examples 'registration with time' do |header, start_hour_val, end_hour_val, secondary_start_hour_val, secondary_end_hour_val, result| # rubocop:disable Metrics/ParameterLists
+      shared_examples 'registration with time' do |header, start_hour_val, end_hour_val, secondary_start_hour_val, secondary_end_hour_val, result|
         context header do
           let(:start_hour) { start_hour_val }
           let(:end_hour) { end_hour_val }

@@ -4,6 +4,7 @@ import type { ApiAccountJSON } from './accounts';
 import type { ApiCustomEmojiJSON } from './custom_emoji';
 import type { ApiMediaAttachmentJSON } from './media_attachments';
 import type { ApiPollJSON } from './polls';
+import type { ApiQuoteJSON, ApiQuotePolicyJSON } from './quotes';
 
 // See app/modals/status.rb visibility+limited_scope
 export type StatusVisibility =
@@ -18,6 +19,13 @@ export type StatusVisibility =
   | 'personal'
   | 'reply'
   | 'limited';
+
+export type StatusSearchability =
+  | 'public'
+  | 'private'
+  | 'direct'
+  | 'limited'
+  | 'public_unlisted';
 
 export interface ApiStatusApplicationJSON {
   name: string;
@@ -95,12 +103,14 @@ export interface ApiStatusJSON {
   sensitive: boolean;
   spoiler_text?: string;
   visibility: StatusVisibility;
+  searchability: StatusSearchability;
   language: string;
   uri: string;
   url: string;
   replies_count: number;
   reblogs_count: number;
   favorites_count: number;
+  quotes_count: number;
   edited_at?: string;
 
   favorited?: boolean;
@@ -124,10 +134,44 @@ export interface ApiStatusJSON {
 
   card?: ApiPreviewCardJSON;
   poll?: ApiPollJSON;
+  quote?: ApiQuoteJSON;
+  quote_approval?: ApiQuotePolicyJSON;
 }
 
 export interface ApiContextJSON {
   ancestors: ApiStatusJSON[];
   descendants: ApiStatusJSON[];
   references: ApiStatusJSON[];
+}
+
+export interface ApiStatusSourceJSON {
+  id: string;
+  text: string;
+  spoiler_text: string;
+}
+
+export function isStatusVisibility(
+  visibility: string,
+): visibility is StatusVisibility {
+  return [
+    'public',
+    'unlisted',
+    'private',
+    'direct',
+    'public_unlisted',
+    'login',
+    'circle',
+    'mutual',
+    'limited',
+    'personal',
+    'reply',
+  ].includes(visibility);
+}
+
+export function isStatusSearchability(
+  searchability: string,
+): searchability is StatusSearchability {
+  return ['public', 'private', 'direct', 'limited', 'public_unlisted'].includes(
+    searchability,
+  );
 }

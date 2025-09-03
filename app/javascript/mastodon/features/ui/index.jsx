@@ -93,8 +93,10 @@ import {
   ReactionDeck,
   TermsOfService,
   AccountFeatured,
+  Quotes,
 } from './util/async-components';
 import { ColumnsContextProvider } from './util/columns_context';
+import { focusColumn, getFocusedItemIndex, focusItemSibling } from './util/focusUtils';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
 
 // Dummy import, to make sure that <Status /> ends up in the application bundle.
@@ -246,6 +248,7 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/@:acct/:statusId/emoji_reactions' component={EmojiReactions} content={children} />
             <WrappedRoute path='/@:acct/:statusId/references' component={StatusReferences} content={children} />
             <WrappedRoute path='/@:acct/:statusId/mentioned_users' component={MentionedUsers} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/quotes' component={Quotes} content={children} />
 
             {/* Legacy routes, cannot be easily factored with other routes because they share a param name */}
             <WrappedRoute path='/timelines/tag/:id' component={HashtagTimeline} content={children} />
@@ -489,20 +492,34 @@ class UI extends PureComponent {
   };
 
   handleHotkeyFocusColumn = e => {
-    const index  = (e.key * 1) + 1; // First child is drawer, skip that
-    const column = this.node.querySelector(`.column:nth-child(${index})`);
-    if (!column) return;
-    const container = column.querySelector('.scrollable');
+    focusColumn({index: e.key * 1});
+  };
 
-    if (container) {
-      const status = container.querySelector('.focusable');
+  handleHotkeyLoadMore = () => {
+    document.querySelector('.load-more')?.focus();
+  };
 
-      if (status) {
-        if (container.scrollTop > status.offsetTop) {
-          status.scrollIntoView(true);
-        }
-        status.focus();
-      }
+  handleMoveUp = () => {
+    const currentItemIndex = getFocusedItemIndex();
+    if (currentItemIndex === -1) {
+      focusColumn({
+        index: 1,
+        focusItem: 'first-visible',
+      });
+    } else {
+      focusItemSibling(currentItemIndex, -1);
+    }
+  };
+
+  handleMoveDown = () => {
+    const currentItemIndex = getFocusedItemIndex();
+    if (currentItemIndex === -1) {
+      focusColumn({
+        index: 1,
+        focusItem: 'first-visible',
+      });
+    } else {
+      focusItemSibling(currentItemIndex, 1);
     }
   };
 
@@ -589,6 +606,9 @@ class UI extends PureComponent {
       forceNew: this.handleHotkeyForceNew,
       toggleComposeSpoilers: this.handleHotkeyToggleComposeSpoilers,
       focusColumn: this.handleHotkeyFocusColumn,
+      focusLoadMore: this.handleHotkeyLoadMore,
+      moveDown: this.handleMoveDown,
+      moveUp: this.handleMoveUp,
       back: this.handleHotkeyBack,
       goToHome: this.handleHotkeyGoToHome,
       goToNotifications: this.handleHotkeyGoToNotifications,

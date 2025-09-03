@@ -146,7 +146,8 @@ class StatusPolicy < ApplicationPolicy
   end
 
   def server_blocking_domain_of_status?(status)
-    @domain_block ||= DomainBlock.find_by(domain: current_account&.domain)
+    @domain_block = DomainBlock.find_by(domain: current_account&.domain) unless defined?(@domain_block)
+
     if @domain_block
       (@domain_block.detect_invalid_subscription && status.sending_maybe_compromised_privacy?) ||
         (@domain_block.reject_send_sensitive && status.sending_sensitive?)

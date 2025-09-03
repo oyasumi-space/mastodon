@@ -14,7 +14,7 @@ class ActivityPub::VerifyQuoteService < BaseService
 
     fetch_quoted_post_if_needed!(fetchable_quoted_uri, prefetched_body: prefetched_quoted_object)
 
-    return handle_local_quote! if quote.quoted_account&.local?
+    return if quote.quoted_account&.local?
 
     if @quote.legacy && Setting.auto_accept_legacy_quotes
       quote.accept!
@@ -41,15 +41,6 @@ class ActivityPub::VerifyQuoteService < BaseService
   end
 
   private
-
-  def handle_local_quote!
-    @quote.update!(approval_uri: nil)
-    if StatusPolicy.new(@quote.account, @quote.quoted_status).quote?
-      @quote.accept!
-    else
-      @quote.reject!
-    end
-  end
 
   # FEP-044f defines rules that don't require the approval flow
   def fast_track_approval!

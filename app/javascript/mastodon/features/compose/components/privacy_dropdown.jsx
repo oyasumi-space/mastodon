@@ -22,7 +22,7 @@ import { DropdownSelector } from 'mastodon/components/dropdown_selector';
 import { Icon }  from 'mastodon/components/icon';
 import { enabledVisibilites } from 'mastodon/initial_state';
 
-const messages = defineMessages({
+export const messages = defineMessages({
   public_short: { id: 'privacy.public.short', defaultMessage: 'Public' },
   public_long: { id: 'privacy.public.long', defaultMessage: 'Anyone on and off Mastodon' },
   unlisted_short: { id: 'privacy.unlisted.short', defaultMessage: 'Quiet public' },
@@ -36,6 +36,7 @@ const messages = defineMessages({
   limited_short: { id: 'privacy.limited.short', defaultMessage: 'Limited' },
   mutual_short: { id: 'privacy.mutual.short', defaultMessage: 'Mutual' },
   mutual_long: { id: 'privacy.mutual.long', defaultMessage: 'Mutual follows only' },
+  personal_short: { id: 'privacy.personal.short', defaultMessage: 'Yourself only' },
   circle_short: { id: 'privacy.circle.short', defaultMessage: 'Circle' },
   circle_long: { id: 'privacy.circle.long', defaultMessage: 'Circle members only' },
   reply_short: { id: 'privacy.reply.short', defaultMessage: 'Reply' },

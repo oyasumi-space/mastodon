@@ -391,7 +391,7 @@ en:
       title: Custom emojis
       uncategorized: Uncategorized
       unlist: Unlist
-      unlisted: Unlisted
+      unlisted: Quiet public
       update_failed_msg: Could not update that emoji
       updated_msg: Emoji successfully updated!
       upload: Upload
@@ -2049,6 +2049,9 @@ en:
       self_vote: You cannot vote in your own polls
       too_few_options: must have more than one item
       too_many_options: can't contain more than %{max} items
+    vote: Vote
+  posting_defaults:
+    explanation: These settings will be used as defaults when you create new posts, but you can edit them per post within the composer.
   preferences:
     custom_css: Custom css
     does_not_search: The full-text search feature is not available on this server. Instead, your posts will be searched according to this setting on other kmyblue servers.
@@ -2262,13 +2265,16 @@ en:
       public_unlisted: Local and followers
       public_unlisted_long: Local users and followers can find
       unset: "(Unsupported servers)"
+      followers: Followers only
+      nobody: Just me
+      public: Anyone
     title: '%{name}: "%{quote}"'
     too_many_hashtags: Too many hashtags
     too_many_mentions: Too many mentions
     violate_rules: Violate NG rules
     visibilities:
       circle: Circle-only
-      direct: Direct
+      direct: Private mention
       limited: Limited
       login: Login-only
       login_long: Only logined users
@@ -2276,12 +2282,12 @@ en:
       private: Followers-only
       private_long: Only show to followers
       public: Public
-      public_long: Everyone can see
+      public_long: Anyone on and off Mastodon
       public_unlisted: Local-public
-      public_unlisted_long: Everyone can see, but not listed on public timelines of other servers
+      public_unlisted_long: Anyone on and off Mastodon, but not listed on public timelines of other servers
       reply: Reply
-      unlisted: Quiet Public (Unlisted)
-      unlisted_long: Everyone can see, but not listed on public timelines
+      unlisted: Unlisted
+      unlisted_long: Hidden from Mastodon search results, trending, and public timelines
       unset: Default
       unset_long: Following Mastodon default behavior
   statuses_cleanup:

@@ -21,6 +21,7 @@ class PostStatusService < BaseService
   # @option [String] :text Message
   # @option [Status] :thread Optional status to reply to
   # @option [Status] :quoted_status Optional status to quote
+  # @option [String] :quote_approval_policy Approval policy for quotes, one of `public`, `followers` or `nobody`
   # @option [Boolean] :sensitive
   # @option [String] :visibility
   # @option [Boolean] :force_visibility
@@ -43,8 +44,6 @@ class PostStatusService < BaseService
     @text        = @options[:text] || ''
     @in_reply_to = @options[:thread]
     @quoted_status = @options[:quoted_status] || quoted_status_from_text
-
-    @antispam = Antispam.new
 
     return idempotency_duplicate if idempotency_given? && idempotency_duplicate?
 
@@ -104,6 +103,7 @@ class PostStatusService < BaseService
     v = :unlisted if %i(public public_unlisted login).include?(v) && @account.silenced?
     v = :public_unlisted if v == :public && !@options[:force_visibility] && !@options[:application]&.superapp && @account.user&.setting_public_post_to_unlisted && Setting.enable_public_unlisted_visibility
     v = Setting.enable_public_unlisted_visibility ? :public_unlisted : :unlisted if !Setting.enable_public_visibility && v == :public
+    v = :private if @quoted_status&.private_visibility?
     v
   end
 
@@ -168,7 +168,9 @@ class PostStatusService < BaseService
     UpdateStatusExpirationService.new.call(@status)
 
     attach_quote!(@status)
-    @antispam.local_preflight_check!(@status)
+
+    antispam = Antispam.new(@status)
+    antispam.local_preflight_check!
 
     # The following transaction block is needed to wrap the UPDATEs to
     # the media attachments when the status is created
@@ -200,7 +202,9 @@ class PostStatusService < BaseService
 
   def schedule_status!
     status_for_validation = @account.statuses.build(status_attributes)
-    @antispam.local_preflight_check!(status_for_validation)
+
+    antispam = Antispam.new(status_for_validation)
+    antispam.local_preflight_check!
 
     if status_for_validation.valid?
       # Marking the status as destroyed is necessary to prevent the status from being
@@ -385,6 +389,7 @@ class PostStatusService < BaseService
       language: valid_locale_cascade(@options[:language], @account.user&.preferred_posting_language, I18n.default_locale),
       application: @options[:application],
       rate_limit: @options[:with_rate_limit],
+      quote_approval_policy: @options[:quote_approval_policy],
     }.compact
   end
 

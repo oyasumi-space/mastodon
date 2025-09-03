@@ -13,6 +13,7 @@ import {
   directCompose,
   insertReferenceCompose,
 } from '../actions/compose';
+import { quoteComposeById } from '../actions/compose_typed';
 import {
   initDomainBlockModal,
   unblockDomain,
@@ -44,9 +45,12 @@ import {
   translateStatus,
   undoStatusTranslation,
 } from '../actions/statuses';
+import { setStatusQuotePolicy } from '../actions/statuses_typed';
 import Status from '../components/status';
 import { deleteModal } from '../initial_state';
 import { makeGetStatus, makeGetPictureInPicture } from '../selectors';
+
+import { isFeatureEnabled } from 'mastodon/utils/environment';
 
 const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
@@ -83,6 +87,12 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
 
   onReblogForceModal (status) {
     dispatch(toggleReblog(status.get('id'), false, true));
+  },
+  
+  onQuote (status) {
+    if (isFeatureEnabled('outgoing_quotes')) {
+      dispatch(quoteComposeById(status.get('id')));
+    }
   },
 
   onFavourite (status) {
@@ -133,8 +143,28 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     if (!deleteModal) {
       dispatch(deleteStatus(status.get('id'), withRedraft));
     } else {
-      dispatch(openModal({ modalType: 'CONFIRM_DELETE_STATUS', modalProps: { statusId: status.get('id'), withRedraft } }));
+      dispatch(openModal({
+        modalType: 'CONFIRM_DELETE_STATUS',
+        modalProps: {
+          statusId: status.get('id'),
+          withRedraft
+        }
+      }));
     }
+  },
+
+  onRevokeQuote (status) {
+    dispatch(openModal({ modalType: 'CONFIRM_REVOKE_QUOTE', modalProps: { statusId: status.get('id'), quotedStatusId: status.getIn(['quote', 'quoted_status']) }}));
+  },
+
+  onQuotePolicyChange(status) {
+    const statusId = status.get('id');
+    const handleChange = (_, quotePolicy) => {
+      dispatch(
+        setStatusQuotePolicy({ policy: quotePolicy, statusId }),
+      );
+    }
+    dispatch(openModal({ modalType: 'COMPOSE_PRIVACY', modalProps: { statusId, onChange: handleChange } }));
   },
 
   onEdit (status) {
@@ -148,12 +178,12 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     });
   },
 
-  onReference (status, router) {
-    dispatch(insertReferenceCompose(0, status.get('url'), 'BT', router));
+  onReference (status) {
+    dispatch(insertReferenceCompose(0, status.get('url'), 'BT'));
   },
 
-  onInsertQuoteLink (status, router) {
-    dispatch(insertReferenceCompose(0, status.get('url'), 'QT', router));
+  onInsertQuoteLink (status) {
+    dispatch(insertReferenceCompose(0, status.get('url'), 'QT'));
   },
 
   onTranslate (status) {

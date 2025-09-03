@@ -2,11 +2,11 @@
 
 module NgRuleHelper
   def check_invalid_status_for_ng_rule!(account, **options)
-    (check_for_ng_rule!(account, **options) { |rule| !rule.check_status_or_record! }).none?
+    check_for_ng_rule!(account, **options) { |rule| !rule.check_status_or_record! }.none?
   end
 
   def check_invalid_reaction_for_ng_rule!(account, **options)
-    (check_for_ng_rule!(account, **options) { |rule| !rule.check_reaction_or_record! }).none?
+    check_for_ng_rule!(account, **options) { |rule| !rule.check_reaction_or_record! }.none?
   end
 
   private

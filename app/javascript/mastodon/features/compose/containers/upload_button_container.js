@@ -10,6 +10,7 @@ const mapStateToProps = state => {
   const attachmentsSize = readyAttachmentsSize + pendingAttachmentsSize;
   const isOverLimit = attachmentsSize > state.getIn(['server', 'server', 'configuration', 'statuses', 'max_media_attachments'])-1;
   const hasVideoOrAudio = state.getIn(['compose', 'media_attachments']).some(m => ['video', 'audio'].includes(m.get('type')));
+  const hasQuote = !!state.compose.get('quoted_status_id');
 
   return {
     disabled: isUploading || isOverLimit || hasVideoOrAudio,

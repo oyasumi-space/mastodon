@@ -93,6 +93,9 @@ class Notification < ApplicationRecord
     quote: {
       filterable: true,
     }.freeze,
+    quoted_update: {
+      filterable: false,
+    }.freeze,
   }.freeze
 
   TYPES = PROPERTIES.keys.freeze
@@ -109,6 +112,7 @@ class Notification < ApplicationRecord
     reaction: [emoji_reaction: :status],
     poll: [poll: :status],
     update: :status,
+    quoted_update: :status,
     'admin.report': [report: :target_account],
   }.freeze
 
@@ -143,7 +147,7 @@ class Notification < ApplicationRecord
 
   def target_status
     case type
-    when :status, :update
+    when :status, :update, :quoted_update
       status
     when :list_status
       list_status&.status
@@ -201,7 +205,7 @@ class Notification < ApplicationRecord
         cached_status = cached_statuses_by_id[notification.target_status.id]
 
         case notification.type
-        when :status, :update
+        when :status, :update, :quoted_update
           notification.status = cached_status
         when :list_status
           notification.list_status.status = cached_status
@@ -237,7 +241,9 @@ class Notification < ApplicationRecord
     return unless new_record?
 
     case activity_type
-    when 'Status', 'Follow', 'Favourite', 'EmojiReaction', 'EmojiReact', 'FollowRequest', 'Poll', 'Report', 'Quote'
+    when 'Status'
+      self.from_account_id = type == :quoted_update ? activity&.quote&.quoted_account_id : activity&.account_id
+    when 'Follow', 'Favourite', 'EmojiReaction', 'EmojiReact', 'FollowRequest', 'Poll', 'Report', 'Quote'
       self.from_account_id = activity&.account_id
     when 'Mention', 'StatusReference', 'ListStatus'
       self.from_account_id = activity&.status&.account_id

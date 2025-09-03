@@ -279,6 +279,10 @@ module User::HasSettings
     settings['web.use_custom_css']
   end
 
+  def setting_default_quote_policy
+    settings['default_quote_policy'] || 'public'
+  end
+
   def allows_report_emails?
     settings['notification_emails.report']
   end

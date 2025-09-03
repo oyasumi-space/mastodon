@@ -1,11 +1,14 @@
+import { defineMessages } from 'react-intl';
+
 import { browserHistory } from 'mastodon/components/router';
 import { me } from 'mastodon/initial_state';
 
 import api from '../api';
 
 import { fetchRelationships } from './accounts';
+import { showAlert } from './alerts';
 import { ensureComposeIsVisible, setComposeToStatus } from './compose';
-import { importFetchedStatus, importFetchedStatuses, importFetchedAccount } from './importer';
+import { importFetchedStatus, importFetchedAccount } from './importer';
 import { fetchContext } from './statuses_typed';
 import { deleteFromTimelines } from './timelines';
 
@@ -44,6 +47,10 @@ export const STATUS_TRANSLATE_UNDO    = 'STATUS_TRANSLATE_UNDO';
 
 export const STATUS_EMOJI_REACTION_UPDATE = 'STATUS_EMOJI_REACTION_UPDATE';
 
+const messages = defineMessages({
+  deleteSuccess: { id: 'status.delete.success', defaultMessage: 'Post deleted' },
+});
+
 export function fetchStatusRequest(id, skipLoading) {
   return {
     type: STATUS_FETCH_REQUEST,
@@ -52,7 +59,18 @@ export function fetchStatusRequest(id, skipLoading) {
   };
 }
 
-export function fetchStatus(id, forceFetch = false, alsoFetchContext = true) {
+/**
+ * @param {string} id
+ * @param {Object} [options]
+ * @param {boolean} [options.forceFetch]
+ * @param {boolean} [options.alsoFetchContext]
+ * @param {string | null | undefined} [options.parentQuotePostId]
+ */
+export function fetchStatus(id, {
+  forceFetch = false,
+  alsoFetchContext = true,
+  parentQuotePostId,
+} = {}) {
   return (dispatch, getState) => {
     const skipLoading = !forceFetch && getState().getIn(['statuses', id], null) !== null;
 
@@ -76,7 +94,7 @@ export function fetchStatus(id, forceFetch = false, alsoFetchContext = true) {
 
       dispatch(fetchStatusSuccess(skipLoading));
     }).catch(error => {
-      dispatch(fetchStatusFail(id, error, skipLoading));
+      dispatch(fetchStatusFail(id, error, skipLoading, parentQuotePostId));
     });
   };
 }
@@ -88,21 +106,27 @@ export function fetchStatusSuccess(skipLoading) {
   };
 }
 
-export function fetchStatusFail(id, error, skipLoading) {
+export function fetchStatusFail(id, error, skipLoading, parentQuotePostId) {
   return {
     type: STATUS_FETCH_FAIL,
     id,
     error,
+    parentQuotePostId,
     skipLoading,
     skipAlert: true,
   };
 }
 
 export function redraft(status, raw_text) {
-  return {
-    type: REDRAFT,
-    status,
-    raw_text,
+  return (dispatch, getState) => {
+    const maxOptions = getState().server.getIn(['server', 'configuration', 'polls', 'max_options']);
+
+    dispatch({
+      type: REDRAFT,
+      status,
+      raw_text,
+      maxOptions,
+    });
   };
 }
 
@@ -147,7 +171,7 @@ export function deleteStatus(id, withRedraft = false) {
 
     dispatch(deleteStatusRequest(id));
 
-    api().delete(`/api/v1/statuses/${id}`, { params: { delete_media: !withRedraft } }).then(response => {
+    return api().delete(`/api/v1/statuses/${id}`, { params: { delete_media: !withRedraft } }).then(response => {
       dispatch(deleteStatusSuccess(id));
       dispatch(deleteFromTimelines(id));
       dispatch(importFetchedAccount(response.data.account));
@@ -155,9 +179,14 @@ export function deleteStatus(id, withRedraft = false) {
       if (withRedraft) {
         dispatch(redraft(status, response.data.text));
         ensureComposeIsVisible(getState);
+      } else {
+        dispatch(showAlert({ message: messages.deleteSuccess }));
       }
+
+      return response;
     }).catch(error => {
       dispatch(deleteStatusFail(id, error));
+      throw error;
     });
   };
 }

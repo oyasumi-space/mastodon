@@ -286,7 +286,7 @@ class SearchQueryTransformer < Parslet::Transform
 
     attr_reader :operator, :prefix, :term
 
-    def initialize(prefix, operator, term, options = {}) # rubocop:disable Metrics/CyclomaticComplexity
+    def initialize(prefix, operator, term, options = {})
       @prefix = prefix
       @negated = operator == '-'
       @options = options

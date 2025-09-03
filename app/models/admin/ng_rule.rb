@@ -27,7 +27,7 @@ class Admin::NgRule
       media_state_match?(:account_header_state, @account.header, @ng_rule.account_header_state)
   end
 
-  def status_match? # rubocop:disable Metrics/CyclomaticComplexity
+  def status_match?
     return false if @ng_rule.status_allow_follower_mention && @options[:mention_to_following]
 
     has_media = @options[:media_count].is_a?(Integer) && @options[:media_count].positive?
