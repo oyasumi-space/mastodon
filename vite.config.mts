@@ -6,7 +6,7 @@ import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import postcssPresetEnv from 'postcss-preset-env';
 import Compress from 'rollup-plugin-gzip';
-// import { visualizer } from 'rollup-plugin-visualizer';
+import { visualizer } from 'rollup-plugin-visualizer';
 import {
   PluginOption,
   defineConfig,
@@ -180,8 +180,7 @@ export const config: UserConfigFnPromise = async ({ mode, command }) => {
       svgr(),
       // Old library types need to be converted
       optimizeLodashImports() as PluginOption,
-      // Disable in knyblue because kmyblue-developer cannot launch foreman
-      // !!process.env.ANALYZE_BUNDLE_SIZE && (visualizer() as PluginOption),
+      !!process.env.ANALYZE_BUNDLE_SIZE && (visualizer() as PluginOption),
       MastodonNameLookup(),
     ],
   } satisfies UserConfig;

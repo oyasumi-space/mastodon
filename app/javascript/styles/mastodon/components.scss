@@ -703,7 +703,11 @@ body > [data-popper-placement] {
     flex-wrap: wrap;
 
     &__second {
-      margin-top: -8px;
+      margin-top: -2px;
+    }
+
+    .compose-form__footer > & {
+      margin-left: -4px;
     }
 
     & > div {

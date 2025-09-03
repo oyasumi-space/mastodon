@@ -35,6 +35,7 @@ const mapStateToProps = state => ({
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
   circleId: state.getIn(['compose', 'circle_id']),
+  isCircleNeeded: state.getIn(['compose', 'privacy']) === 'circle' && !state.getIn(['compose', 'id']),
   maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 

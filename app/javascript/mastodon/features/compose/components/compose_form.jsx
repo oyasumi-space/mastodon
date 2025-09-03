@@ -83,6 +83,7 @@ class ComposeForm extends ImmutablePureComponent {
     circleId: PropTypes.string,
     maxChars: PropTypes.number,
     redirectOnSuccess: PropTypes.bool,
+    isCircleNeeded: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -267,7 +268,7 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   render () {
-    const { intl, onPaste, autoFocus, withoutNavigation, maxChars, isSubmitting } = this.props;
+    const { intl, onPaste, autoFocus, withoutNavigation, maxChars, isSubmitting, isCircleNeeded } = this.props;
     const { highlighted } = this.state;
 
     return (
@@ -287,6 +288,11 @@ class ComposeForm extends ImmutablePureComponent {
             <ExpirationDropdownContainer onPickExpiration={this.handleExpirationPick} />
             <FeaturedTagsDropdownContainer onPickTag={this.handleFeaturedTagPick} />
           </div>
+          {isCircleNeeded && (
+            <div className='compose-form__dropdowns compose-form__dropdowns__second'>
+              <CircleDropdownContainer />
+            </div>
+          )}
 
           {this.props.spoiler && (
             <div className='spoiler-input'>
