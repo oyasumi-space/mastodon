@@ -20,7 +20,7 @@ import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import { IconButton } from '../../../components/icon_button';
 import { Dropdown } from 'mastodon/components/dropdown_menu';
-import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem, boostMenu, boostModal } from '../../../initial_state';
+import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem } from '../../../initial_state';
 import EmojiPickerDropdown from '../../compose/containers/emoji_picker_dropdown_container';
 import { isFeatureEnabled } from '@/mastodon/utils/environment';
 import { ReblogButton } from '@/mastodon/components/status/reblog_button';
@@ -267,18 +267,6 @@ class ActionBar extends PureComponent {
 
     if (signedIn) {
       menu.push(null);
-
-      if (!boostMenu) {
-        menu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogForceModalClick, tag: 'reblog' });
-
-        if (publicStatus) {
-          menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
-
-          if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-            menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
-          }
-        }
-      }
 
       menu.push({ text: intl.formatMessage(messages.bookmark_category), action: this.handleBookmarkCategoryAdderClick });
 

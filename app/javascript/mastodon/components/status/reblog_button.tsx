@@ -16,7 +16,7 @@ import { insertReferenceCompose } from '@/mastodon/actions/compose';
 import { quoteComposeById } from '@/mastodon/actions/compose_typed';
 import { toggleReblog } from '@/mastodon/actions/interactions';
 import { openModal } from '@/mastodon/actions/modal';
-import { boostMenu, isHideItem } from '@/mastodon/initial_state';
+import { isHideItem } from '@/mastodon/initial_state';
 import type { ActionMenuItem } from '@/mastodon/models/dropdown_menu';
 import type { Status, StatusVisibility } from '@/mastodon/models/status';
 import {
@@ -325,15 +325,12 @@ const ReblogMenuItem: FC<ReblogMenuItemProps> = ({
 
 // Switch between the legacy and new reblog button based on feature flag.
 export const ReblogButton: FC<ReblogButtonProps> = (props) => {
-  if (isFeatureEnabled('outgoing_quotes') || boostMenu) {
-    return (
-      <StatusReblogButton
-        isQuoteUiDisabled={!isFeatureEnabled('outgoing_quotes')}
-        {...props}
-      />
-    );
-  }
-  return <LegacyReblogButton {...props} />;
+  return (
+    <StatusReblogButton
+      isQuoteUiDisabled={!isFeatureEnabled('outgoing_quotes')}
+      {...props}
+    />
+  );
 };
 
 export const LegacyReblogButton: FC<ReblogButtonProps> = ({

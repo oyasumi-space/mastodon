@@ -21,7 +21,7 @@ import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import EmojiPickerDropdown from '../features/compose/containers/emoji_picker_dropdown_container';
 import { Dropdown } from 'mastodon/components/dropdown_menu';
-import { enableEmojiReaction , bookmarkCategoryNeeded, simpleTimelineMenu, me, isHideItem, boostMenu, boostModal } from '../initial_state';
+import { enableEmojiReaction , bookmarkCategoryNeeded, simpleTimelineMenu, me, isHideItem } from '../initial_state';
 
 import { IconButton } from './icon_button';
 import { isFeatureEnabled } from '../utils/environment';
@@ -323,14 +323,6 @@ class StatusActionBar extends ImmutablePureComponent {
 
       if (!simpleTimelineMenu || writtenByMe) {
         menu.push(null);
-      }
-
-      if (!boostMenu) {
-        menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
-
-        if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-          menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
-        }
       }
 
       menu.push({ text: intl.formatMessage(messages.bookmarkCategory), action: this.handleBookmarkCategoryAdderClick });

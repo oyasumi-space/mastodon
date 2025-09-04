@@ -51,10 +51,6 @@ module User::HasSettings
     settings['web.simple_timeline_menu']
   end
 
-  def setting_boost_menu
-    settings['web.boost_menu']
-  end
-
   def setting_default_sensitive
     settings['default_sensitive']
   end

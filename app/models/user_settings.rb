@@ -75,7 +75,6 @@ class UserSettings
     setting :auto_play, default: true
     setting :emoji_style, default: 'auto', in: %w(auto native twemoji)
     setting :simple_timeline_menu, default: false
-    setting :boost_menu, default: false
     setting :show_relationships, default: true
     setting :hide_emoji_reaction_unavailable_server, default: false
     setting :hide_status_reference_unavailable_server, default: false
