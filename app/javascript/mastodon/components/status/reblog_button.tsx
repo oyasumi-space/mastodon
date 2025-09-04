@@ -16,8 +16,7 @@ import { insertReferenceCompose } from '@/mastodon/actions/compose';
 import { quoteComposeById } from '@/mastodon/actions/compose_typed';
 import { toggleReblog } from '@/mastodon/actions/interactions';
 import { openModal } from '@/mastodon/actions/modal';
-import type { ApiServerFeaturesJSON } from '@/mastodon/api_types/accounts';
-import { boostMenu, isShowItem } from '@/mastodon/initial_state';
+import { boostMenu, isHideItem } from '@/mastodon/initial_state';
 import type { ActionMenuItem } from '@/mastodon/models/dropdown_menu';
 import type { Status, StatusVisibility } from '@/mastodon/models/status';
 import {
@@ -88,6 +87,10 @@ const messages = defineMessages({
     defaultMessage: 'Boost with visibility',
   },
   reference: { id: 'status.reference', defaultMessage: 'Link' },
+  reference_disabled: {
+    id: 'status.cannot_reference',
+    defaultMessage: 'This server cannot receive link',
+  },
   quote_link: { id: 'status.quote_link', defaultMessage: 'Insert quote link' },
 });
 
@@ -95,14 +98,12 @@ interface ReblogButtonProps {
   status: Status;
   counters?: boolean;
   isQuoteUiDisabled?: boolean;
-  accountFeatures?: ApiServerFeaturesJSON;
 }
 
 export const StatusReblogButton: FC<ReblogButtonProps> = ({
   status,
   counters,
   isQuoteUiDisabled,
-  accountFeatures,
 }) => {
   const intl = useIntl();
 
@@ -172,11 +173,6 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
           },
         },
       ].filter(({ text }) => {
-        if (text === 'reference') {
-          if (isShowItem('status_reference_unavailable_server')) return true;
-          return accountFeatures?.status_reference;
-        }
-
         if (text === 'quote') {
           return !isQuoteUiDisabled;
         }
@@ -187,15 +183,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
 
         return true;
       }),
-    [
-      dispatch,
-      isLoggedIn,
-      statusId,
-      statusUrl,
-      isQuoteUiDisabled,
-      accountFeatures,
-      isReblogged,
-    ],
+    [dispatch, isLoggedIn, statusId, statusUrl, isQuoteUiDisabled, isReblogged],
   );
 
   const handleDropdownOpen = useCallback(
@@ -409,18 +397,18 @@ const selectStatusState = createAppSelector(
   ],
   (userId, status) => {
     const isPublic = ['public', 'unlisted'].includes(
-      status.get('visibility') as StatusVisibility,
+      status.get('visibility_ex') as StatusVisibility,
     );
     const isMineAndPrivate =
       userId === status.getIn(['account', 'id']) &&
-      status.get('visibility') === 'private';
+      status.get('visibility_ex') === 'private';
     return {
       isLoggedIn: !!userId,
       isPublic,
       isMine: userId === status.getIn(['account', 'id']),
       isPrivateReblog:
         userId === status.getIn(['account', 'id']) &&
-        status.get('visibility') === 'private',
+        status.get('visibility_ex') === 'private',
       isReblogged: !!status.get('reblogged'),
       isReblogAllowed: isPublic || isMineAndPrivate,
       isQuoteAutomaticallyAccepted:
@@ -432,6 +420,11 @@ const selectStatusState = createAppSelector(
       isQuoteFollowersOnly:
         status.getIn(['quote_approval', 'automatic', 0]) === 'followers' ||
         status.getIn(['quote_approval', 'manual', 0]) === 'followers',
+      isStatusReferenceAvailableServer: !!status.getIn([
+        'account',
+        'server_features',
+        'status_reference',
+      ]),
     };
   },
 );
@@ -444,7 +437,10 @@ interface IconText {
   disabled?: boolean;
 }
 
-function referenceIconText({ isPublic }: StatusState): IconText {
+function referenceIconText({
+  isPublic,
+  isStatusReferenceAvailableServer,
+}: StatusState): IconText {
   const iconText: IconText = {
     title: messages.reference,
     iconComponent: ReferenceIcon,
@@ -452,6 +448,12 @@ function referenceIconText({ isPublic }: StatusState): IconText {
 
   if (!isPublic) {
     iconText.disabled = true;
+  } else if (
+    isHideItem('status_reference_unavailable_server') &&
+    !isStatusReferenceAvailableServer
+  ) {
+    iconText.disabled = true;
+    iconText.meta = messages.reference_disabled;
   }
   return iconText;
 }
@@ -497,7 +499,14 @@ function quoteIconText(
     iconComponent: FormatQuote,
   };
 
-  if (!isPublic && !isMine) {
+  if (!isFeatureEnabled('outgoing_quotes')) {
+    // for kmyblue original quote feature
+    if (!isPublic && !isMine) {
+      iconText.disabled = true;
+      iconText.iconComponent = FormatQuoteOff;
+      iconText.meta = messages.quote_private;
+    }
+  } else if (!isPublic && !isMine) {
     iconText.disabled = true;
     iconText.iconComponent = FormatQuoteOff;
     iconText.meta = messages.quote_private;

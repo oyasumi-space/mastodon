@@ -22,6 +22,30 @@
                  wrapper: :with_label
 
     .fields-group
+      = ff.input :default_reblog_privacy,
+                 collection: Status.selectable_reblog_visibilities,
+                 selected: current_user.setting_default_reblog_privacy,
+                 hint: false,
+                 include_blank: false,
+                 kmyblue: true,
+                 label_method: ->(visibility) { safe_join([I18n.t("statuses.visibilities.#{visibility}"), I18n.t("statuses.visibilities.#{visibility}_long")], ' - ') },
+                 label: I18n.t('simple_form.labels.defaults.setting_default_reblog_privacy'),
+                 required: false,
+                 wrapper: :with_label
+
+    .fields-group
+      = ff.input :default_searchability,
+                 collection: Status.selectable_searchabilities,
+                 selected: current_user.setting_default_searchability,
+                 hint: I18n.t('simple_form.hints.defaults.setting_default_searchability'),
+                 include_blank: false,
+                 kmyblue: true,
+                 label: I18n.t('simple_form.labels.defaults.setting_default_searchability'),
+                 label_method: ->(searchability) { safe_join([I18n.t("statuses.searchabilities.#{searchability}"), I18n.t("statuses.searchabilities.#{searchability}_long")], ' - ') },
+                 required: false,
+                 wrapper: :with_label
+
+    .fields-group
       = ff.input :default_quote_policy,
                  collection: %w(public followers nobody),
                  include_blank: false,

@@ -283,7 +283,8 @@ class ComposeForm extends ImmutablePureComponent {
           <div className='compose-form__dropdowns'>
             <VisibilityButton disabled={this.props.isEditing} />
             <LanguageDropdown />
-            <CircleDropdownContainer />
+          </div>
+          <div className='compose-form__dropdowns compose-form__dropdowns__second'>
             <SearchabilityDropdownContainer disabled={this.props.isEditing} />
             <ExpirationDropdownContainer onPickExpiration={this.handleExpirationPick} />
             <FeaturedTagsDropdownContainer onPickTag={this.handleFeaturedTagPick} />
