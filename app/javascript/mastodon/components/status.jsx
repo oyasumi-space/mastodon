@@ -90,7 +90,6 @@ class Status extends ImmutablePureComponent {
   static propTypes = {
     status: ImmutablePropTypes.map,
     account: ImmutablePropTypes.record,
-    contextType: PropTypes.string,
     children: PropTypes.node,
     previousId: PropTypes.string,
     rootId: PropTypes.string,
