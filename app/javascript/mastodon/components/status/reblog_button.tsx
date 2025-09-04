@@ -396,9 +396,12 @@ const selectStatusState = createAppSelector(
     (_, status: Status) => status,
   ],
   (userId, status) => {
-    const isPublic = ['public', 'unlisted'].includes(
-      status.get('visibility_ex') as StatusVisibility,
-    );
+    const isPublic = [
+      'public',
+      'public_unlisted',
+      'login',
+      'unlisted',
+    ].includes(status.get('visibility_ex') as StatusVisibility);
     const isMineAndPrivate =
       userId === status.getIn(['account', 'id']) &&
       status.get('visibility_ex') === 'private';
