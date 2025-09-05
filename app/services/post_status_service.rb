@@ -294,6 +294,8 @@ class PostStatusService < BaseService
   end
 
   def quoted_status_from_text
+    return unless Mastodon::Feature.outgoing_quotes_enabled?
+
     url = ProcessReferencesService.extract_quote(@text)
     return unless url
 

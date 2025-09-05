@@ -18,7 +18,8 @@ export type StatusVisibility =
   | 'circle'
   | 'personal'
   | 'reply'
-  | 'limited';
+  | 'limited'
+  | 'banned';
 
 export type StatusSearchability =
   | 'public'

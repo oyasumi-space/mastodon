@@ -7,19 +7,34 @@ import classNames from 'classnames';
 
 import type { ApiQuotePolicy } from '@/mastodon/api_types/quotes';
 import { isQuotePolicy } from '@/mastodon/api_types/quotes';
-import { isStatusVisibility } from '@/mastodon/api_types/statuses';
-import type { StatusVisibility } from '@/mastodon/api_types/statuses';
+import {
+  isStatusSearchability,
+  isStatusVisibility,
+} from '@/mastodon/api_types/statuses';
+import type {
+  StatusSearchability,
+  StatusVisibility,
+} from '@/mastodon/api_types/statuses';
 import { Button } from '@/mastodon/components/button';
 import { Dropdown } from '@/mastodon/components/dropdown';
 import type { SelectItem } from '@/mastodon/components/dropdown_selector';
 import { IconButton } from '@/mastodon/components/icon_button';
 import { messages as privacyMessages } from '@/mastodon/features/compose/components/privacy_dropdown';
+import { messages as searchabilityMessages } from '@/mastodon/features/compose/components/searchability_dropdown';
+import { enabledVisibilites } from '@/mastodon/initial_state';
 import { createAppSelector, useAppSelector } from '@/mastodon/store';
+import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BlockIcon from '@/material-icons/400-24px/block.svg?react';
 import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import PublicUnlistedIcon from '@/material-icons/400-24px/cloud.svg?react';
+import MutualIcon from '@/material-icons/400-24px/compare_arrows.svg?react';
+import LoginIcon from '@/material-icons/400-24px/key.svg?react';
 import LockIcon from '@/material-icons/400-24px/lock.svg?react';
+import LockOpenIcon from '@/material-icons/400-24px/no_encryption.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import QuietTimeIcon from '@/material-icons/400-24px/quiet_time.svg?react';
+import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
 
 import type { BaseConfirmationModalProps } from './confirmation_modals/confirmation_modal';
 
@@ -45,7 +60,9 @@ const messages = defineMessages({
 
 export type VisibilityModalCallback = (
   visibility: StatusVisibility,
+  searchability: StatusSearchability,
   quotePolicy: ApiQuotePolicy,
+  circleId: string,
 ) => void;
 
 interface VisibilityModalProps extends BaseConfirmationModalProps {
@@ -113,24 +130,52 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
     const intl = useIntl();
     const currentVisibility = useAppSelector((state) =>
       statusId
-        ? ((state.statuses.getIn([statusId, 'visibility'], 'public') as
+        ? ((state.statuses.getIn([statusId, 'visibility_ex'], 'public') as
             | StatusVisibility
             | undefined) ?? 'public')
         : (state.compose.get('privacy') as StatusVisibility),
     );
+    const currentSearchability = useAppSelector((state) =>
+      statusId
+        ? ((state.statuses.getIn([statusId, 'searchability'], 'public') as
+            | StatusSearchability
+            | undefined) ?? 'public')
+        : (state.compose.get('searchability') as StatusSearchability),
+    );
     const currentQuotePolicy = useAppSelector((state) =>
       selectStatusPolicy(state, statusId),
     );
+    const currentCircleId = useAppSelector(
+      (state) => state.compose.get('circle_id') as string,
+    );
+
+    const replyToLimited = useAppSelector(
+      (state) => state.compose.get('reply_to_limited') as boolean,
+    );
+    const circles = useAppSelector((state) =>
+      state.circles
+        .toList()
+        .toArray()
+        .filter((c) => c !== null),
+    );
 
     const [visibility, setVisibility] = useState(currentVisibility);
+    const [searchability, setSearchability] = useState(currentSearchability);
     const [quotePolicy, setQuotePolicy] = useState(currentQuotePolicy);
+    const [circleId, setCircleId] = useState(currentCircleId);
 
     const disableVisibility = !!statusId;
-    const disableQuotePolicy =
-      visibility === 'private' || visibility === 'direct';
+    const disableQuotePolicy = [
+      'private',
+      'direct',
+      'limited',
+      'mutual',
+      'circle',
+    ].includes(visibility);
     const disablePublicVisibilities: boolean = useAppSelector(
       selectDisablePublicVisibilities,
     );
+    const disableSave = visibility === 'circle' && !circleId;
 
     const visibilityItems = useMemo<SelectItem<StatusVisibility>[]>(() => {
       const items: SelectItem<StatusVisibility>[] = [
@@ -142,6 +187,20 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
           iconComponent: LockIcon,
         },
         {
+          value: 'mutual',
+          text: intl.formatMessage(privacyMessages.mutual_short),
+          meta: intl.formatMessage(privacyMessages.mutual_long),
+          icon: 'exchange',
+          iconComponent: MutualIcon,
+        },
+        {
+          value: 'circle',
+          text: intl.formatMessage(privacyMessages.circle_short),
+          meta: intl.formatMessage(privacyMessages.circle_long),
+          icon: 'user-circle',
+          iconComponent: CircleIcon,
+        },
+        {
           value: 'direct',
           text: intl.formatMessage(privacyMessages.direct_short),
           meta: intl.formatMessage(privacyMessages.direct_long),
@@ -149,6 +208,23 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
           iconComponent: AlternateEmailIcon,
         },
       ];
+
+      const specialItems = {
+        reply: {
+          value: 'reply' as StatusVisibility,
+          text: intl.formatMessage(privacyMessages.reply_short),
+          meta: intl.formatMessage(privacyMessages.reply_long),
+          icon: 'at',
+          iconComponent: ReplyIcon,
+        },
+        banned: {
+          value: 'banned' as StatusVisibility,
+          text: intl.formatMessage(privacyMessages.banned_short),
+          meta: intl.formatMessage(privacyMessages.banned_long),
+          icon: 'ban',
+          iconComponent: BlockIcon,
+        },
+      };
 
       if (!disablePublicVisibilities) {
         items.unshift(
@@ -158,6 +234,20 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
             meta: intl.formatMessage(privacyMessages.public_long),
             icon: 'globe',
             iconComponent: PublicIcon,
+          },
+          {
+            value: 'public_unlisted',
+            text: intl.formatMessage(privacyMessages.public_unlisted_short),
+            meta: intl.formatMessage(privacyMessages.public_unlisted_long),
+            icon: 'cloud',
+            iconComponent: PublicUnlistedIcon,
+          },
+          {
+            value: 'login',
+            text: intl.formatMessage(privacyMessages.login_short),
+            meta: intl.formatMessage(privacyMessages.login_long),
+            icon: 'key',
+            iconComponent: LoginIcon,
           },
           {
             value: 'unlisted',
@@ -170,8 +260,72 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
         );
       }
 
+      if (replyToLimited) {
+        items.unshift(specialItems.reply);
+      }
+
+      if (enabledVisibilites) {
+        const filteredItems = items.filter((i) =>
+          enabledVisibilites?.includes(i.value),
+        );
+
+        if (filteredItems.length === 0) {
+          return [specialItems.banned];
+        }
+
+        return filteredItems;
+      }
+
       return items;
-    }, [intl, disablePublicVisibilities]);
+    }, [intl, disablePublicVisibilities, replyToLimited]);
+    const searchabilityItems = useMemo<SelectItem<StatusVisibility>[]>(() => {
+      const items: SelectItem<StatusVisibility>[] = [
+        {
+          value: 'public',
+          text: intl.formatMessage(searchabilityMessages.public_short),
+          meta: intl.formatMessage(searchabilityMessages.public_long),
+          icon: 'globe',
+          iconComponent: PublicIcon,
+        },
+        {
+          value: 'public_unlisted',
+          text: intl.formatMessage(searchabilityMessages.public_unlisted_short),
+          meta: intl.formatMessage(searchabilityMessages.public_unlisted_long),
+          icon: 'cloud',
+          iconComponent: PublicUnlistedIcon,
+        },
+        {
+          value: 'private',
+          text: intl.formatMessage(searchabilityMessages.private_short),
+          meta: intl.formatMessage(searchabilityMessages.private_long),
+          icon: 'lock',
+          iconComponent: LockOpenIcon,
+        },
+        {
+          value: 'direct',
+          text: intl.formatMessage(searchabilityMessages.direct_short),
+          meta: intl.formatMessage(searchabilityMessages.direct_long),
+          icon: 'at',
+          iconComponent: LockIcon,
+        },
+        {
+          value: 'limited',
+          text: intl.formatMessage(searchabilityMessages.limited_short),
+          meta: intl.formatMessage(searchabilityMessages.limited_long),
+          icon: 'at',
+          iconComponent: AlternateEmailIcon,
+        },
+      ];
+      return items;
+    }, [intl]);
+    const circleItems = useMemo<SelectItem[]>(() => {
+      return circles.map((c) => {
+        return {
+          value: c.get('id'),
+          text: c.get('title'),
+        };
+      });
+    }, [circles]);
     const quoteItems = useMemo<SelectItem<ApiQuotePolicy>[]>(
       () => [
         { value: 'public', text: intl.formatMessage(messages.quotePublic) },
@@ -189,18 +343,35 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
         setVisibility(value);
       }
     }, []);
+    const handleSearchabilityChange = useCallback((value: string) => {
+      if (isStatusSearchability(value)) {
+        setSearchability(value);
+      }
+    }, []);
     const handleQuotePolicyChange = useCallback((value: string) => {
       if (isQuotePolicy(value)) {
         setQuotePolicy(value);
       }
     }, []);
+    const handleCircleIdChange = useCallback(
+      (value: string) => {
+        if (circleItems.some((c) => c.value === value)) {
+          setCircleId(value);
+        } else {
+          setCircleId('');
+        }
+      },
+      [circleItems],
+    );
     const handleSave = useCallback(() => {
-      onChange(visibility, quotePolicy);
+      onChange(visibility, searchability, quotePolicy, circleId);
       onClose();
-    }, [onChange, onClose, visibility, quotePolicy]);
+    }, [onChange, onClose, visibility, searchability, quotePolicy, circleId]);
 
     const privacyDropdownId = useId();
+    const searchabilityDropdownId = useId();
     const quoteDropdownId = useId();
+    const circleDropdownId = useId();
 
     return (
       <div className='modal-root__modal dialog-modal visibility-modal'>
@@ -273,6 +444,62 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
               )}
             </label>
 
+            {!statusId && visibility === 'circle' && (
+              <label
+                htmlFor={circleDropdownId}
+                className={classNames('visibility-dropdown__label', {
+                  disabled: disableVisibility,
+                })}
+              >
+                <FormattedMessage
+                  id='visibility_modal.circle_label'
+                  defaultMessage='Circle'
+                />
+
+                <Dropdown
+                  items={circleItems}
+                  onChange={handleCircleIdChange}
+                  classPrefix='visibility-dropdown'
+                  current={circleId}
+                  title={intl.formatMessage(messages.buttonTitle)}
+                  disabled={disableVisibility}
+                  id={circleDropdownId}
+                />
+              </label>
+            )}
+
+            <label
+              htmlFor={searchabilityDropdownId}
+              className={classNames('visibility-dropdown__label', {
+                disabled: disableVisibility,
+              })}
+            >
+              <FormattedMessage
+                id='visibility_modal.searchability_label'
+                defaultMessage='Searchability'
+              />
+
+              <Dropdown
+                items={searchabilityItems}
+                classPrefix='visibility-dropdown'
+                current={searchability}
+                onChange={handleSearchabilityChange}
+                title={intl.formatMessage(
+                  searchabilityMessages.change_searchability,
+                )}
+                disabled={disableVisibility}
+                id={searchabilityDropdownId}
+              />
+              {!!statusId && (
+                <p className='visibility-dropdown__helper'>
+                  <FormattedMessage
+                    id='visibility_modal.helper.searchability_editing'
+                    defaultMessage="Searchability can't be changed after a post is published."
+                  />
+                </p>
+              )}
+            </label>
+
             <label
               htmlFor={quoteDropdownId}
               className={classNames('visibility-dropdown__label', {
@@ -303,7 +530,7 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
                 defaultMessage='Cancel'
               />
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={disableSave}>
               <FormattedMessage
                 id='visibility_modal.save'
                 defaultMessage='Save'

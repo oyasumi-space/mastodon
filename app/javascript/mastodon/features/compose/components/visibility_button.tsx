@@ -5,16 +5,24 @@ import { defineMessages, useIntl } from 'react-intl';
 
 import classNames from 'classnames';
 
-import { changeComposeVisibility } from '@/mastodon/actions/compose';
+import {
+  changeCircle,
+  changeComposeSearchability,
+  changeComposeVisibility,
+} from '@/mastodon/actions/compose';
 import { setComposeQuotePolicy } from '@/mastodon/actions/compose_typed';
 import { openModal } from '@/mastodon/actions/modal';
 import type { ApiQuotePolicy } from '@/mastodon/api_types/quotes';
-import type { StatusVisibility } from '@/mastodon/api_types/statuses';
+import type {
+  StatusSearchability,
+  StatusVisibility,
+} from '@/mastodon/api_types/statuses';
 import { Icon } from '@/mastodon/components/icon';
 import { useAppSelector, useAppDispatch } from '@/mastodon/store';
 import { isFeatureEnabled } from '@/mastodon/utils/environment';
 import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BlockIcon from '@/material-icons/400-24px/block.svg?react';
 import PublicUnlistedIcon from '@/material-icons/400-24px/cloud.svg?react';
 import MutualIcon from '@/material-icons/400-24px/compare_arrows.svg?react';
 import LoginIcon from '@/material-icons/400-24px/key.svg?react';
@@ -29,6 +37,7 @@ import type { VisibilityModalCallback } from '../../ui/components/visibility_mod
 import PrivacyDropdownContainer from '../containers/privacy_dropdown_container';
 
 import { messages as privacyMessages } from './privacy_dropdown';
+import { messages as searchabilityMessages } from './searchability_dropdown';
 
 const messages = defineMessages({
   anyone_quote: {
@@ -123,25 +132,61 @@ const visibilityOptions = {
     value: 'personal',
     text: privacyMessages.personal_short,
   },
+  banned: {
+    icon: 'ban',
+    iconComponent: BlockIcon,
+    value: 'banned',
+    text: privacyMessages.banned_short,
+  },
+};
+
+const searchabilityOptions = {
+  public: {
+    value: 'public',
+    text: searchabilityMessages.public_short,
+  },
+  public_unlisted: {
+    value: 'public_unlisted',
+    text: searchabilityMessages.public_unlisted_short,
+  },
+  direct: {
+    value: 'direct',
+    text: searchabilityMessages.direct_short,
+  },
+  private: {
+    value: 'private',
+    text: searchabilityMessages.private_short,
+  },
+  limited: {
+    value: 'limited',
+    text: searchabilityMessages.limited_short,
+  },
 };
 
 const PrivacyModalButton: FC<PrivacyDropdownProps> = ({ disabled = false }) => {
   const intl = useIntl();
 
-  const { visibility, quotePolicy } = useAppSelector((state) => ({
-    visibility: state.compose.get('privacy') as StatusVisibility,
-    quotePolicy: state.compose.get('quote_policy') as ApiQuotePolicy,
-  }));
+  const { visibility, searchability, quotePolicy, circleId } = useAppSelector(
+    (state) => ({
+      visibility: state.compose.get('privacy') as StatusVisibility,
+      searchability: state.compose.get('searchability') as StatusSearchability,
+      quotePolicy: state.compose.get('quote_policy') as ApiQuotePolicy,
+      circleId: state.compose.get('circle_id') as string,
+    }),
+  );
 
   const { icon, iconComponent } = useMemo(() => {
     const option = visibilityOptions[visibility];
     return { icon: option.icon, iconComponent: option.iconComponent };
   }, [visibility]);
   const text = useMemo(() => {
-    const visibilityText = intl.formatMessage(
-      visibilityOptions[visibility].text,
-    );
-    if (visibility === 'private' || visibility === 'direct') {
+    const visibilityText = [
+      intl.formatMessage(visibilityOptions[visibility].text),
+      intl.formatMessage(searchabilityOptions[searchability].text),
+    ].join(', ');
+    if (
+      !['public', 'public_unlisted', 'unlisted', 'login'].includes(visibility)
+    ) {
       return visibilityText;
     }
     if (quotePolicy === 'nobody') {
@@ -157,20 +202,26 @@ const PrivacyModalButton: FC<PrivacyDropdownProps> = ({ disabled = false }) => {
     return intl.formatMessage(messages.anyone_quote, {
       visibility: visibilityText,
     });
-  }, [quotePolicy, visibility, intl]);
+  }, [quotePolicy, visibility, searchability, intl]);
 
   const dispatch = useAppDispatch();
 
   const handleChange: VisibilityModalCallback = useCallback(
-    (newVisibility, newQuotePolicy) => {
+    (newVisibility, newSearchability, newQuotePolicy, newCircleId) => {
       if (newVisibility !== visibility) {
         dispatch(changeComposeVisibility(newVisibility));
+      }
+      if (newSearchability !== searchability) {
+        dispatch(changeComposeSearchability(newSearchability));
       }
       if (newQuotePolicy !== quotePolicy) {
         dispatch(setComposeQuotePolicy(newQuotePolicy));
       }
+      if (newCircleId !== circleId) {
+        dispatch(changeCircle(newCircleId));
+      }
     },
-    [dispatch, quotePolicy, visibility],
+    [dispatch, quotePolicy, visibility, searchability, circleId],
   );
 
   const handleOpen = useCallback(() => {

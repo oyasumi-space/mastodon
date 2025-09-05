@@ -257,6 +257,8 @@ const normalizePrivacy = (map, last) => {
     if (enabledVisibilites.length > 0) {
       const index = last ? enabledVisibilites.length - 1 : 0;
       map.set('privacy', enabledVisibilites[index]);
+    } else {
+      map.set('privacy', 'banned');
     }
   }
 };

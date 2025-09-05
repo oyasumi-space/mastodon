@@ -2,6 +2,7 @@ import { defineMessages, useIntl } from 'react-intl';
 
 import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
+import BlockIcon from '@/material-icons/400-24px/block.svg?react';
 import PublicUnlistedIcon from '@/material-icons/400-24px/cloud.svg?react';
 import MutualIcon from '@/material-icons/400-24px/compare_arrows.svg?react';
 import LoginIcon from '@/material-icons/400-24px/key.svg?react';
@@ -57,6 +58,7 @@ const messages = defineMessages({
     id: 'privacy.direct.short',
     defaultMessage: 'Specific people',
   },
+  banned_short: { id: 'privacy.banned.short', defaultMessage: 'No posting' },
 });
 
 export const VisibilityIcon: React.FC<{ visibility: StatusVisibility }> = ({
@@ -119,6 +121,11 @@ export const VisibilityIcon: React.FC<{ visibility: StatusVisibility }> = ({
       icon: 'at',
       iconComponent: AlternateEmailIcon,
       text: intl.formatMessage(messages.direct_short),
+    },
+    banned: {
+      icon: 'ban',
+      iconComponent: BlockIcon,
+      text: intl.formatMessage(messages.banned_short),
     },
   };
 

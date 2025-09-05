@@ -1127,6 +1127,7 @@
   "status.reblogs.empty": "No one has boosted this post yet. When someone does, they will show up here.",
   "status.redraft": "Delete & re-draft",
   "status.reference": "Link",
+  "status.reference_link": "Insert post link",
   "status.references": "{count, plural, one {link} other {links}}",
   "status.remove_bookmark": "Remove bookmark",
   "status.remove_favourite": "Remove from favorites",
@@ -1199,11 +1200,13 @@
   "video.volume_down": "Volume down",
   "video.volume_up": "Volume up",
   "visibility_modal.button_title": "Set visibility",
+  "visibility_modal.circle_label": "Circle",
   "visibility_modal.header": "Visibility and interaction",
   "visibility_modal.helper.direct_quoting": "Private mentions authored on Mastodon can't be quoted by others.",
   "visibility_modal.helper.privacy_editing": "Published posts cannot change their visibility.",
   "visibility_modal.helper.privacy_private_self_quote": "Self-quotes of private posts cannot be made public.",
   "visibility_modal.helper.private_quoting": "Follower-only posts authored on Mastodon can't be quoted by others.",
+  "visibility_modal.helper.searchability_editing": "Searchability can't be changed after a post is published.",
   "visibility_modal.helper.unlisted_quoting": "When people quote you, their post will also be hidden from trending timelines.",
   "visibility_modal.instructions": "Control who can interact with this post. You can also apply settings to all future posts by navigating to <link>Preferences > Posting defaults</link>.",
   "visibility_modal.privacy_label": "Visibility",
@@ -1211,5 +1214,6 @@
   "visibility_modal.quote_label": "Who can quote",
   "visibility_modal.quote_nobody": "Just me",
   "visibility_modal.quote_public": "Anyone",
-  "visibility_modal.save": "Save"
+  "visibility_modal.save": "Save",
+  "visibility_modal.searchability_label": "Searchability"
 }

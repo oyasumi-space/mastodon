@@ -281,7 +281,7 @@ class Status extends ImmutablePureComponent {
   };
 
   handleInsertQuoteLink = (status) => {
-    this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'QT'));
+    this.props.dispatch(insertReferenceCompose(0, status.get('url'), 'RE'));
   };
 
   handleBookmarkClick = (status) => {

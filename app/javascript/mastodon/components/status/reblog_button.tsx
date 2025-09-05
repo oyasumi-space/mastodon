@@ -86,7 +86,10 @@ const messages = defineMessages({
     id: 'status.reblog_with_detail',
     defaultMessage: 'Boost with visibility',
   },
-  reference: { id: 'status.reference', defaultMessage: 'Link' },
+  reference_link: {
+    id: 'status.reference_link',
+    defaultMessage: 'Insert post link',
+  },
   reference_disabled: {
     id: 'status.cannot_reference',
     defaultMessage: 'This server cannot receive link',
@@ -160,7 +163,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
           text: 'quote_link',
           action: () => {
             if (isLoggedIn) {
-              dispatch(insertReferenceCompose(0, statusUrl, 'QT'));
+              dispatch(insertReferenceCompose(0, statusUrl, 'RE'));
             }
           },
         },
@@ -173,7 +176,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
           },
         },
       ].filter(({ text }) => {
-        if (text === 'quote') {
+        if (['quote', 'quote_link'].includes(text)) {
           return !isQuoteUiDisabled;
         }
 
@@ -442,7 +445,7 @@ function referenceIconText({
   isStatusReferenceAvailableServer,
 }: StatusState): IconText {
   const iconText: IconText = {
-    title: messages.reference,
+    title: messages.reference_link,
     iconComponent: ReferenceIcon,
   };
 
@@ -499,14 +502,7 @@ function quoteIconText(
     iconComponent: FormatQuote,
   };
 
-  if (!isFeatureEnabled('outgoing_quotes')) {
-    // for kmyblue original quote feature
-    if (!isPublic && !isMine) {
-      iconText.disabled = true;
-      iconText.iconComponent = FormatQuoteOff;
-      iconText.meta = messages.quote_private;
-    }
-  } else if (!isPublic && !isMine) {
+  if (!isPublic && !isMine) {
     iconText.disabled = true;
     iconText.iconComponent = FormatQuoteOff;
     iconText.meta = messages.quote_private;

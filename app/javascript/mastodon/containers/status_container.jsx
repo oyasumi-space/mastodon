@@ -183,7 +183,7 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
   },
 
   onInsertQuoteLink (status) {
-    dispatch(insertReferenceCompose(0, status.get('url'), 'QT'));
+    dispatch(insertReferenceCompose(0, status.get('url'), 'RE'));
   },
 
   onTranslate (status) {
