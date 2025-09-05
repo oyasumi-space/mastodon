@@ -69,6 +69,7 @@ const AccountServerFeaturesFactory =
     circle: false,
     emoji_reaction: false,
     status_reference: false,
+    legacy_quote: false,
   });
 
 // Account

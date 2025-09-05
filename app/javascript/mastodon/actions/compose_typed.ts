@@ -111,24 +111,16 @@ export const quoteCompose = createAppThunk(
 export const quoteComposeByStatus = createAppThunk(
   (status: Status, { dispatch, getState }) => {
     const composeState = getState().compose;
-    const mediaAttachments = composeState.get('media_attachments');
+    const account = getState().accounts.get(status.get('account') as string);
 
-    if (composeState.get('poll')) {
-      dispatch(showAlert({ message: messages.quoteErrorPoll }));
-    } else if (
-      composeState.get('is_uploading') ||
-      (mediaAttachments &&
-        typeof mediaAttachments !== 'string' &&
-        typeof mediaAttachments !== 'number' &&
-        typeof mediaAttachments !== 'boolean' &&
-        mediaAttachments.size !== 0)
-    ) {
+    if (composeState.get('is_uploading')) {
       dispatch(showAlert({ message: messages.quoteErrorUpload }));
     } else if (composeState.get('quoted_status_id')) {
       dispatch(showAlert({ message: messages.quoteErrorQuote }));
     } else if (
       status.getIn(['quote_approval', 'current_user']) !== 'automatic' &&
-      status.getIn(['quote_approval', 'current_user']) !== 'manual'
+      status.getIn(['quote_approval', 'current_user']) !== 'manual' &&
+      !account?.getIn(['server_features', 'legacy_quote'])
     ) {
       dispatch(showAlert({ message: messages.quoteErrorUnauthorized }));
     } else {

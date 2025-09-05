@@ -63,6 +63,7 @@ export const accountFactory: FactoryFunction<ApiAccountJSON> = ({
     circle: true,
     emoji_reaction: true,
     status_reference: true,
+    legacy_quote: false,
   },
   ...data,
 });

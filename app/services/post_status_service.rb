@@ -186,7 +186,12 @@ class PostStatusService < BaseService
     status.quote = Quote.create(quoted_status: @quoted_status, status: status)
     status.quote.ensure_quoted_access
 
-    status.quote.accept! if @quoted_status.local? && StatusPolicy.new(@status.account, @quoted_status).quote?
+    if @quoted_status.local?
+      status.quote.accept! if StatusPolicy.new(@status.account, @quoted_status).quote?
+    else
+      features = InstanceInfo.available_features(@quoted_status.account.domain)
+      status.quote.accept! if features && features[:legacy_quote]
+    end
   end
 
   def safeguard_mentions!(status)

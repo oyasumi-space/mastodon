@@ -35,10 +35,6 @@ class InstanceInfo < ApplicationRecord
     yojo-art
   ).freeze
 
-  STATUS_REFERENCE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
-
-  CIRCLE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
-
   MISSKEY_FORKS = %w(
     calckey
     cherrypick
@@ -50,6 +46,12 @@ class InstanceInfo < ApplicationRecord
     sharkey
     tanukey
   ).freeze
+
+  LEGACY_QUOTE_SOFTWARES = EMOJI_REACTION_AVAILABLE_SOFTWARES
+
+  STATUS_REFERENCE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
+
+  CIRCLE_AVAILABLE_SOFTWARES = %w(fedibird).freeze
 
   INVALID_SUBSCRIPTION_SOFTWARES = MISSKEY_FORKS - %w(firefish)
 
@@ -87,6 +89,7 @@ class InstanceInfo < ApplicationRecord
         emoji_reaction: feature_available?(info, EMOJI_REACTION_AVAILABLE_SOFTWARES, 'emoji_reaction'),
         status_reference: feature_available?(info, STATUS_REFERENCE_AVAILABLE_SOFTWARES, 'status_reference'),
         circle: feature_available?(info, CIRCLE_AVAILABLE_SOFTWARES, 'circle'),
+        legacy_quote: feature_available?(info, LEGACY_QUOTE_SOFTWARES, 'quote'),
       }
     end
 
@@ -95,6 +98,7 @@ class InstanceInfo < ApplicationRecord
         emoji_reaction: Setting.enable_emoji_reaction,
         status_reference: true,
         circle: true,
+        legacy_quote: false,
       }
     end
 

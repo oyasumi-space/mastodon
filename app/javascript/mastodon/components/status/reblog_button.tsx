@@ -428,6 +428,11 @@ const selectStatusState = createAppSelector(
         'server_features',
         'status_reference',
       ]),
+      isLegacyQuoteServer: !!status.getIn([
+        'account',
+        'server_features',
+        'legacy_quote',
+      ]),
     };
   },
 );
@@ -494,6 +499,7 @@ function quoteIconText(
     isQuoteManuallyAccepted,
     isQuoteFollowersOnly,
     isPublic,
+    isLegacyQuoteServer,
   }: StatusState,
   isLink: boolean,
 ): IconText {
@@ -511,7 +517,7 @@ function quoteIconText(
   } else if (isQuoteManuallyAccepted) {
     iconText.title = messages.request_quote;
     iconText.meta = messages.quote_manual_review;
-  } else {
+  } else if (!isLegacyQuoteServer) {
     iconText.disabled = true;
     iconText.iconComponent = FormatQuoteOff;
     iconText.meta = isQuoteFollowersOnly

@@ -1766,6 +1766,28 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
+      context 'with quote permission' do
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            interactionPolicy: {
+              canQuote: {
+                automaticApproval: ['https://www.w3.org/ns/activitystreams#Public'],
+              },
+            }
+          )
+        end
+
+        it 'creates a status with a permission of quoting' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote_approval_policy).to eq 131_072
+        end
+      end
+
       context 'when a vote to a local poll' do
         let(:poll) { Fabricate(:poll, options: %w(Yellow Blue)) }
         let!(:local_status) { Fabricate(:status, poll: poll) }
