@@ -133,13 +133,13 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
   const statusId = status.get('id') as string;
   const statusUrl = status.get('url') as string;
   const items: (ActionMenuItem & {
-    message: { id: string; defaultMessage: string };
+    message: { id: string; defaultMessage: string }; // kmyblue bugfix
   })[] = useMemo(
     () =>
       [
         {
           text: 'reblog',
-          message: messages.reblog,
+          message: messages.reblog, // kmyblue bugfix
           action: () => {
             if (isLoggedIn) {
               dispatch(toggleReblog(statusId, true));
@@ -148,7 +148,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'reblog_with_detail',
-          message: messages.reblog_with_detail,
+          message: messages.reblog_with_detail, // kmyblue bugfix
           action: () => {
             if (isLoggedIn) {
               dispatch(toggleReblog(statusId, true, true));
@@ -157,7 +157,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'quote',
-          message: messages.quote,
+          message: messages.quote, // kmyblue bugfix
           action: () => {
             if (isLoggedIn) {
               dispatch(quoteComposeById(statusId));
@@ -166,7 +166,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'quote_link',
-          message: messages.quote_link,
+          message: messages.quote_link, // kmyblue bugfix
           action: () => {
             if (isLoggedIn) {
               dispatch(insertReferenceCompose(0, statusUrl, 'RE'));
@@ -175,7 +175,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'reference',
-          message: messages.reference_link,
+          message: messages.reference_link, // kmyblue bugfix
           action: () => {
             if (isLoggedIn) {
               dispatch(insertReferenceCompose(0, statusUrl, 'BT'));
@@ -232,10 +232,16 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
     [status],
   );
 
-  const dropdownItems = items.map((item) => ({
-    text: intl.formatMessage(item.message),
-    action: item.action,
-  }));
+  // kmyblue bugfix
+  const dropdownItems = useMemo(
+    () =>
+      items.map((item) => ({
+        text: intl.formatMessage(item.message),
+        key: item.text,
+        action: item.action,
+      })),
+    [items],
+  );
 
   return (
     <Dropdown
@@ -264,7 +270,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
 
 interface ReblogMenuItemProps {
   status: Status;
-  item: ActionMenuItem;
+  item: ActionMenuItem & { key?: string }; // kmyblue bugfix
   index: number;
   handlers: RenderItemFnHandlers;
   focusRefCallback?: (c: HTMLAnchorElement | HTMLButtonElement | null) => void;
@@ -273,10 +279,11 @@ interface ReblogMenuItemProps {
 const ReblogMenuItem: FC<ReblogMenuItemProps> = ({
   status,
   index,
-  item: { text },
+  item: { key: text }, // kmyblue bugfix
   handlers,
   focusRefCallback,
 }) => {
+  text ??= ''; // kmyblue bugfix
   const intl = useIntl();
   const statusState = useAppSelector((state) =>
     selectStatusState(state, status),
