@@ -132,11 +132,14 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
   const dispatch = useAppDispatch();
   const statusId = status.get('id') as string;
   const statusUrl = status.get('url') as string;
-  const items: ActionMenuItem[] = useMemo(
+  const items: (ActionMenuItem & {
+    message: { id: string; defaultMessage: string };
+  })[] = useMemo(
     () =>
       [
         {
           text: 'reblog',
+          message: messages.reblog,
           action: () => {
             if (isLoggedIn) {
               dispatch(toggleReblog(statusId, true));
@@ -145,6 +148,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'reblog_with_detail',
+          message: messages.reblog_with_detail,
           action: () => {
             if (isLoggedIn) {
               dispatch(toggleReblog(statusId, true, true));
@@ -153,6 +157,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'quote',
+          message: messages.quote,
           action: () => {
             if (isLoggedIn) {
               dispatch(quoteComposeById(statusId));
@@ -161,6 +166,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'quote_link',
+          message: messages.quote_link,
           action: () => {
             if (isLoggedIn) {
               dispatch(insertReferenceCompose(0, statusUrl, 'RE'));
@@ -169,6 +175,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         },
         {
           text: 'reference',
+          message: messages.reference_link,
           action: () => {
             if (isLoggedIn) {
               dispatch(insertReferenceCompose(0, statusUrl, 'BT'));
@@ -225,9 +232,14 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
     [status],
   );
 
+  const dropdownItems = items.map((item) => ({
+    text: intl.formatMessage(item.message),
+    action: item.action,
+  }));
+
   return (
     <Dropdown
-      items={items}
+      items={dropdownItems}
       renderItem={renderMenuItem}
       onOpen={handleDropdownOpen}
       disabled={disabled}
