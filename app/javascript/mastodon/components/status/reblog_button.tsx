@@ -240,7 +240,7 @@ export const StatusReblogButton: FC<ReblogButtonProps> = ({
         key: item.text,
         action: item.action,
       })),
-    [items],
+    [items, intl],
   );
 
   return (
