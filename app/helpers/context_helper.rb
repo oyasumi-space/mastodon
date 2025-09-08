@@ -30,6 +30,7 @@ module ContextHelper
     other_setting: { 'fedibird' => 'http://fedibird.com/ns#', 'otherSetting' => 'fedibird:otherSetting' },
     references: { 'fedibird' => 'http://fedibird.com/ns#', 'references' => { '@id' => 'fedibird:references', '@type' => '@id' } },
     quote_uri: { 'fedibird' => 'http://fedibird.com/ns#', 'quoteUri' => 'fedibird:quoteUri' },
+    group_context: { 'kmyblue' => 'http://kmy.blue/ns#', 'groupContext' => 'kmyblue:groupContext' },
     keywords: { 'schema' => 'http://schema.org#', 'keywords' => 'schema:keywords' },
     license: { 'schema' => 'http://schema.org#', 'license' => 'schema:license' },
     suspended: { 'toot' => 'http://joinmastodon.org/ns#', 'suspended' => 'toot:suspended' },

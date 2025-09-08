@@ -123,7 +123,12 @@ Rails.application.routes.draw do
   end
 
   resource :inbox, only: [:create], module: :activitypub
-  resources :contexts, only: [:show], module: :activitypub
+  resources :group_contexts, only: [:show], module: :activitypub, controller: :group_contexts
+  resources :contexts, only: [:show], module: :activitypub do
+    member do
+      get :items
+    end
+  end
 
   constraints(encoded_path: /%40.*/) do
     get '/:encoded_path', to: redirect { |params|

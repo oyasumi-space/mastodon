@@ -391,7 +391,7 @@ en:
       title: Custom emojis
       uncategorized: Uncategorized
       unlist: Unlist
-      unlisted: Quiet public
+      unlisted: Unlisted
       update_failed_msg: Could not update that emoji
       updated_msg: Emoji successfully updated!
       upload: Upload
@@ -2286,7 +2286,7 @@ en:
       public_unlisted: Local-public
       public_unlisted_long: Anyone on and off Mastodon, but not listed on public timelines of other servers
       reply: Reply
-      unlisted: Unlisted
+      unlisted: Quiet public
       unlisted_long: Hidden from Mastodon search results, trending, and public timelines
       unset: Default
       unset_long: Following Mastodon default behavior

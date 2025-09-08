@@ -3,13 +3,13 @@
 class ActivityPub::NoteSerializer < ActivityPub::Serializer
   include FormattingHelper
 
-  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :quotes, :interaction_policies, :searchable_by, :references, :limited_scope, :quote_uri
+  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :quotes, :interaction_policies, :searchable_by, :references, :limited_scope, :quote_uri, :group_context
 
   attributes :id, :type, :summary,
              :in_reply_to, :published, :url,
              :attributed_to, :to, :cc, :sensitive,
              :atom_uri, :in_reply_to_atom_uri,
-             :conversation, :searchable_by, :context
+             :conversation, :searchable_by, :context, :group_context
 
   attribute :content
   attribute :content_map, if: :language?
@@ -57,10 +57,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def content_map
     { object.language => content }
-  end
-
-  def context
-    ActivityPub::TagManager.instance.uri_for(object.conversation)
   end
 
   def replies
@@ -216,6 +212,16 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def limited_scope
     ActivityPub::TagManager.instance.limited_scope(object)
+  end
+
+  def context
+    return if object.conversation.nil?
+
+    ActivityPub::TagManager.instance.uri_for(object.conversation)
+  end
+
+  def group_context
+    ActivityPub::TagManager.instance.uri_for(object.conversation, group: true)
   end
 
   def local?
