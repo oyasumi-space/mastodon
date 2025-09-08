@@ -32,9 +32,9 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   attribute :voters_count, if: :poll_and_voters_count?
 
-  attribute :quote, if: :quote?
-  attribute :quote, key: :_misskey_quote, if: :quote?
-  attribute :quote, key: :quote_uri, if: :quote?
+  attribute :quote, if: :quote_authorization?
+  attribute :quote, key: :_misskey_quote, if: :quote_authorization?
+  attribute :quote, key: :quote_uri, if: :quote_authorization?
   attribute :quote_authorization, if: :quote_authorization?
 
   attribute :interaction_policy, if: -> { Mastodon::Feature.outgoing_quotes_enabled? }
@@ -183,7 +183,7 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags_of_quote
-    return [] unless quote?
+    return [] unless quote_authorization?
 
     [NoteLink.new(href: quote_uri)]
   end
@@ -220,10 +220,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def local?
     object.account.local?
-  end
-
-  def quote?
-    object.quote.present?
   end
 
   def quote_post
