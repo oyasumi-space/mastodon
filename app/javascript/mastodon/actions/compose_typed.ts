@@ -111,7 +111,6 @@ export const quoteCompose = createAppThunk(
 export const quoteComposeByStatus = createAppThunk(
   (status: Status, { dispatch, getState }) => {
     const composeState = getState().compose;
-    const account = getState().accounts.get(status.get('account') as string);
 
     if (composeState.get('is_uploading')) {
       dispatch(showAlert({ message: messages.quoteErrorUpload }));
@@ -119,8 +118,7 @@ export const quoteComposeByStatus = createAppThunk(
       dispatch(showAlert({ message: messages.quoteErrorQuote }));
     } else if (
       status.getIn(['quote_approval', 'current_user']) !== 'automatic' &&
-      status.getIn(['quote_approval', 'current_user']) !== 'manual' &&
-      !account?.getIn(['server_features', 'legacy_quote'])
+      status.getIn(['quote_approval', 'current_user']) !== 'manual'
     ) {
       dispatch(showAlert({ message: messages.quoteErrorUnauthorized }));
     } else {

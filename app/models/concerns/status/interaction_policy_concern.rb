@@ -15,6 +15,8 @@ module Status::InteractionPolicyConcern
   end
 
   def quote_policy_as_keys(kind)
+    return 'public' if Setting.auto_accept_legacy_quotes && kind == :automatic && InstanceInfo.legacy_quote_software?(account.domain)
+
     case kind
     when :automatic
       policy = quote_approval_policy >> 16
@@ -27,12 +29,14 @@ module Status::InteractionPolicyConcern
 
   # Returns `:automatic`, `:manual`, `:unknown` or `:denied`
   def quote_policy_for_account(other_account, preloaded_relations: {})
-    return :denied if other_account.nil? || direct_visibility?
+    return :denied if other_account.nil? || direct_visibility? || limited_visibility?
 
     following_author = nil
 
     # Post author is always allowed to quote themselves
     return :automatic if account_id == other_account.id
+
+    return :automatic if Setting.auto_accept_legacy_quotes && !account.local? && InstanceInfo.legacy_quote_software?(account.domain)
 
     automatic_policy = quote_approval_policy >> 16
     manual_policy = quote_approval_policy & 0xFFFF

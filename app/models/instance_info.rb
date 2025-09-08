@@ -66,6 +66,10 @@ class InstanceInfo < ApplicationRecord
       Rails.cache.fetch("domain_available_features:#{domain}") { load_available_features(domain) }
     end
 
+    def legacy_quote_software?(domain)
+      LEGACY_QUOTE_SOFTWARES.include?(software_name(domain))
+    end
+
     def invalid_subscription_software?(domain)
       INVALID_SUBSCRIPTION_SOFTWARES.include?(software_name(domain))
     end

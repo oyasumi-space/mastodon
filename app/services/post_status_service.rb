@@ -188,9 +188,8 @@ class PostStatusService < BaseService
 
     if @quoted_status.local?
       status.quote.accept! if StatusPolicy.new(@status.account, @quoted_status).quote?
-    else
-      features = InstanceInfo.available_features(@quoted_status.account.domain)
-      status.quote.accept! if features && features[:legacy_quote]
+    elsif Setting.auto_accept_legacy_quotes
+      status.quote.accept! if InstanceInfo.legacy_quote_software?(@quoted_status.account.domain)
     end
   end
 
