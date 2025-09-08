@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_20_084312) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_05_105303) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -583,6 +583,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_20_084312) do
     t.boolean "reject_reply_exclude_followers", default: false, null: false
     t.boolean "reject_friend", default: false, null: false
     t.boolean "block_trends", default: false, null: false
+    t.boolean "reject_relay", default: false, null: false
     t.index ["domain"], name: "index_domain_blocks_on_domain", unique: true
   end
 
