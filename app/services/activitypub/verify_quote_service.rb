@@ -14,11 +14,9 @@ class ActivityPub::VerifyQuoteService < BaseService
 
     fetch_quoted_post_if_needed!(fetchable_quoted_uri, prefetched_body: prefetched_quoted_object)
 
-    if Setting.auto_accept_legacy_quotes && (quote.legacy || legacy_quote_available?)
-      quote.accept!
-      return
-    end
+    return quote.accept! if Setting.auto_accept_legacy_quotes && legacy_quote_available? && (quote.legacy || quote.approval_uri == 'http://kmy.blue/ns#LegacyQuote')
 
+    return if quote.approval_uri == 'http://kmy.blue/ns#LegacyQuote'
     return if quote.quoted_account&.local?
     return if fast_track_approval! || quote.approval_uri.blank?
 
@@ -42,7 +40,7 @@ class ActivityPub::VerifyQuoteService < BaseService
   private
 
   def legacy_quote_available?
-    quote.quoted_account&.domain && InstanceInfo.available_features(quote.quoted_account.domain)[:legacy_quote]
+    @quote.quoted_account&.domain && InstanceInfo.legacy_quote_software?(@quote.quoted_account.domain)
   end
 
   # FEP-044f defines rules that don't require the approval flow

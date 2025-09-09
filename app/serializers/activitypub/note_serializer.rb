@@ -32,9 +32,9 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   attribute :voters_count, if: :poll_and_voters_count?
 
-  attribute :quote, if: :quote_authorization?
-  attribute :quote, key: :_misskey_quote, if: :quote_authorization?
-  attribute :quote, key: :quote_uri, if: :quote_authorization?
+  attribute :quote, if: :quote?
+  attribute :quote, key: :_misskey_quote, if: :quote?
+  attribute :quote, key: :quote_uri, if: :quote?
   attribute :quote_authorization, if: :quote_authorization?
 
   attribute :interaction_policy, if: -> { Mastodon::Feature.outgoing_quotes_enabled? }
@@ -274,8 +274,12 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     object.preloadable_poll&.voters_count
   end
 
+  def quote?
+    object.quote&.present?
+  end
+
   def quote_authorization?
-    object.quote.present? && ActivityPub::TagManager.instance.approval_uri_for(object.quote).present?
+    object.quote.present? && (Setting.auto_accept_legacy_quotes ? object.quote.legacy_accepted? : ActivityPub::TagManager.instance.approval_uri_for(object.quote).present?)
   end
 
   def quote

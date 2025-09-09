@@ -604,6 +604,7 @@ class Status < ApplicationRecord
       self.conversation_id        = thread.conversation_id if conversation_id.nil?
     elsif conversation_id.nil?
       conversation = build_owned_conversation
+      conversation.ancestor_status = self
       self.conversation = conversation
     end
   end
