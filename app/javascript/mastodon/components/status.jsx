@@ -90,7 +90,6 @@ class Status extends ImmutablePureComponent {
   static propTypes = {
     status: ImmutablePropTypes.map,
     account: ImmutablePropTypes.record,
-    contextType: PropTypes.string,
     children: PropTypes.node,
     previousId: PropTypes.string,
     rootId: PropTypes.string,
@@ -101,6 +100,7 @@ class Status extends ImmutablePureComponent {
     onUnEmojiReact: PropTypes.func,
     onReblog: PropTypes.func,
     onReblogForceModal: PropTypes.func,
+    onQuote: PropTypes.func,
     onDelete: PropTypes.func,
     onDirect: PropTypes.func,
     onMention: PropTypes.func,
@@ -115,11 +115,10 @@ class Status extends ImmutablePureComponent {
     onToggleCollapsed: PropTypes.func,
     onTranslate: PropTypes.func,
     onInteractionModal: PropTypes.func,
+    onQuoteCancel: PropTypes.func,
     muted: PropTypes.bool,
     hidden: PropTypes.bool,
     unread: PropTypes.bool,
-    onMoveUp: PropTypes.func,
-    onMoveDown: PropTypes.func,
     showThread: PropTypes.bool,
     isQuotedPost: PropTypes.bool,
     getScrollPosition: PropTypes.func,
@@ -283,6 +282,10 @@ class Status extends ImmutablePureComponent {
     this.props.onReblog(this._properStatus(), e);
   };
 
+  handleHotkeyQuote = () => {
+    this.props.onQuote(this._properStatus());
+  };
+
   handleHotkeyMention = e => {
     e.preventDefault();
     this.props.onMention(this._properStatus().get('account'));
@@ -331,14 +334,6 @@ class Status extends ImmutablePureComponent {
     }
 
     history.push(`/@${status.getIn(['account', 'acct'])}`);
-  };
-
-  handleHotkeyMoveUp = e => {
-    this.props.onMoveUp?.(this.props.status.get('id'), this.node.getAttribute('data-featured'));
-  };
-
-  handleHotkeyMoveDown = e => {
-    this.props.onMoveDown?.(this.props.status.get('id'), this.node.getAttribute('data-featured'));
   };
 
   handleHotkeyToggleHidden = () => {
@@ -403,11 +398,10 @@ class Status extends ImmutablePureComponent {
       reply: this.handleHotkeyReply,
       favourite: this.handleHotkeyFavourite,
       boost: this.handleHotkeyBoost,
+      quote: this.handleHotkeyQuote,
       mention: this.handleHotkeyMention,
       open: this.handleHotkeyOpen,
       openProfile: this.handleHotkeyOpenProfile,
-      moveUp: this.handleHotkeyMoveUp,
-      moveDown: this.handleHotkeyMoveDown,
       toggleHidden: this.handleHotkeyToggleHidden,
       toggleSensitive: this.handleHotkeyToggleSensitive,
       openMedia: this.handleHotkeyOpenMedia,
@@ -619,7 +613,7 @@ class Status extends ImmutablePureComponent {
                 <DisplayName account={status.get('account')} />
               </Link>
 
-              {this.props.contextType === 'compose' && isQuotedPost &&  (
+              {isQuotedPost && !!this.props.onQuoteCancel &&  (
                 <IconButton
                   onClick={this.handleQuoteCancel}
                   className='status__quote-cancel'

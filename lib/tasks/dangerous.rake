@@ -194,7 +194,6 @@ namespace :dangerous do
     ]
     target_indices = %w(
       index_statuses_on_url
-      index_statuses_on_conversation_id
       index_preview_cards_vacuum
       index_media_attachments_vacuum
     )

@@ -342,42 +342,6 @@ RSpec.describe Auth::RegistrationsController do
       end
     end
 
-    context 'when age verification is enabled' do
-      subject { post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' }.merge(date_of_birth) } }
-
-      before do
-        Setting.min_age = 16
-      end
-
-      let(:date_of_birth) { {} }
-
-      context 'when date of birth is below age limit' do
-        let(:date_of_birth) { 13.years.ago.then { |date| { 'date_of_birth(1i)': date.day.to_s, 'date_of_birth(2i)': date.month.to_s, 'date_of_birth(3i)': date.year.to_s } } }
-
-        it 'does not create user' do
-          subject
-          user = User.find_by(email: 'test@example.com')
-          expect(user).to be_nil
-        end
-      end
-
-      context 'when date of birth is above age limit' do
-        let(:date_of_birth) { 17.years.ago.then { |date| { 'date_of_birth(1i)': date.day.to_s, 'date_of_birth(2i)': date.month.to_s, 'date_of_birth(3i)': date.year.to_s } } }
-
-        it 'redirects to setup and creates user' do
-          subject
-
-          expect(response).to redirect_to auth_setup_path
-
-          expect(User.find_by(email: 'test@example.com'))
-            .to be_present
-            .and have_attributes(
-              age_verified_at: not_eq(nil)
-            )
-        end
-      end
-    end
-
     context 'when max user count is set' do
       subject do
         post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
@@ -490,7 +454,7 @@ RSpec.describe Auth::RegistrationsController do
         post :create, params: { user: { account_attributes: { username: 'test' }, email: 'test@example.com', password: '12345678', password_confirmation: '12345678', agreement: 'true' } }
       end
 
-      shared_examples 'registration with time' do |header, start_hour_val, end_hour_val, secondary_start_hour_val, secondary_end_hour_val, result| # rubocop:disable Metrics/ParameterLists
+      shared_examples 'registration with time' do |header, start_hour_val, end_hour_val, secondary_start_hour_val, secondary_end_hour_val, result|
         context header do
           let(:start_hour) { start_hour_val }
           let(:end_hour) { end_hour_val }

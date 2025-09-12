@@ -9,7 +9,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
              :sensitive, :spoiler_text, :visibility, :visibility_ex, :limited_scope, :language,
              :uri, :url, :replies_count, :reblogs_count, :searchability,
              :status_reference_ids, :status_references_count, :status_referred_by_count,
-             :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :edited_at
+             :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :quotes_count, :edited_at
 
   attribute :favourited, if: :current_user?
   attribute :reblogged, if: :current_user?
@@ -127,6 +127,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   def favourites_count
     object.untrusted_favourites_count || relationships&.attributes_map&.dig(object.id, :favourites_count) || object.favourites_count
+  end
+
+  def quotes_count
+    relationships&.attributes_map&.dig(object.id, :quotes_count) || object.quotes_count
   end
 
   def favourited

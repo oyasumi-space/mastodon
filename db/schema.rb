@@ -482,6 +482,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_05_105303) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "inbox_url"
     t.bigint "ancestor_status_id"
+    t.bigint "parent_status_id"
+    t.bigint "parent_account_id"
     t.index ["ancestor_status_id"], name: "index_conversations_on_ancestor_status_id", where: "(ancestor_status_id IS NOT NULL)"
     t.index ["uri"], name: "index_conversations_on_uri", unique: true, opclass: :text_pattern_ops, where: "(uri IS NOT NULL)"
   end

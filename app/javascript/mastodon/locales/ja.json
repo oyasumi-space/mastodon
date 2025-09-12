@@ -1021,6 +1021,7 @@
   "status.cancel_reblog": "ブースト解除",
   "status.cancel_reblog_private": "ブースト解除",
   "status.cannot_reblog": "この投稿はブーストできません",
+  "status.cannot_reference": "この投稿のサーバーはリンク機能に対応していません",
   "status.continued_thread": "続きのスレッド",
   "status.copy": "投稿へのリンクをコピー",
   "status.delete": "削除",
@@ -1059,7 +1060,7 @@
   "status.mute_conversation": "会話をミュート",
   "status.open": "詳細を表示",
   "status.pin": "プロフィールに固定表示",
-  "status.quote": "リンク",
+  "status.quote": "引用",
   "status.quote_link": "引用リンクを挿入",
   "status.quote_error.filtered": "あなたのフィルター設定によって非表示になっています",
   "status.read_more": "もっと見る",
@@ -1071,6 +1072,7 @@
   "status.reblogs.empty": "まだ誰もブーストしていません。ブーストされるとここに表示されます。",
   "status.redraft": "削除して下書きに戻す",
   "status.reference": "リンク",
+  "status.reference_link": "リンクを挿入",
   "status.references": "{count, plural, one {リンク} other {リンク}}",
   "status.remove_bookmark": "ブックマークを削除",
   "status.remove_favourite": "お気に入りから削除",
@@ -1138,5 +1140,8 @@
   "video.skip_forward": "前方にスキップ",
   "video.unmute": "ミュート解除",
   "video.volume_down": "音量を下げる",
-  "video.volume_up": "音量を上げる"
+  "video.volume_up": "音量を上げる",
+  "visibility_modal.circle_label": "サークル",
+  "visibility_modal.helper.searchability_editing": "検索許可は投稿後変更できません",
+  "visibility_modal.searchability_label": "検索許可"
 }

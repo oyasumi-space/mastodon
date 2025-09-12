@@ -1682,6 +1682,46 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
+      context 'with a legacy quote from other kmyblue server' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+        let(:sender_software) { 'misskey' }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            quote: ActivityPub::TagManager.instance.uri_for(quoted_status),
+            quoteAuthorization: 'http://kmy.blue/ns#LegacyQuote'
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: 'http://kmy.blue/ns#LegacyQuote'
+          )
+        end
+
+        it 'creates a status with an unverified quote with auto accepting' do
+          Setting.auto_accept_legacy_quotes = true
+
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'accepted',
+            approval_uri: 'http://kmy.blue/ns#LegacyQuote'
+          )
+        end
+      end
+
       context 'with an unverifiable unknown post' do
         let(:unknown_post_uri) { 'https://unavailable.example.com/unavailable-post' }
 
@@ -1763,6 +1803,28 @@ RSpec.describe ActivityPub::Activity::Create do
             state: 'accepted',
             approval_uri: approval_uri
           )
+        end
+      end
+
+      context 'with quote permission' do
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            interactionPolicy: {
+              canQuote: {
+                automaticApproval: ['https://www.w3.org/ns/activitystreams#Public'],
+              },
+            }
+          )
+        end
+
+        it 'creates a status with a permission of quoting' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote_approval_policy).to eq 131_072
         end
       end
 

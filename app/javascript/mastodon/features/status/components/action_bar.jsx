@@ -3,24 +3,16 @@ import { PureComponent } from 'react';
 
 import { defineMessages, injectIntl } from 'react-intl';
 
-import classNames from 'classnames';
-
-
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import BookmarkIcon from '@/material-icons/400-24px/bookmark-fill.svg?react';
 import BookmarkBorderIcon from '@/material-icons/400-24px/bookmark.svg?react';
 import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
-import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
 import ReplyAllIcon from '@/material-icons/400-24px/reply_all.svg?react';
 import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import StarBorderIcon from '@/material-icons/400-24px/star.svg?react';
-import RepeatActiveIcon from '@/svg-icons/repeat_active.svg?react';
-import RepeatDisabledIcon from '@/svg-icons/repeat_disabled.svg?react';
-import RepeatPrivateIcon from '@/svg-icons/repeat_private.svg?react';
-import RepeatPrivateActiveIcon from '@/svg-icons/repeat_private_active.svg?react';
 import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { PERMISSION_MANAGE_USERS, PERMISSION_MANAGE_FEDERATION } from 'mastodon/permissions';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
@@ -28,9 +20,10 @@ import { WithRouterPropTypes } from 'mastodon/utils/react_router';
 
 import { IconButton } from '../../../components/icon_button';
 import { Dropdown } from 'mastodon/components/dropdown_menu';
-import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem, boostMenu, boostModal } from '../../../initial_state';
+import { enableEmojiReaction , bookmarkCategoryNeeded, me, isHideItem } from '../../../initial_state';
 import EmojiPickerDropdown from '../../compose/containers/emoji_picker_dropdown_container';
 import { isFeatureEnabled } from '@/mastodon/utils/environment';
+import { ReblogButton } from '@/mastodon/components/status/reblog_button';
 
 const messages = defineMessages({
   delete: { id: 'status.delete', defaultMessage: 'Delete' },
@@ -40,12 +33,6 @@ const messages = defineMessages({
   mention: { id: 'status.mention', defaultMessage: 'Mention @{name}' },
   mentions: { id: 'status.mentions', defaultMessage: 'Mentioned users' },
   reply: { id: 'status.reply', defaultMessage: 'Reply' },
-  reblog: { id: 'status.reblog', defaultMessage: 'Boost' },
-  reblog_with_detail: { id: 'status.reblog_with_detail', defaultMessage: 'Boost with visibility' },
-  cancel_reblog: { id: 'status.cancel_reblog_private', defaultMessage: 'Unboost' },
-  reblog_private: { id: 'status.reblog_private', defaultMessage: 'Boost with original visibility' },
-  cancel_reblog_private: { id: 'status.cancel_reblog_private', defaultMessage: 'Unboost' },
-  cannot_reblog: { id: 'status.cannot_reblog', defaultMessage: 'This post cannot be boosted' },
   favourite: { id: 'status.favourite', defaultMessage: 'Favorite' },
   removeFavourite: { id: 'status.remove_favourite', defaultMessage: 'Remove from favorites' },
   bookmark: { id: 'status.bookmark', defaultMessage: 'Bookmark' },
@@ -72,7 +59,6 @@ const messages = defineMessages({
   unmute: { id: 'account.unmute', defaultMessage: 'Unmute @{name}' },
   unblock: { id: 'account.unblock', defaultMessage: 'Unblock @{name}' },
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
-  pickEmoji: { id: 'status.emoji_reaction.pick', defaultMessage: 'Pick emoji' },
   revokeQuote: { id: 'status.revoke_quote', defaultMessage: 'Remove my post from @{name}’s post' },
   quotePolicyChange: { id: 'status.quote_policy_change', defaultMessage: 'Change who can quote' },
 });
@@ -240,11 +226,11 @@ class ActionBar extends PureComponent {
   };
 
   handleInsertQuoteLink = () => {
-    this.props.onInsertQuoteLink(this.props.status, this.props.history);
+    this.props.onInsertQuoteLink(this.props.status);
   };
 
   handleReference = () => {
-    this.props.onReference(this.props.status, this.props.history);
+    this.props.onReference(this.props.status);
   };
 
   handleEmojiPick = (data) => {
@@ -281,18 +267,6 @@ class ActionBar extends PureComponent {
 
     if (signedIn) {
       menu.push(null);
-
-      if (!boostMenu) {
-        menu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogForceModalClick, tag: 'reblog' });
-
-        if (publicStatus) {
-          menu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
-
-          if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-            menu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference, tag: 'reblog' });
-          }
-        }
-      }
 
       menu.push({ text: intl.formatMessage(messages.bookmark_category), action: this.handleBookmarkCategoryAdderClick });
 
@@ -362,24 +336,6 @@ class ActionBar extends PureComponent {
       }
     }
 
-    let reblogMenu = [];
-
-    if (boostMenu) {
-      reblogMenu.push({ text: intl.formatMessage(status.get('reblogged') ? messages.cancel_reblog : messages.reblog), action: this.handleReblogClick });
-
-      if (!status.get('reblogged') && !boostModal) {
-        reblogMenu.push({ text: intl.formatMessage(messages.reblog_with_detail), action: this.handleReblogForceModalClick });
-      }
-  
-      if (publicStatus) {
-        reblogMenu.push({ text: intl.formatMessage(messages.quoteLink), action: this.handleInsertQuoteLink, tag: 'reblog' });
-
-        if (account.getIn(['server_features', 'status_reference']) || !isHideItem('status_reference_unavailable_server')) {
-          reblogMenu.push({ text: intl.formatMessage(messages.reference), action: this.handleReference });
-        }
-      }
-    }
-
     let replyIcon;
     let replyIconComponent;
 
@@ -389,26 +345,6 @@ class ActionBar extends PureComponent {
     } else {
       replyIcon = 'reply-all';
       replyIconComponent = ReplyAllIcon;
-    }
-
-    const reblogPrivate = status.getIn(['account', 'id']) === me && status.get('visibility_ex') === 'private';
-
-    let reblogTitle, reblogIconComponent;
-
-    if (status.get('reblogged')) {
-      reblogTitle = intl.formatMessage(messages.cancel_reblog_private);
-      reblogIconComponent = publicStatus ? RepeatActiveIcon : RepeatPrivateActiveIcon;
-    } else if (publicStatus) {
-      reblogTitle = intl.formatMessage(messages.reblog);
-      reblogIconComponent = RepeatIcon;
-    } else if (reblogPrivate) {
-      reblogTitle = intl.formatMessage(messages.reblog_private);
-      reblogIconComponent = RepeatPrivateIcon;
-    } else {
-      reblogTitle = intl.formatMessage(messages.cannot_reblog);
-      reblogIconComponent = RepeatDisabledIcon;
-      menu = menu.filter((item) => !item?.tag || item.tag !== 'reblog');
-      reblogMenu = [];
     }
 
     const emojiReactionAvailableServer = !isHideItem('emoji_reaction_unavailable_server') || account.getIn(['server_features', 'emoji_reaction']);
@@ -432,23 +368,9 @@ class ActionBar extends PureComponent {
     return (
       <div className='detailed-status__action-bar'>
         <div className='detailed-status__button'><IconButton title={intl.formatMessage(messages.reply)} icon={status.get('in_reply_to_account_id') === status.getIn(['account', 'id']) ? 'reply' : replyIcon} iconComponent={status.get('in_reply_to_account_id') === status.getIn(['account', 'id']) ? ReplyIcon : replyIconComponent}  onClick={this.handleReplyClick} /></div>
-        {reblogMenu.length === 0 ? (
-          <div className='detailed-status__button'><IconButton className={classNames({ reblogPrivate })} disabled={!publicStatus && !reblogPrivate} active={status.get('reblogged')} title={reblogTitle} icon='retweet' iconComponent={reblogIconComponent} onClick={this.handleReblogClick} /></div>
-        ) : (
-          <div className='detailed-status__button'>
-            <Dropdown
-              className={classNames({ reblogPrivate })}
-              icon='retweet'
-              iconComponent={reblogIconComponent}
-              status={status}
-              items={reblogMenu}
-              direction='left'
-              title={reblogTitle}
-              active={status.get('reblogged')}
-              disabled={!publicStatus && !reblogPrivate}
-            />
-          </div>
-        )}
+        <div className='detailed-status__button'>
+          <ReblogButton status={status} />
+        </div>
         <div className='detailed-status__button'><IconButton className='star-icon' animate active={status.get('favourited')} title={favouriteTitle} icon='star' iconComponent={status.get('favourited') ? StarIcon : StarBorderIcon} onClick={this.handleFavouriteClick} /></div>
         <div className='detailed-status__button'><IconButton className='bookmark-icon' disabled={!signedIn} active={status.get('bookmarked')} title={bookmarkTitle} icon='bookmark' iconComponent={status.get('bookmarked') ? BookmarkIcon : BookmarkBorderIcon} onClick={this.handleBookmarkClick} /></div>
         {emojiPickerDropdown}

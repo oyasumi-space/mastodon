@@ -299,7 +299,8 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return if @quote_uri.blank?
 
     approval_uri = @status_parser.quote_approval_uri
-    approval_uri = nil if unsupported_uri_scheme?(approval_uri) || TagManager.instance.local_url?(approval_uri)
+    approval_uri = 'http://kmy.blue/ns#LegacyQuote' if approval_uri == 'kmyblue:LegacyQuote'
+    approval_uri = nil if unsupported_uri_scheme?(approval_uri) || (approval_uri != 'http://kmy.blue/ns#LegacyQuote' && TagManager.instance.local_url?(approval_uri))
     @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
   end
 
@@ -476,7 +477,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def conversation_from_activity
-    conversation_from_context(@object['context']) || conversation_from_uri(@object['conversation'])
+    conversation_from_context(@object['groupContext'] || @object['context']) || conversation_from_uri(@object['conversation'])
   end
 
   def fetch_and_verify_quote

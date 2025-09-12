@@ -45,8 +45,6 @@ class PostStatusService < BaseService
     @in_reply_to = @options[:thread]
     @quoted_status = @options[:quoted_status] || quoted_status_from_text
 
-    @antispam = Antispam.new
-
     return idempotency_duplicate if idempotency_given? && idempotency_duplicate?
 
     validate_status!
@@ -105,6 +103,7 @@ class PostStatusService < BaseService
     v = :unlisted if %i(public public_unlisted login).include?(v) && @account.silenced?
     v = :public_unlisted if v == :public && !@options[:force_visibility] && !@options[:application]&.superapp && @account.user&.setting_public_post_to_unlisted && Setting.enable_public_unlisted_visibility
     v = Setting.enable_public_unlisted_visibility ? :public_unlisted : :unlisted if !Setting.enable_public_visibility && v == :public
+    v = :private if @quoted_status&.private_visibility?
     v
   end
 
@@ -169,7 +168,9 @@ class PostStatusService < BaseService
     UpdateStatusExpirationService.new.call(@status)
 
     attach_quote!(@status)
-    @antispam.local_preflight_check!(@status)
+
+    antispam = Antispam.new(@status)
+    antispam.local_preflight_check!
 
     # The following transaction block is needed to wrap the UPDATEs to
     # the media attachments when the status is created
@@ -185,7 +186,11 @@ class PostStatusService < BaseService
     status.quote = Quote.create(quoted_status: @quoted_status, status: status)
     status.quote.ensure_quoted_access
 
-    status.quote.accept! if @quoted_status.local? && StatusPolicy.new(@status.account, @quoted_status).quote?
+    if @quoted_status.local?
+      status.quote.accept! if StatusPolicy.new(@status.account, @quoted_status).quote?
+    elsif Setting.auto_accept_legacy_quotes
+      status.quote.accept! if InstanceInfo.legacy_quote_software?(@quoted_status.account.domain)
+    end
   end
 
   def safeguard_mentions!(status)
@@ -201,7 +206,9 @@ class PostStatusService < BaseService
 
   def schedule_status!
     status_for_validation = @account.statuses.build(status_attributes)
-    @antispam.local_preflight_check!(status_for_validation)
+
+    antispam = Antispam.new(status_for_validation)
+    antispam.local_preflight_check!
 
     if status_for_validation.valid?
       # Marking the status as destroyed is necessary to prevent the status from being
@@ -291,6 +298,8 @@ class PostStatusService < BaseService
   end
 
   def quoted_status_from_text
+    return unless Mastodon::Feature.outgoing_quotes_enabled?
+
     url = ProcessReferencesService.extract_quote(@text)
     return unless url
 

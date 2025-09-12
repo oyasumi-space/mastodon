@@ -2,9 +2,9 @@ import { Map as ImmutableMap, List as ImmutableList, OrderedSet as ImmutableOrde
 
 import {
   changeUploadCompose,
-  quoteComposeByStatus,
+  quoteCompose,
   quoteComposeCancel,
-  setQuotePolicy,
+  setComposeQuotePolicy,
 } from 'mastodon/actions/compose_typed';
 import { timelineDelete } from 'mastodon/actions/timelines_typed';
 
@@ -257,6 +257,8 @@ const normalizePrivacy = (map, last) => {
     if (enabledVisibilites.length > 0) {
       const index = last ? enabledVisibilites.length - 1 : 0;
       map.set('privacy', enabledVisibilites[index]);
+    } else {
+      map.set('privacy', 'banned');
     }
   }
 };
@@ -429,22 +431,16 @@ export const composeReducer = (state = initialState, action) => {
     return state.set('is_changing_upload', true);
   } else if (changeUploadCompose.rejected.match(action)) {
     return state.set('is_changing_upload', false);
-  } else if (quoteComposeByStatus.match(action)) {
+  } else if (quoteCompose.match(action)) {
     const status = action.payload;
-    if (
-      status.getIn(['quote_approval', 'current_user']) === 'automatic' &&
-      state.get('media_attachments').size === 0 &&
-      !state.get('is_uploading') &&
-      !state.get('poll')
-    ) {
-      return state
-        .set('quoted_status_id', status.get('id'))
-        .set('spoiler', status.get('sensitive'))
-        .set('spoiler_text', status.get('spoiler_text'));
-    }
+    return state
+      .set('quoted_status_id', status.get('id'))
+      .set('spoiler', status.get('sensitive'))
+      .set('spoiler_text', status.get('spoiler_text'))
+      .update('privacy', (visibility) => ['public', 'unlisted'].includes(visibility) && status.get('visibility') === 'private' ? 'private' : visibility);
   } else if (quoteComposeCancel.match(action)) {
     return state.set('quoted_status_id', null);
-  } else if (setQuotePolicy.match(action)) {
+  } else if (setComposeQuotePolicy.match(action)) {
     return state.set('quote_policy', action.payload);
   }
 
@@ -653,6 +649,7 @@ export const composeReducer = (state = initialState, action) => {
       map.set('language', action.status.get('language'));
       map.set('markdown', action.status.get('markdown'));
       map.set('id', null);
+      map.set('quoted_status_id', action.status.getIn(['quote', 'quoted_status']));
       // Mastodon-authored posts can be expected to have at most one automatic approval policy
       map.set('quote_policy', action.status.getIn(['quote_approval', 'automatic', 0]) || 'nobody');
 
@@ -665,8 +662,13 @@ export const composeReducer = (state = initialState, action) => {
       }
 
       if (action.status.get('poll')) {
+        let options = ImmutableList(action.status.get('poll').options.map(x => x.title));
+        if (options.size < action.maxOptions) {
+          options = options.push('');
+        }
+
         map.set('poll', ImmutableMap({
-          options: ImmutableList(action.status.get('poll').options.map(x => x.title)),
+          options: options,
           multiple: action.status.get('poll').multiple,
           expires_in: expiresInFromExpiresAt(action.status.get('poll').expires_at),
         }));
@@ -691,6 +693,7 @@ export const composeReducer = (state = initialState, action) => {
       map.set('sensitive', action.status.get('sensitive'));
       map.set('language', action.status.get('language'));
       map.set('markdown', action.status.get('markdown'));
+      map.set('quoted_status_id', action.status.getIn(['quote', 'quoted_status']));
       // Mastodon-authored posts can be expected to have at most one automatic approval policy
       map.set('quote_policy', action.status.getIn(['quote_approval', 'automatic', 0]) || 'nobody');
 
@@ -703,8 +706,13 @@ export const composeReducer = (state = initialState, action) => {
       }
 
       if (action.status.get('poll')) {
+        let options = ImmutableList(action.status.get('poll').options.map(x => x.title));
+        if (options.size < action.maxOptions) {
+          options = options.push('');
+        }
+
         map.set('poll', ImmutableMap({
-          options: ImmutableList(action.status.get('poll').options.map(x => x.title)),
+          options: options,
           multiple: action.status.get('poll').multiple,
           expires_in: expiresInFromExpiresAt(action.status.get('poll').expires_at),
         }));

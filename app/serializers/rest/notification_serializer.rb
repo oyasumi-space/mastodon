@@ -23,7 +23,7 @@ class REST::NotificationSerializer < ActiveModel::Serializer
   end
 
   def status_type?
-    [:favourite, :emoji_reaction, :reaction, :reblog, :status_reference, :status, :list_status, :mention, :poll, :update, :quote].include?(object.type)
+    [:favourite, :emoji_reaction, :reaction, :reblog, :status_reference, :status, :list_status, :mention, :poll, :update, :quoted_update, :quote].include?(object.type)
   end
 
   def report_type?

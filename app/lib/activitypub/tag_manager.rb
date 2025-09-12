@@ -34,7 +34,7 @@ class ActivityPub::TagManager
     end
   end
 
-  def uri_for(target)
+  def uri_for(target, group: false)
     return target.uri if target.respond_to?(:local?) && !target.local?
 
     return unless target.respond_to?(:object_type)
@@ -42,6 +42,8 @@ class ActivityPub::TagManager
     case target.object_type
     when :person
       target.instance_actor? ? instance_actor_url : account_url(target)
+    when :conversation
+      group ? group_context_url(target) : context_url(target)
     when :note, :comment, :activity
       return activity_account_status_url(target.account, target) if target.reblog?
 
@@ -50,15 +52,17 @@ class ActivityPub::TagManager
       emoji_url(target)
     when :emoji_reaction
       emoji_reaction_url(target)
-    when :conversation
-      context_url(target)
     when :flag
       target.uri
     end
   end
 
   def approval_uri_for(quote, check_approval: true)
-    return quote.approval_uri unless quote.quoted_account&.local?
+    unless quote.quoted_account&.local?
+      return 'http://kmy.blue/ns#LegacyQuote' if Setting.auto_accept_legacy_quotes && !quote.approval_uri && quote.quoted_account&.domain && InstanceInfo.legacy_quote_software?(quote.quoted_account.domain)
+
+      return quote.approval_uri
+    end
     return if check_approval && !quote.accepted?
 
     account_quote_authorization_url(quote.quoted_account, quote)
@@ -80,6 +84,12 @@ class ActivityPub::TagManager
     raise ArgumentError, 'target must be a local activity' unless %i(note comment activity).include?(target.object_type) && target.local?
 
     activity_account_status_url(target.account, target)
+  end
+
+  def context_uri_for(target, page_params = nil)
+    raise ArgumentError, 'target must be a local activity' unless %i(note comment activity).include?(target.object_type) && target.local?
+
+    items_context_url(target.conversation, page_params)
   end
 
   def replies_uri_for(target, page_params = nil)

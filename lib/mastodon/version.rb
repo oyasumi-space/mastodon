@@ -2,7 +2,7 @@
 
 module Mastodon
   module Version
-    KMYBLUE_API_VERSION = 2
+    KMYBLUE_API_VERSION = 4
 
     module_function
 
@@ -96,7 +96,7 @@ module Mastodon
 
     def api_versions
       {
-        mastodon: 6,
+        mastodon: Mastodon::Feature.outgoing_quotes_enabled? ? 7 : 6,
         kmyblue: KMYBLUE_API_VERSION,
       }
     end

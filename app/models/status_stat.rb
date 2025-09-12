@@ -55,6 +55,10 @@ class StatusStat < ApplicationRecord
     [attributes['status_referred_by_count'] || 0, 0].max
   end
 
+  def quotes_count
+    [attributes['quotes_count'], 0].max
+  end
+
   private
 
   def clamp_untrusted_counts

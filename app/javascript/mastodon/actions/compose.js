@@ -93,6 +93,7 @@ export const COMPOSE_FOCUS = 'COMPOSE_FOCUS';
 const messages = defineMessages({
   uploadErrorLimit: { id: 'upload_error.limit', defaultMessage: 'File upload limit exceeded.' },
   uploadErrorPoll:  { id: 'upload_error.poll', defaultMessage: 'File upload not allowed with polls.' },
+  uploadQuote: { id: 'upload_error.quote', defaultMessage: 'File upload not allowed with quotes.' },
   open: { id: 'compose.published.open', defaultMessage: 'Open' },
   published: { id: 'compose.published.body', defaultMessage: 'Post published.' },
   saved: { id: 'compose.saved.body', defaultMessage: 'Post saved.' },
@@ -105,12 +106,17 @@ export const ensureComposeIsVisible = (getState) => {
 };
 
 export function setComposeToStatus(status, text, spoiler_text) {
-  return{
-    type: COMPOSE_SET_STATUS,
-    status,
-    text,
-    spoiler_text,
-  };
+  return (dispatch, getState) => {
+    const maxOptions = getState().server.getIn(['server', 'configuration', 'polls', 'max_options']);
+
+    dispatch({
+      type: COMPOSE_SET_STATUS,
+      status,
+      text,
+      spoiler_text,
+      maxOptions,
+    });
+  }
 }
 
 export function changeCompose(text) {
@@ -155,7 +161,7 @@ export function resetCompose() {
   };
 }
 
-export const focusCompose = (defaultText) => (dispatch, getState) => {
+export const focusCompose = (defaultText = '') => (dispatch, getState) => {
   dispatch({
     type: COMPOSE_FOCUS,
     defaultText,
@@ -226,6 +232,7 @@ export function submitCompose(successCallback) {
       });
     }
 
+    const visibility = getState().getIn(['compose', 'privacy']);
     api().request({
       url: statusId === null ? '/api/v1/statuses' : `/api/v1/statuses/${statusId}`,
       method: statusId === null ? 'post' : 'put',
@@ -237,13 +244,13 @@ export function submitCompose(successCallback) {
         sensitive: media.size > 0 ? getState().getIn(['compose', 'spoiler']) : false,
         spoiler_text: getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '',
         markdown: getState().getIn(['compose', 'markdown']),
-        visibility: getState().getIn(['compose', 'privacy']),
+        visibility: visibility,
         searchability: getState().getIn(['compose', 'searchability']),
         circle_id: getState().getIn(['compose', 'circle_id']),
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
         quoted_status_id: getState().getIn(['compose', 'quoted_status_id']),
-        quote_approval_policy: getState().getIn(['compose', 'quote_policy']),
+        quote_approval_policy: visibility === 'private' || visibility === 'direct' ? 'nobody' : getState().getIn(['compose', 'quote_policy']),
       },
       headers: {
         'Idempotency-Key': getState().getIn(['compose', 'idempotencyKey']),
@@ -329,6 +336,11 @@ export function submitComposeFail(error) {
 
 export function uploadCompose(files) {
   return function (dispatch, getState) {
+    // Exit if there's a quote.
+    if (getState().compose.get('quoted_status_id')) {
+      dispatch(showAlert({ message: messages.uploadQuote }));
+      return;
+    }
     const uploadLimit = getState().getIn(['server', 'server', 'configuration', 'statuses', 'max_media_attachments']);
     const media = getState().getIn(['compose', 'media_attachments']);
     const pending = getState().getIn(['compose', 'pending_media_attachments']);
@@ -841,7 +853,7 @@ export function insertFeaturedTagCompose(position, data) {
   };
 }
 
-export function insertReferenceCompose(position, url, attributeType, routerHistory) {
+export function insertReferenceCompose(position, url, attributeType) {
   return (dispatch, getState) => {
     dispatch({
       type: COMPOSE_REFERENCE_INSERT,
@@ -850,7 +862,7 @@ export function insertReferenceCompose(position, url, attributeType, routerHisto
       attributeType,
     });
 
-    ensureComposeIsVisible(getState, routerHistory);
+    ensureComposeIsVisible(getState);
   };
 }
 
