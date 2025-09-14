@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import { NavLink, useRouteMatch } from 'react-router-dom';
 
 import AddIcon from '@/material-icons/400-24px/add.svg?react';
+import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
 import HomeActiveIcon from '@/material-icons/400-24px/home-fill.svg?react';
 import HomeIcon from '@/material-icons/400-24px/home.svg?react';
 import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
@@ -18,13 +19,19 @@ import { fetchServer } from 'mastodon/actions/server';
 import { Icon } from 'mastodon/components/icon';
 import { IconWithBadge } from 'mastodon/components/icon_with_badge';
 import { useIdentity } from 'mastodon/identity_context';
-import { registrationsOpen, sso_redirect } from 'mastodon/initial_state';
+import {
+  communityTimelineInsteadOfSearchMenu,
+  enableLocalTimeline,
+  registrationsOpen,
+  sso_redirect,
+} from 'mastodon/initial_state';
 import { selectUnreadNotificationGroupsCount } from 'mastodon/selectors/notifications';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 export const messages = defineMessages({
   home: { id: 'tabs_bar.home', defaultMessage: 'Home' },
   search: { id: 'tabs_bar.search', defaultMessage: 'Search' },
+  local: { id: 'column.local', defaultMessage: 'Local' },
   publish: { id: 'tabs_bar.publish', defaultMessage: 'New Post' },
   notifications: {
     id: 'tabs_bar.notifications',
@@ -177,11 +184,19 @@ export const NavigationBar: React.FC = () => {
               icon={<Icon id='' icon={HomeIcon} />}
               activeIcon={<Icon id='' icon={HomeActiveIcon} />}
             />
-            <IconLabelButton
-              title={intl.formatMessage(messages.search)}
-              to='/explore'
-              icon={<Icon id='' icon={SearchIcon} />}
-            />
+            {communityTimelineInsteadOfSearchMenu && enableLocalTimeline ? (
+              <IconLabelButton
+                title={intl.formatMessage(messages.local)}
+                to='/public/local/fixed'
+                icon={<Icon id='' icon={PeopleIcon} />}
+              />
+            ) : (
+              <IconLabelButton
+                title={intl.formatMessage(messages.search)}
+                to='/explore'
+                icon={<Icon id='' icon={SearchIcon} />}
+              />
+            )}
             <IconLabelButton
               title={intl.formatMessage(messages.publish)}
               to='/publish'
