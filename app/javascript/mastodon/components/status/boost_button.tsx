@@ -19,8 +19,7 @@ import type { RenderItemFn, RenderItemFnHandlers } from '../dropdown_menu';
 import { Dropdown, DropdownMenuItemContent } from '../dropdown_menu';
 import { IconButton } from '../icon_button';
 
-import type {
-  MenuItemState} from './boost_button_utils';
+import type { MenuItemState } from './boost_button_utils';
 import {
   boostItemState,
   messages,
@@ -168,7 +167,15 @@ export const StatusBoostButton: FC<ReblogButtonProps> = ({
       ActionMenuItemWithIcon,
       ActionMenuItemWithIcon,
     ];
-  }, [dispatch, intl, statusId, statusState, wasBoosted]);
+  }, [
+    dispatch,
+    intl,
+    statusId,
+    statusState,
+    wasBoosted,
+    statusUrl,
+    isQuoteUiDisabled,
+  ]);
 
   const boostIcon = items[0].icon;
 
