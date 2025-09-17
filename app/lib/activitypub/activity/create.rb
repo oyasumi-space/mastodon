@@ -69,11 +69,10 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return nil if (mention_to_local_stranger? || reference_to_local_stranger?) && reject_reply_exclude_followers?
 
     ApplicationRecord.transaction do
-      @status = Status.create!(@params)
+      @status = Status.create!(@params.merge(quote: @quote))
       attach_tags(@status)
       attach_mentions(@status)
       attach_counts(@status)
-      attach_quote(@status)
     end
 
     resolve_thread(@status)
@@ -104,6 +103,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     @status_parser = ActivityPub::Parser::StatusParser.new(
       @json,
       followers_collection: @account.followers_url,
+      following_collection: @account.following_url,
       actor_uri: ActivityPub::TagManager.instance.uri_for(@account),
       object: @object,
       account: @account,
@@ -271,13 +271,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       status_stat.untrusted_favourites_count = likes unless likes.nil?
       status_stat.save if status_stat.changed?
     end
-  end
-
-  def attach_quote(status)
-    return if @quote.nil?
-
-    @quote.status = status
-    @quote.save
   end
 
   def process_tags
@@ -501,7 +494,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def conversation_from_context(uri)
-    return nil if uri.nil? || (!uri.start_with?('https://') && !uri.start_with?('http://'))
+    return nil if uri.nil? || !uri.start_with?('https://', 'http://')
     return Conversation.find_by(id: ActivityPub::TagManager.instance.uri_to_local_id(uri)) if ActivityPub::TagManager.instance.local_uri?(uri)
 
     begin

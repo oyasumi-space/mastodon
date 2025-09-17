@@ -2279,7 +2279,7 @@ en:
       login: Login-only
       login_long: Only logined users
       mutual: Mutual-only
-      private: Followers-only
+      private: Followers only
       private_long: Only show to followers
       public: Public
       public_long: Anyone on and off Mastodon

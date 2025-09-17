@@ -253,7 +253,6 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
             value: 'unlisted',
             text: intl.formatMessage(privacyMessages.unlisted_short),
             meta: intl.formatMessage(privacyMessages.unlisted_long),
-            extra: intl.formatMessage(privacyMessages.unlisted_extra),
             icon: 'unlock',
             iconComponent: QuietTimeIcon,
           },
@@ -368,10 +367,15 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
       onClose();
     }, [onChange, onClose, visibility, searchability, quotePolicy, circleId]);
 
-    const privacyDropdownId = useId();
-    const searchabilityDropdownId = useId();
-    const quoteDropdownId = useId();
-    const circleDropdownId = useId();
+    const uniqueId = useId();
+    const visibilityLabelId = `${uniqueId}-visibility-label`;
+    const visibilityDescriptionId = `${uniqueId}-visibility-desc`;
+    const quoteLabelId = `${uniqueId}-quote-label`;
+    const quoteDescriptionId = `${uniqueId}-quote-desc`;
+    const searchabilityLabelId = `${uniqueId}-searchability-label`;
+    const searchabilityDescriptionId = `${uniqueId}-searchability-desc`;
+    const circleLabelId = `${uniqueId}-circle-label`;
+    const circleDescriptionId = `${uniqueId}-circle-desc`;
 
     return (
       <div className='modal-root__modal dialog-modal visibility-modal'>
@@ -406,28 +410,36 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
             />
           </div>
           <div className='dialog-modal__content__form'>
-            <label
-              htmlFor={privacyDropdownId}
-              className={classNames('visibility-dropdown__label', {
+            <div
+              className={classNames('visibility-dropdown', {
                 disabled: disableVisibility,
               })}
             >
-              <FormattedMessage
-                id='visibility_modal.privacy_label'
-                defaultMessage='Visibility'
-              />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label
+                className='visibility-dropdown__label'
+                id={visibilityLabelId}
+              >
+                <FormattedMessage
+                  id='visibility_modal.privacy_label'
+                  defaultMessage='Visibility'
+                />
+              </label>
 
               <Dropdown
                 items={visibilityItems}
-                classPrefix='visibility-dropdown'
                 current={visibility}
                 onChange={handleVisibilityChange}
-                title={intl.formatMessage(privacyMessages.change_privacy)}
+                labelId={visibilityLabelId}
+                descriptionId={visibilityDescriptionId}
+                classPrefix='visibility-dropdown'
                 disabled={disableVisibility}
-                id={privacyDropdownId}
               />
               {!!statusId && (
-                <p className='visibility-dropdown__helper'>
+                <p
+                  className='visibility-dropdown__helper'
+                  id='visibilityDescriptionId'
+                >
                   <FormattedMessage
                     id='visibility_modal.helper.privacy_editing'
                     defaultMessage="Visibility can't be changed after a post is published."
@@ -435,93 +447,114 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
                 </p>
               )}
               {!statusId && disablePublicVisibilities && (
-                <p className='visibility-dropdown__helper'>
+                <p
+                  className='visibility-dropdown__helper'
+                  id='visibilityDescriptionId'
+                >
                   <FormattedMessage
                     id='visibility_modal.helper.privacy_private_self_quote'
                     defaultMessage='Self-quotes of private posts cannot be made public.'
                   />
                 </p>
               )}
-            </label>
+            </div>
 
             {!statusId && visibility === 'circle' && (
-              <label
-                htmlFor={circleDropdownId}
-                className={classNames('visibility-dropdown__label', {
+              <div
+                className={classNames('visibility-dropdown', {
                   disabled: disableVisibility,
                 })}
               >
-                <FormattedMessage
-                  id='visibility_modal.circle_label'
-                  defaultMessage='Circle'
-                />
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                <label
+                  className='visibility-dropdown__label'
+                  id={circleLabelId}
+                >
+                  <FormattedMessage
+                    id='visibility_modal.circle_label'
+                    defaultMessage='Circle'
+                  />
+                </label>
 
                 <Dropdown
                   items={circleItems}
-                  onChange={handleCircleIdChange}
-                  classPrefix='visibility-dropdown'
                   current={circleId}
-                  title={intl.formatMessage(messages.buttonTitle)}
+                  onChange={handleCircleIdChange}
+                  labelId={circleLabelId}
+                  descriptionId={circleDescriptionId}
+                  classPrefix='visibility-dropdown'
                   disabled={disableVisibility}
-                  id={circleDropdownId}
                 />
-              </label>
+              </div>
             )}
 
-            <label
-              htmlFor={searchabilityDropdownId}
-              className={classNames('visibility-dropdown__label', {
+            <div
+              className={classNames('visibility-dropdown', {
                 disabled: disableVisibility,
               })}
             >
-              <FormattedMessage
-                id='visibility_modal.searchability_label'
-                defaultMessage='Searchability'
-              />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label
+                className='visibility-dropdown__label'
+                id={searchabilityLabelId}
+              >
+                <FormattedMessage
+                  id='visibility_modal.searchability_label'
+                  defaultMessage='Searchability'
+                />
+              </label>
 
               <Dropdown
                 items={searchabilityItems}
-                classPrefix='visibility-dropdown'
                 current={searchability}
                 onChange={handleSearchabilityChange}
-                title={intl.formatMessage(
-                  searchabilityMessages.change_searchability,
-                )}
+                labelId={searchabilityLabelId}
+                descriptionId={searchabilityDescriptionId}
+                classPrefix='visibility-dropdown'
                 disabled={disableVisibility}
-                id={searchabilityDropdownId}
               />
               {!!statusId && (
-                <p className='visibility-dropdown__helper'>
+                <p
+                  className='visibility-dropdown__helper'
+                  id='searchabilityDescriptionId'
+                >
                   <FormattedMessage
                     id='visibility_modal.helper.searchability_editing'
                     defaultMessage="Searchability can't be changed after a post is published."
                   />
                 </p>
               )}
-            </label>
+            </div>
 
-            <label
-              htmlFor={quoteDropdownId}
-              className={classNames('visibility-dropdown__label', {
+            <div
+              className={classNames('visibility-dropdown', {
                 disabled: disableQuotePolicy,
               })}
             >
-              <FormattedMessage
-                id='visibility_modal.quote_label'
-                defaultMessage='Who can quote'
-              />
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label className='visibility-dropdown__label' id={quoteLabelId}>
+                <FormattedMessage
+                  id='visibility_modal.quote_label'
+                  defaultMessage='Who can quote'
+                />
+              </label>
 
               <Dropdown
                 items={quoteItems}
-                onChange={handleQuotePolicyChange}
-                classPrefix='visibility-dropdown'
                 current={disableQuotePolicy ? 'nobody' : quotePolicy}
-                title={intl.formatMessage(messages.buttonTitle)}
+                onChange={handleQuotePolicyChange}
+                labelId={quoteLabelId}
+                descriptionId={quoteDescriptionId}
+                classPrefix='visibility-dropdown'
                 disabled={disableQuotePolicy}
-                id={quoteDropdownId}
               />
-              <QuotePolicyHelper policy={quotePolicy} visibility={visibility} />
-            </label>
+              <QuotePolicyHelper
+                policy={quotePolicy}
+                visibility={visibility}
+                className='visibility-dropdown__helper'
+                id={quoteDescriptionId}
+              />
+            </div>
           </div>
           <div className='dialog-modal__content__actions'>
             <Button onClick={onClose} secondary>
@@ -544,42 +577,44 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
 );
 VisibilityModal.displayName = 'VisibilityModal';
 
-const QuotePolicyHelper: FC<{
-  policy: ApiQuotePolicy;
-  visibility: StatusVisibility;
-}> = ({ policy, visibility }) => {
+const QuotePolicyHelper: FC<
+  {
+    policy: ApiQuotePolicy;
+    visibility: StatusVisibility;
+  } & React.ComponentPropsWithoutRef<'p'>
+> = ({ policy, visibility, ...otherProps }) => {
+  let hintText: React.ReactElement | undefined;
+
   if (visibility === 'unlisted' && policy !== 'nobody') {
-    return (
-      <p className='visibility-dropdown__helper'>
-        <FormattedMessage
-          id='visibility_modal.helper.unlisted_quoting'
-          defaultMessage='When people quote you, their post will also be hidden from trending timelines.'
-        />
-      </p>
+    hintText = (
+      <FormattedMessage
+        id='visibility_modal.helper.unlisted_quoting'
+        defaultMessage='When people quote you, their post will also be hidden from trending timelines.'
+      />
     );
   }
 
   if (visibility === 'private') {
-    return (
-      <p className='visibility-dropdown__helper'>
-        <FormattedMessage
-          id='visibility_modal.helper.private_quoting'
-          defaultMessage="Follower-only posts authored on Mastodon can't be quoted by others."
-        />
-      </p>
+    hintText = (
+      <FormattedMessage
+        id='visibility_modal.helper.private_quoting'
+        defaultMessage="Follower-only posts authored on Mastodon can't be quoted by others."
+      />
     );
   }
 
   if (visibility === 'direct') {
-    return (
-      <p className='visibility-dropdown__helper'>
-        <FormattedMessage
-          id='visibility_modal.helper.direct_quoting'
-          defaultMessage="Private mentions authored on Mastodon can't be quoted by others."
-        />
-      </p>
+    hintText = (
+      <FormattedMessage
+        id='visibility_modal.helper.direct_quoting'
+        defaultMessage="Private mentions authored on Mastodon can't be quoted by others."
+      />
     );
   }
 
-  return null;
+  if (!hintText) {
+    return null;
+  }
+
+  return <p {...otherProps}>{hintText}</p>;
 };

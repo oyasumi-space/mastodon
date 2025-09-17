@@ -25,7 +25,7 @@ import { enableEmojiReaction , bookmarkCategoryNeeded, simpleTimelineMenu, me, i
 
 import { IconButton } from '../icon_button';
 import { isFeatureEnabled } from '../../utils/environment';
-import { ReblogButton } from '../status/reblog_button';
+import { BoostButton } from '../status/boost_button';
 import { RemoveQuoteHint } from './remove_quote_hint';
 
 
@@ -133,7 +133,7 @@ class StatusActionBar extends ImmutablePureComponent {
     if (signedIn) {
       this.props.onReply(this.props.status);
     } else {
-      this.props.onInteractionModal('reply', this.props.status);
+      this.props.onInteractionModal(this.props.status);
     }
   };
 
@@ -151,7 +151,7 @@ class StatusActionBar extends ImmutablePureComponent {
     if (signedIn) {
       this.props.onFavourite(this.props.status);
     } else {
-      this.props.onInteractionModal('favourite', this.props.status);
+      this.props.onInteractionModal(this.props.status);
     }
   };
 
@@ -445,7 +445,7 @@ class StatusActionBar extends ImmutablePureComponent {
           <IconButton className='status__action-bar__button' title={replyTitle} icon={isReply ? 'reply' : replyIcon} iconComponent={isReply ? ReplyIcon : replyIconComponent} onClick={this.handleReplyClick} counter={status.get('replies_count')} />
         </div>
         <div className='status__action-bar__button-wrapper'>
-          <ReblogButton status={status} counters={withCounters} />
+          <BoostButton status={status} counters={withCounters} />
         </div>
         <div className='status__action-bar__button-wrapper'>
           <IconButton className='status__action-bar__button star-icon' animate active={status.get('favourited')} title={favouriteTitle} icon='star' iconComponent={status.get('favourited') ? StarIcon : StarBorderIcon} onClick={this.handleFavouriteClick} counter={withCounters ? status.get('favourites_count') : undefined} />

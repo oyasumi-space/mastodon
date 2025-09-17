@@ -124,7 +124,7 @@ Rails.application.routes.draw do
 
   resource :inbox, only: [:create], module: :activitypub
   resources :group_contexts, only: [:show], module: :activitypub, controller: :group_contexts
-  resources :contexts, only: [:show], module: :activitypub do
+  resources :contexts, only: [:show], module: :activitypub, constraints: { id: /[0-9]+-[0-9]+/ } do
     member do
       get :items
     end
