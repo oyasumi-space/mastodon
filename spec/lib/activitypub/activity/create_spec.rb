@@ -998,7 +998,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/conversation',
+            groupContext: 'http://example.com/conversation',
           }
         end
 
@@ -1035,7 +1035,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/invalid-conversation',
+            groupContext: 'http://example.com/invalid-conversation',
           }
         end
 
@@ -1057,7 +1057,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: "https://cb6e6126.ngrok.io/contexts/#{existing.id}",
+            groupContext: "https://cb6e6126.ngrok.io/group_contexts/#{existing.id}",
           }
         end
 
@@ -1100,7 +1100,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: ActivityPub::TagManager.instance.uri_for(conversation),
+            groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
             inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
           }
         end
@@ -1142,7 +1142,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {
@@ -1197,7 +1197,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {

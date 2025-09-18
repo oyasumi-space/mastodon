@@ -146,7 +146,6 @@ RSpec.describe ActivityPub::Activity::Update do
 
     context 'when the status is limited post and has conversation' do
       let(:status) { Fabricate(:status, visibility: :limited, account: sender, uri: 'https://example.com/note', text: 'Ohagi is koshian') }
-      let(:conversation) { Fabricate(:conversation, ancestor_status: status) }
       let(:json) do
         {
           '@context': 'https://www.w3.org/ns/activitystreams',
@@ -163,7 +162,6 @@ RSpec.describe ActivityPub::Activity::Update do
       end
 
       before do
-        status.update(conversation: conversation, visibility: :limited)
         status.mentions << Fabricate(:mention, silent: true, account: Fabricate(:account, protocol: :activitypub, domain: 'example.com', inbox_url: 'https://example.com/actor/inbox', shared_inbox_url: 'https://example.com/inbox'))
         status.save
         stub_request(:post, 'https://example.com/inbox').to_return(status: 200)

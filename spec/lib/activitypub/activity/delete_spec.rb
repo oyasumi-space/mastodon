@@ -124,10 +124,8 @@ RSpec.describe ActivityPub::Activity::Delete do
   context 'when the status is limited post and has conversation' do
     subject { described_class.new(json, sender) }
 
-    let(:conversation) { Fabricate(:conversation, ancestor_status: status) }
-
     before do
-      status.update(conversation: conversation, visibility: :limited)
+      status.update(visibility: :limited)
       status.mentions << Fabricate(:mention, silent: true, account: Fabricate(:account, protocol: :activitypub, domain: 'example.com', inbox_url: 'https://example.com/actor/inbox', shared_inbox_url: 'https://example.com/inbox'))
       status.save
       stub_request(:post, 'https://example.com/inbox').to_return(status: 200)

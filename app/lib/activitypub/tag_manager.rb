@@ -180,7 +180,7 @@ class ActivityPub::TagManager
       end
     when 'limited'
       # do not empty array to avoid Fedibird personal visibility
-      status.conversation.nil? ? ['kmyblue:Limited'] : [context_url(status.conversation)]
+      status.conversation.nil? ? ['kmyblue:Limited'] : [group_context_url(status.conversation.id)]
     end
   end
 
