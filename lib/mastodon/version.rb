@@ -13,13 +13,13 @@ module Mastodon
     end
 
     def kmyblue_minor
-      1
+      2
     end
 
     def kmyblue_flag
       # 'LTS'
-      # 'dev'
-      nil
+      'dev'
+      # nil
     end
 
     def major
