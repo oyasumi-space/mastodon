@@ -6,6 +6,7 @@ import type { Status, StatusVisibility } from '@/mastodon/models/status';
 import { createAppSelector } from '@/mastodon/store';
 import FormatQuote from '@/material-icons/400-24px/format_quote-fill.svg?react';
 import FormatQuoteOff from '@/material-icons/400-24px/format_quote_off-fill.svg?react';
+import ReferenceIcon from '@/material-icons/400-24px/link.svg?react';
 import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import RepeatActiveIcon from '@/svg-icons/repeat_active.svg?react';
 import RepeatDisabledIcon from '@/svg-icons/repeat_disabled.svg?react';
@@ -195,8 +196,8 @@ export function referenceItemState({
   isStatusReferenceAvailableServer,
 }: StatusState): MenuItemState {
   const iconText: MenuItemState = {
-    title: messages.quote,
-    iconComponent: FormatQuote,
+    title: messages.reference_link,
+    iconComponent: ReferenceIcon,
   };
 
   if (!isPublic) {
