@@ -118,7 +118,7 @@ export const NotificationWithStatus: React.FC<{
           avatarSize={40}
           unfocusable
           muted={muted}
-          withoutEmojiReactions
+          myEmojiReactionsOnly
         />
       </div>
     </Hotkeys>
