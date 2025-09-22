@@ -43,7 +43,9 @@ class ActivityPub::TagManager
     when :person
       target.instance_actor? ? instance_actor_url : account_url(target)
     when :conversation
-      group ? group_context_url(target) : context_url(target)
+      return group_context_url(target.id) if group
+
+      context_url(target) unless target.parent_account_id.nil? || target.parent_status_id.nil?
     when :note, :comment, :activity
       return activity_account_status_url(target.account, target) if target.reblog?
 
@@ -178,7 +180,7 @@ class ActivityPub::TagManager
       end
     when 'limited'
       # do not empty array to avoid Fedibird personal visibility
-      status.conversation.nil? ? ['kmyblue:Limited'] : [context_url(status.conversation)]
+      status.conversation.nil? ? ['kmyblue:Limited'] : [group_context_url(status.conversation.id)]
     end
   end
 

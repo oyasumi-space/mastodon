@@ -21,6 +21,15 @@ export function normalizeFilterResult(result) {
   return normalResult;
 }
 
+function stripQuoteFallback(text) {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = text;
+
+  wrapper.querySelector('.quote-inline')?.remove();
+
+  return wrapper.innerHTML;
+}
+
 export function normalizeStatus(status, normalOldStatus, options = undefined) {
   const normalStatus   = { ...status };
 
@@ -84,7 +93,7 @@ export function normalizeStatus(status, normalOldStatus, options = undefined) {
   } else {
     // If the status has a CW but no contents, treat the CW as if it were the
     // status' contents, to avoid having a CW toggle with seemingly no effect.
-    if (normalStatus.spoiler_text && !normalStatus.content) {
+    if (normalStatus.spoiler_text && !normalStatus.content && !normalStatus.quote) {
       normalStatus.content = normalStatus.spoiler_text;
       normalStatus.spoiler_text = '';
     }
@@ -101,6 +110,11 @@ export function normalizeStatus(status, normalOldStatus, options = undefined) {
     normalStatus.contentHtml  = emojify(normalStatus.content, emojiMap);
     normalStatus.spoilerHtml  = emojify(escapeTextContentForBrowser(spoilerText), emojiMap);
     normalStatus.hidden       = expandSpoilers ? false : spoilerText.length > 0 || normalStatus.sensitive;
+
+    // Remove quote fallback link from the DOM so it doesn't mess with paragraph margins
+    if (normalStatus.quote) {
+      normalStatus.contentHtml = stripQuoteFallback(normalStatus.contentHtml);
+    }
 
     if (normalStatus.url && !(normalStatus.url.startsWith('http://') || normalStatus.url.startsWith('https://'))) {
       normalStatus.url = null;
@@ -151,6 +165,11 @@ export function normalizeStatusTranslation(translation, status) {
     spoilerHtml: emojify(escapeTextContentForBrowser(translation.spoiler_text), emojiMap),
     spoiler_text: translation.spoiler_text,
   };
+
+  // Remove quote fallback link from the DOM so it doesn't mess with paragraph margins
+  if (status.get('quote')) {
+    normalTranslation.contentHtml = stripQuoteFallback(normalTranslation.contentHtml);
+  }
 
   return normalTranslation;
 }

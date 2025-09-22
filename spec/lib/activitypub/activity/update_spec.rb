@@ -138,15 +138,15 @@ RSpec.describe ActivityPub::Activity::Update do
         subject.perform
       end
 
-      it 'does not create a new status', :inline_jobs do
+      it 'creates a new status', :inline_jobs do
         status = Status.find_by(uri: 'https://example.com/note')
-        expect(status).to be_nil
+        expect(status).to_not be_nil
+        expect(status.text).to eq 'Ohagi is tsubuan'
       end
     end
 
     context 'when the status is limited post and has conversation' do
       let(:status) { Fabricate(:status, visibility: :limited, account: sender, uri: 'https://example.com/note', text: 'Ohagi is koshian') }
-      let(:conversation) { Fabricate(:conversation, ancestor_status: status) }
       let(:json) do
         {
           '@context': 'https://www.w3.org/ns/activitystreams',
@@ -163,7 +163,6 @@ RSpec.describe ActivityPub::Activity::Update do
       end
 
       before do
-        status.update(conversation: conversation, visibility: :limited)
         status.mentions << Fabricate(:mention, silent: true, account: Fabricate(:account, protocol: :activitypub, domain: 'example.com', inbox_url: 'https://example.com/actor/inbox', shared_inbox_url: 'https://example.com/inbox'))
         status.save
         stub_request(:post, 'https://example.com/inbox').to_return(status: 200)

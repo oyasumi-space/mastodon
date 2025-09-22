@@ -998,7 +998,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/conversation',
+            groupContext: 'http://example.com/conversation',
           }
         end
 
@@ -1035,7 +1035,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/invalid-conversation',
+            groupContext: 'http://example.com/invalid-conversation',
           }
         end
 
@@ -1057,7 +1057,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: "https://cb6e6126.ngrok.io/contexts/#{existing.id}",
+            groupContext: "https://cb6e6126.ngrok.io/group_contexts/#{existing.id}",
           }
         end
 
@@ -1100,7 +1100,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: ActivityPub::TagManager.instance.uri_for(conversation),
+            groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
             inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
           }
         end
@@ -1142,7 +1142,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {
@@ -1197,7 +1197,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {
@@ -1617,6 +1617,33 @@ RSpec.describe ActivityPub::Activity::Create do
           expect(poll.status).to_not be_nil
           expect(poll.options).to eq %w(Yellow Blue)
           expect(poll.cached_tallies).to eq [10, 3]
+        end
+      end
+
+      context 'with an unverifiable quote of a known post, with summary (CW) but no text' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            summary: 'beware of what she said',
+            content: nil,
+            quote: ActivityPub::TagManager.instance.uri_for(quoted_status)
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.spoiler_text).to eq 'beware of what she said'
+          expect(status.content).to eq ''
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
         end
       end
 

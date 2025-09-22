@@ -73,7 +73,7 @@ class PostStatusService < BaseService
 
   def preprocess_attributes!
     @sensitive    = (@options[:sensitive].nil? ? @account.user&.setting_default_sensitive : @options[:sensitive]) || @options[:spoiler_text].present?
-    @text         = @options.delete(:spoiler_text) if @text.blank? && @options[:spoiler_text].present?
+    @text         = @options.delete(:spoiler_text) if @text.blank? && @options[:spoiler_text].present? && @quoted_status.blank?
     @visibility   = visibility
     @limited_scope = @options[:visibility]&.to_sym if @visibility == :limited && @options[:visibility] != 'limited'
     @searchability = searchability
