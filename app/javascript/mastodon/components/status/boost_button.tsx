@@ -197,6 +197,8 @@ export const StatusBoostButton: FC<ReblogButtonProps> = ({
 
   return (
     <Dropdown
+      placement='bottom-start'
+      offset={[-19, 5]} // This aligns button icon with menu icons
       items={items}
       renderItem={renderMenuItem}
       onOpen={handleDropdownOpen}
