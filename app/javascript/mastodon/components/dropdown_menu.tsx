@@ -334,6 +334,7 @@ interface DropdownProps<Item extends object | null = MenuItem> {
   scrollable?: boolean;
   active?: boolean;
   placement?: Placement;
+  offset?: OffsetValue;
   /**
    * Prevent the `ScrollableList` with this scrollKey
    * from being scrolled while the dropdown is open
@@ -349,7 +350,6 @@ interface DropdownProps<Item extends object | null = MenuItem> {
   onItemClick?: ItemClickFn<Item>;
 }
 
-const offset = [5, 5] as OffsetValue;
 const popperConfig = { strategy: 'fixed' } as UsePopperOptions;
 
 export const Dropdown = <Item extends object | null = MenuItem>({
@@ -363,6 +363,7 @@ export const Dropdown = <Item extends object | null = MenuItem>({
   scrollable,
   active,
   placement = 'bottom',
+  offset = [5, 5],
   status,
   forceDropdown = false,
   renderItem,

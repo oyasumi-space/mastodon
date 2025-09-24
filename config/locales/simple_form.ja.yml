@@ -283,6 +283,7 @@ ja:
           xx_large: 大きい大きい大きい
         setting_custom_css: カスタムCSS
         setting_default_language: 投稿する言語
+        setting_default_privacy: 投稿の公開範囲
         setting_default_quote_policy: 引用できるユーザー
         setting_default_reblog_privacy: BTの公開範囲
         setting_default_searchability: 自分の投稿の検索を許可する範囲
@@ -308,6 +309,7 @@ ja:
           mutuals_only: 相互のみ許可
           outside_only: フォロー中、またはフォロワーのみに許可
         setting_emoji_reaction_streaming_notify_impl2: Nyastodon, Catstodon, glitch-soc互換の絵文字リアクション機能を有効にする
+        setting_emoji_style: 絵文字スタイル
         setting_enable_emoji_reaction: 絵文字リアクション機能を使用する
         setting_enabled_visibilities: 投稿を有効にする公開範囲
         setting_expand_spoilers: 閲覧注意としてマークされた投稿を常に展開する
@@ -455,6 +457,7 @@ ja:
         mention: 返信が来た時
         pending_account: 新しいアカウントの承認が必要な時
         pending_friend_server: 新しいフレンドサーバーの承認が必要な時
+        quote: 投稿が引用された時
         reblog: 投稿がブーストされた時
         report: 新しい通報が送信された時
         software_updates:
@@ -501,6 +504,9 @@ ja:
         name: 名前
         permissions_as_keys: 権限
         position: 優先度
+      username_block:
+        allow_with_approval: 承認制での新規登録を可能にする
+        comparison: 比較方法
       webhook:
         events: 有効なイベント
         template: ペイロードテンプレート
