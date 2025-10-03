@@ -205,8 +205,10 @@ export function submitCompose(successCallback) {
     const statusId = getState().getIn(['compose', 'id'], null);
     const circleId = getState().getIn(['compose', 'circle_id'], null);
     const privacy  = getState().getIn(['compose', 'privacy']);
+    const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);
+    const spoiler_text = getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '';
 
-    if ((!status || !status.length) && media.size === 0) {
+    if (!(status?.length || media.size !== 0 || (hasQuote && spoiler_text?.length))) {
       return;
     }
 
@@ -238,11 +240,11 @@ export function submitCompose(successCallback) {
       method: statusId === null ? 'post' : 'put',
       data: {
         status,
+        spoiler_text,
         in_reply_to_id: getState().getIn(['compose', 'in_reply_to'], null),
         media_ids: media.map(item => item.get('id')),
         media_attributes,
-        sensitive: media.size > 0 ? getState().getIn(['compose', 'spoiler']) : false,
-        spoiler_text: getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '',
+        sensitive: getState().getIn(['compose', 'spoiler']),
         markdown: getState().getIn(['compose', 'markdown']),
         visibility: visibility,
         searchability: getState().getIn(['compose', 'searchability']),

@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import type { FC, KeyboardEvent, MouseEvent, MouseEventHandler } from 'react';
+import type { FC, KeyboardEvent, MouseEvent } from 'react';
 
 import { useIntl } from 'react-intl';
 
@@ -12,7 +12,6 @@ import { openModal } from '@/mastodon/actions/modal';
 import type { ActionMenuItem } from '@/mastodon/models/dropdown_menu';
 import type { Status } from '@/mastodon/models/status';
 import { useAppDispatch, useAppSelector } from '@/mastodon/store';
-import { isFeatureEnabled } from '@/mastodon/utils/environment';
 import type { SomeRequired } from '@/mastodon/utils/types';
 
 import type { RenderItemFn, RenderItemFnHandlers } from '../dropdown_menu';
@@ -50,10 +49,7 @@ interface ReblogButtonProps {
 
 type ActionMenuItemWithIcon = SomeRequired<ActionMenuItem, 'icon'>;
 
-export const StatusBoostButton: FC<ReblogButtonProps> = ({
-  status,
-  counters,
-}) => {
+export const BoostButton: FC<ReblogButtonProps> = ({ status, counters }) => {
   const intl = useIntl();
   const dispatch = useAppDispatch();
   const statusState = useAppSelector((state) =>
@@ -75,7 +71,6 @@ export const StatusBoostButton: FC<ReblogButtonProps> = ({
   const statusId = status.get('id') as string;
   const statusUrl = status.get('url') as string;
   const wasBoosted = !!status.get('reblogged');
-  const isQuoteUiDisabled = !isFeatureEnabled('outgoing_quotes');
 
   const showLoginPrompt = useCallback(() => {
     dispatch(
@@ -110,32 +105,6 @@ export const StatusBoostButton: FC<ReblogButtonProps> = ({
       };
     };
 
-    if (isQuoteUiDisabled) {
-      return [
-        generateItem(
-          boostItem,
-          () => {
-            dispatch(toggleReblog(statusId, true, false));
-          },
-          wasBoosted,
-        ),
-        generateItem(
-          boostWithModalItem,
-          () => {
-            dispatch(toggleReblog(statusId, false, true));
-          },
-          wasBoosted,
-        ),
-        generateItem(referenceItem, () => {
-          dispatch(insertReferenceCompose(0, statusUrl, 'BT'));
-        }),
-      ] satisfies [
-        ActionMenuItemWithIcon,
-        ActionMenuItemWithIcon,
-        ActionMenuItemWithIcon,
-      ];
-    }
-
     return [
       generateItem(
         boostItem,
@@ -167,15 +136,7 @@ export const StatusBoostButton: FC<ReblogButtonProps> = ({
       ActionMenuItemWithIcon,
       ActionMenuItemWithIcon,
     ];
-  }, [
-    dispatch,
-    intl,
-    statusId,
-    statusState,
-    wasBoosted,
-    statusUrl,
-    isQuoteUiDisabled,
-  ]);
+  }, [dispatch, intl, statusId, statusState, wasBoosted, statusUrl]);
 
   const boostIcon = items[0].icon;
 
@@ -253,64 +214,5 @@ const ReblogMenuItem: FC<ReblogMenuItemProps> = ({
         <DropdownMenuItemContent item={item} />
       </button>
     </li>
-  );
-};
-
-// Legacy helpers
-
-// Switch between the legacy and new reblog button based on feature flag.
-export const BoostButton: FC<ReblogButtonProps> = (props) => {
-  return <StatusBoostButton {...props} />;
-};
-
-export const LegacyReblogButton: FC<ReblogButtonProps> = ({
-  status,
-  counters,
-}) => {
-  const intl = useIntl();
-  const statusState = useAppSelector((state) =>
-    selectStatusState(state, status),
-  );
-
-  const { title, meta, iconComponent, disabled } = useMemo(
-    () => boostItemState(statusState),
-    [statusState],
-  );
-
-  const dispatch = useAppDispatch();
-  const handleClick: MouseEventHandler = useCallback(
-    (event) => {
-      if (statusState.isLoggedIn) {
-        dispatch(toggleReblog(status.get('id') as string, event.shiftKey));
-      } else {
-        dispatch(
-          openModal({
-            modalType: 'INTERACTION',
-            modalProps: {
-              accountId: status.getIn(['account', 'id']),
-              url: status.get('uri'),
-            },
-          }),
-        );
-      }
-    },
-    [dispatch, status, statusState.isLoggedIn],
-  );
-
-  return (
-    <IconButton
-      disabled={disabled}
-      active={!!status.get('reblogged')}
-      title={intl.formatMessage(meta ?? title)}
-      icon='retweet'
-      iconComponent={iconComponent}
-      onClick={!disabled ? handleClick : undefined}
-      counter={
-        counters
-          ? (status.get('reblogs_count') as number) +
-            (status.get('quotes_count') as number)
-          : undefined
-      }
-    />
   );
 };

@@ -103,7 +103,7 @@ class PostStatusService < BaseService
     v = :unlisted if %i(public public_unlisted login).include?(v) && @account.silenced?
     v = :public_unlisted if v == :public && !@options[:force_visibility] && !@options[:application]&.superapp && @account.user&.setting_public_post_to_unlisted && Setting.enable_public_unlisted_visibility
     v = Setting.enable_public_unlisted_visibility ? :public_unlisted : :unlisted if !Setting.enable_public_visibility && v == :public
-    v = :private if @quoted_status&.private_visibility?
+    v = :private if @quoted_status&.private_visibility? && %i(public public_unlisted login unlisted).include?(v)
     v
   end
 
@@ -298,8 +298,6 @@ class PostStatusService < BaseService
   end
 
   def quoted_status_from_text
-    return unless Mastodon::Feature.outgoing_quotes_enabled?
-
     url = ProcessReferencesService.extract_quote(@text)
     return unless url
 
