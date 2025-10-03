@@ -663,6 +663,7 @@ ja:
         title: モデレーション
       moderation_notes:
         create: モデレーションノートを追加
+        title: モデレーションメモ
       private_comment: コメント (非公開)
       public_comment: コメント (公開)
       purge: パージ
@@ -1335,14 +1336,18 @@ ja:
       patch: パッチアップデートあり
     username_blocks:
       add_new: ルールを作成
+      block_registrations: 登録拒否
       comparison:
         contains: 含む
         equals: 一致
+      contains_html: "%{string}を含む"
       delete: 削除
       edit:
         title: ユーザー名ルールの編集
+      matches_exactly_html: "%{string}に一致"
       new:
         create: ルールを作成
+      title: ユーザー名ルール
     warning_presets:
       add_new: 追加
       delete: 削除
@@ -1984,6 +1989,7 @@ ja:
       self_vote: 自分のアンケートには解答できません
       too_few_options: は複数必要です
       too_many_options: は%{max}個までです
+    vote: 投票
   preferences:
     custom_css: カスタムCSS
     does_not_search: このサーバーでは全文検索機能を利用できません。代わりに、他のkmyblueサーバーであなたの投稿がこの設定に従って検索されます。

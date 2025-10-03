@@ -20,7 +20,6 @@ import { Dropdown } from '@/mastodon/components/dropdown';
 import type { SelectItem } from '@/mastodon/components/dropdown_selector';
 import { IconButton } from '@/mastodon/components/icon_button';
 import { messages as privacyMessages } from '@/mastodon/features/compose/components/privacy_dropdown';
-import { messages as searchabilityMessages } from '@/mastodon/features/compose/components/searchability_dropdown';
 import { enabledVisibilites } from '@/mastodon/initial_state';
 import { createAppSelector, useAppSelector } from '@/mastodon/store';
 import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
@@ -37,6 +36,50 @@ import QuietTimeIcon from '@/material-icons/400-24px/quiet_time.svg?react';
 import ReplyIcon from '@/material-icons/400-24px/reply.svg?react';
 
 import type { BaseConfirmationModalProps } from './confirmation_modals/confirmation_modal';
+
+const searchabilityMessages = defineMessages({
+  public_short: { id: 'searchability.public.short', defaultMessage: 'Public' },
+  public_long: {
+    id: 'searchability.public.long',
+    defaultMessage: 'Anyone can find',
+  },
+  public_unlisted_short: {
+    id: 'searchability.public_unlisted.short',
+    defaultMessage: 'Local public',
+  },
+  public_unlisted_long: {
+    id: 'searchability.public_unlisted.long',
+    defaultMessage: 'Local users and followers can find',
+  },
+  private_short: {
+    id: 'searchability.unlisted.short',
+    defaultMessage: 'Followers',
+  },
+  private_long: {
+    id: 'searchability.unlisted.long',
+    defaultMessage: 'Your followers can find',
+  },
+  direct_short: {
+    id: 'searchability.private.short',
+    defaultMessage: 'Reactionners',
+  },
+  direct_long: {
+    id: 'searchability.private.long',
+    defaultMessage: 'Reacter of this post can find',
+  },
+  limited_short: {
+    id: 'searchability.direct.short',
+    defaultMessage: 'Self only',
+  },
+  limited_long: {
+    id: 'searchability.direct.long',
+    defaultMessage: 'Nobody can find, but you can',
+  },
+  change_searchability: {
+    id: 'searchability.change',
+    defaultMessage: 'Set status searchability',
+  },
+});
 
 const messages = defineMessages({
   close: { id: 'lightbox.close', defaultMessage: 'Close' },

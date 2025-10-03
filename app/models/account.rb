@@ -56,6 +56,7 @@
 #  avatar_file_size              :integer
 #  header_file_size              :integer
 #  attribution_domains           :string           default([]), is an Array
+#  id_scheme                     :integer          default("username_ap_id")
 #
 
 class Account < ApplicationRecord
@@ -112,6 +113,7 @@ class Account < ApplicationRecord
   enum :protocol, { ostatus: 0, activitypub: 1 }
   enum :suspension_origin, { local: 0, remote: 1 }, prefix: true
   enum :searchability, { public: 0, private: 1, direct: 2, limited: 3, unsupported: 4, public_unlisted: 10 }, suffix: :searchability
+  enum :id_scheme, { username_ap_id: 0, numeric_ap_id: 1 }
 
   validates :username, presence: true
   validates_with UniqueUsernameValidator, if: -> { will_save_change_to_username? }
@@ -483,6 +485,7 @@ class Account < ApplicationRecord
 
   before_validation :prepare_contents, if: :local?
   before_create :generate_keys
+  before_create :set_id_scheme
   before_destroy :clean_feed_manager
 
   def ensure_keys!
@@ -509,6 +512,12 @@ class Account < ApplicationRecord
     keypair = OpenSSL::PKey::RSA.new(2048)
     self.private_key = keypair.to_pem
     self.public_key  = keypair.public_key.to_pem
+  end
+
+  def set_id_scheme
+    return unless local? && Mastodon::Feature.numeric_ap_ids_enabled?
+
+    self.id_scheme = :numeric_ap_id
   end
 
   def normalize_domain
