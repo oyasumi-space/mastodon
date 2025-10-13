@@ -91,7 +91,15 @@ const parseJSON = (json, req) => {
   }
 };
 
-const PUBLIC_CHANNELS = [
+// Used for priming the counters/gauges for the various metrics that are
+// per-channel
+const CHANNEL_NAMES = [
+  'system',
+  'user',
+  'user:notification',
+  'list',
+  'antenna',
+  'direct',
   'public',
   'public:media',
   'public:local',
@@ -100,17 +108,6 @@ const PUBLIC_CHANNELS = [
   'public:remote:media',
   'hashtag',
   'hashtag:local',
-];
-
-// Used for priming the counters/gauges for the various metrics that are
-// per-channel
-const CHANNEL_NAMES = [
-  'system',
-  'user',
-  'user:notification',
-  'list',
-  'direct',
-  ...PUBLIC_CHANNELS,
 ];
 
 const startServer = async () => {
@@ -485,12 +482,6 @@ const startServer = async () => {
   const checkScopes = (req, logger, channelName) =>
     new Promise((resolve, reject) => {
       logger.debug(`Checking OAuth scopes for ${channelName}`);
-
-      // When accessing public channels, no scopes are needed
-      if (channelName && PUBLIC_CHANNELS.includes(channelName)) {
-        resolve();
-        return;
-      }
 
       // The `read` scope has the highest priority, if the token has it
       // then it can access all streams
