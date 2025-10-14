@@ -9,8 +9,9 @@ import { importFetchedStatuses } from './importer';
 
 export const fetchContext = createDataLoadingThunk(
   'status/context',
-  ({ statusId }: { statusId: string }) => apiGetContext(statusId),
-  ({ context, refresh }, { dispatch }) => {
+  ({ statusId }: { statusId: string; prefetchOnly?: boolean }) =>
+    apiGetContext(statusId),
+  ({ context, refresh }, { dispatch, actionArg: { prefetchOnly = false } }) => {
     const statuses = context.ancestors
       .concat(context.descendants)
       .concat(context.references);
@@ -20,12 +21,21 @@ export const fetchContext = createDataLoadingThunk(
     return {
       context,
       refresh,
+      prefetchOnly,
     };
   },
 );
 
 export const completeContextRefresh = createAction<{ statusId: string }>(
   'status/context/complete',
+);
+
+export const showPendingReplies = createAction<{ statusId: string }>(
+  'status/context/showPendingReplies',
+);
+
+export const clearPendingReplies = createAction<{ statusId: string }>(
+  'status/context/clearPendingReplies',
 );
 
 export const setStatusQuotePolicy = createDataLoadingThunk(

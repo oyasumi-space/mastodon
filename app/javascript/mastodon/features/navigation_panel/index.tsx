@@ -39,13 +39,14 @@ import { ColumnLink } from 'mastodon/features/ui/components/column_link';
 import { useBreakpoint } from 'mastodon/features/ui/hooks/useBreakpoint';
 import { useIdentity } from 'mastodon/identity_context';
 import {
-  me,
   enableDtlMenu,
-  timelinePreview,
-  trendsEnabled,
   dtlTag,
   enableLocalTimeline,
   isShowItem,
+  localLiveFeedAccess,
+  remoteLiveFeedAccess,
+  trendsEnabled,
+  me,
 } from 'mastodon/initial_state';
 import { transientSingleColumn } from 'mastodon/is_mobile';
 import { selectUnreadNotificationGroupsCount } from 'mastodon/selectors/notifications';
@@ -300,10 +301,18 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
           />
         )}
 
-        {(signedIn || timelinePreview) && (
+        {(signedIn ||
+          localLiveFeedAccess === 'public' ||
+          remoteLiveFeedAccess === 'public') && (
           <ColumnLink
             transparent
-            to={signedIn || !enableLocalTimeline ? '/public' : '/public/local'}
+            to={
+              signedIn ||
+              !enableLocalTimeline ||
+              localLiveFeedAccess !== 'public'
+                ? '/public/remote'
+                : '/public/local'
+            }
             icon='globe'
             iconComponent={PublicIcon}
             isActive={isFirehoseActive}
