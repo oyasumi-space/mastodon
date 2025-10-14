@@ -13,7 +13,7 @@ import { changeSetting } from 'mastodon/actions/settings';
 import { connectPublicStream, connectCommunityStream } from 'mastodon/actions/streaming';
 import { expandPublicTimeline, expandCommunityTimeline } from 'mastodon/actions/timelines';
 import { DismissableBanner } from 'mastodon/components/dismissable_banner';
-import { domain, enableLocalTimeline } from 'mastodon/initial_state';
+import { localLiveFeedAccess, remoteLiveFeedAccess, me, domain, enableLocalTimeline } from 'mastodon/initial_state';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 import Column from '../../components/column';
@@ -165,12 +165,12 @@ const Firehose = ({ feedType, multiColumn }) => {
         <ColumnSettings />
       </ColumnHeader>
 
-      {enableLocalTimeline && (
+      {(signedIn || (localLiveFeedAccess === 'public' && remoteLiveFeedAccess === 'public')) && enableLocalTimeline && (
         <div className='account__section-headline'>
           <NavLink exact to='/public/local'>
             <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
           </NavLink>
-          
+
           <NavLink exact to='/public/remote'>
             <FormattedMessage tagName='div' id='firehose.remote' defaultMessage='Other servers' />
           </NavLink>

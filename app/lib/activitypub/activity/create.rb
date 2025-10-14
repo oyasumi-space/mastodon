@@ -289,12 +289,12 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def process_quote
     @quote_uri = @status_parser.quote_uri
-    return if @quote_uri.blank?
+    return unless @status_parser.quote?
 
     approval_uri = @status_parser.quote_approval_uri
     approval_uri = 'http://kmy.blue/ns#LegacyQuote' if approval_uri == 'kmyblue:LegacyQuote'
     approval_uri = nil if unsupported_uri_scheme?(approval_uri) || (approval_uri != 'http://kmy.blue/ns#LegacyQuote' && TagManager.instance.local_url?(approval_uri))
-    @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
+    @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?, state: @status_parser.deleted_quote? ? :deleted : :pending)
   end
 
   def process_hashtag(tag)
