@@ -1,6 +1,10 @@
+@use 'sass:color';
+@use '../mastodon/functions' as *;
+@use './variables' as *;
+
 body {
   background-color: #6c0eff;
-  background-image: url('./head-space/images/space_parallax.png');
+  background-image: url('@/styles/head-space/images/space_parallax.png');
   transition: background-image $mari;
   background-size: 1023px 397px !important;
   animation: space-parallax 32s infinite linear;
@@ -9,7 +13,7 @@ body {
 
 body.lighter {
   background-color: #6c0eff;
-  background-image: url('./head-space/images/space_parallax.png');
+  background-image: url('@/styles/head-space/images/space_parallax.png');
 }
 
 body * {
@@ -122,7 +126,7 @@ body * {
     &:focus,
     &:active,
     &.selected {
-      background: lighten($black, 10%);
+      background: color.adjust($black, $lightness: 10%);
     }
   }
 
@@ -329,17 +333,17 @@ html {
 body.april-fools,
 body.april-fools-force {
   background-color: #fda6e7;
-  background-image: url('./head-space/images/sweet_parallax.png');
+  background-image: url('@/styles/head-space/images/sweet_parallax.png');
   transition: background-image $mari;
 
   .account__avatar {
     img {
-      content: url('./head-space/images/sweetheart_ohohoho.png');
+      content: url('@/styles/head-space/images/sweetheart_ohohoho.png');
     }
   }
 
   .drawer__inner__mastodon {
-    background-image: url('./head-space/images/sweetheart_mascot.png');
+    background-image: url('@/styles/head-space/images/sweetheart_mascot.png');
     transition: background-image $mari;
 
     img {
@@ -350,13 +354,13 @@ body.april-fools-force {
 
   .announcements {
     img.announcements__mastodon {
-      content: url('./head-space/images/sweetheart_mascot.png');
+      content: url('@/styles/head-space/images/sweetheart_mascot.png');
     }
   }
 }
 
 body.admin {
-  background: url('./head-space/images/space_parallax.png');
+  background: url('@/styles/head-space/images/space_parallax.png');
 
   .content-wrapper {
     backdrop-filter: $omori-backdrop-filter;

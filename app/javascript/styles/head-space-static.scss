@@ -1,7 +1,10 @@
-$omori-backdrop-filter: none;
-$omori-background: rgba(108, 14, 255, 0.65);
-
-@import 'head-space';
+@use 'sass:color';
+@use 'head-space/variables' with (
+  $omori-backdrop-filter: none,
+  $omori-background: color.change(#6c0eff, $alpha: 0.65)
+);
+@use 'application';
+@use 'head-space/diff';
 
 body {
   animation: none !important;

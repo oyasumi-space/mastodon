@@ -1,9 +1,17 @@
-@import 'fonts/omori';
-
-$font-sans-serif: 'omori-en-font', 'omori-jp-font';
-$font-display: 'omori-en-font', 'omori-jp-font';
-$font-monospace: 'omori-en-font-monospace', 'omori-jp-font-monospace';
-
-@import 'head-space/variables';
-@import 'application';
-@import 'head-space/diff';
+@use 'fonts/omori';
+@use 'head-space/variables' with (
+  $font-sans-serif: (
+    'omori-en-font',
+    'omori-jp-font',
+  ),
+  $font-display: (
+    'omori-en-font',
+    'omori-jp-font',
+  ),
+  $font-monospace: (
+    'omori-en-font-monospace',
+    'omori-jp-font-monospace',
+  )
+);
+@use 'application';
+@use 'head-space/diff';

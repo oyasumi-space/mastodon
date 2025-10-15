@@ -1,16 +1,16 @@
-$black: #000000;
-$white: #ffffff;
+@use 'sass:color';
+
+$black: #000 !default;
+$white: #fff !default;
 $success-green: #79bd9a !default;
 $error-red: #df405a !default;
 $warning-red: #ff5050 !default;
 $gold-star: #ca8f04 !default;
 
-$red-bookmark: $warning-red;
-
-$classic-base-color: transparent;
-$classic-primary-color: #ffffff;
-$classic-secondary-color: #ffffff;
-$classic-highlight-color: #9ec5e2;
+$classic-base-color: transparent !default;
+$classic-primary-color: #fff !default;
+$classic-secondary-color: #fff !default;
+$classic-highlight-color: #9ec5e2 !default;
 
 $base-shadow-color: $black !default;
 $base-overlay-background: $black !default;
@@ -19,19 +19,22 @@ $simple-background-color: $white !default;
 $valid-value-color: $success-green !default;
 $error-value-color: $error-red !default;
 
-$ui-base-color: $classic-base-color !default; // Darkest
-$ui-base-lighter-color: $white !default; // Lighter darkest
-$ui-primary-color: $classic-primary-color !default; // Lighter
-$ui-secondary-color: $classic-secondary-color !default; // Lightest
+$ui-base-color: $classic-base-color !default;
+$ui-base-lighter-color: $white !default;
+$ui-primary-color: $classic-primary-color !default;
+$ui-secondary-color: $classic-secondary-color !default;
 $ui-highlight-color: $classic-highlight-color !default;
 $ui-box-color: $black !default;
-$ui-box-lighter-color: lighten($ui-box-color, 26%) !default;
+$ui-box-lighter-color: color.adjust($ui-box-color, $lightness: 26%) !default;
 
 $primary-text-color: $white !default;
 $darker-text-color: $ui-primary-color !default;
 $dark-text-color: $ui-base-lighter-color !default;
 $secondary-text-color: $ui-secondary-color !default;
-$highlight-text-color: lighten($ui-highlight-color, 8%) !default;
+$highlight-text-color: color.adjust(
+  $ui-highlight-color,
+  $lightness: 8%
+) !default;
 $action-button-color: $ui-base-lighter-color !default;
 $passive-text-color: $gold-star !default;
 $active-passive-text-color: $success-green !default;
@@ -40,27 +43,52 @@ $inverted-text-color: $black !default;
 $lighter-text-color: $ui-base-lighter-color !default;
 $light-text-color: $ui-primary-color !default;
 
-$cjk-langs: ja, ko, zh-CN, zh-HK, zh-TW;
-
-$media-modal-media-max-width: 100%;
-
-$media-modal-media-max-height: 80%;
-
-$no-gap-breakpoint: 1175px;
-
 $font-sans-serif: 'mastodon-font-sans-serif' !default;
 $font-display: 'mastodon-font-display' !default;
 $font-monospace: 'mastodon-font-monospace' !default;
 
 $omori-backdrop-filter: blur(4px) !default;
 $omori-background: transparent !default;
-$mari: 1.43s;
+$mari: 1.43s !default;
+
+@forward '../mastodon/variables' with (
+  $success-green: $success-green,
+  $error-red: $error-red,
+  $warning-red: $warning-red,
+  $gold-star: $gold-star,
+  $base-shadow-color: $base-shadow-color,
+  $base-overlay-background: $base-overlay-background,
+  $base-border-color: $base-border-color,
+  $simple-background-color: $simple-background-color,
+  $valid-value-color: $valid-value-color,
+  $error-value-color: $error-value-color,
+  $ui-base-color: $ui-base-color,
+  $ui-base-lighter-color: $ui-base-lighter-color,
+  $ui-primary-color: $ui-primary-color,
+  $ui-secondary-color: $ui-secondary-color,
+  $ui-highlight-color: $ui-highlight-color,
+  $primary-text-color: $primary-text-color,
+  $darker-text-color: $darker-text-color,
+  $dark-text-color: $dark-text-color,
+  $secondary-text-color: $secondary-text-color,
+  $highlight-text-color: $highlight-text-color,
+  $action-button-color: $action-button-color,
+  $passive-text-color: $passive-text-color,
+  $active-passive-text-color: $active-passive-text-color,
+  $inverted-text-color: $inverted-text-color,
+  $lighter-text-color: $lighter-text-color,
+  $light-text-color: $light-text-color,
+  $font-sans-serif: $font-sans-serif,
+  $font-display: $font-display,
+  $font-monospace: $font-monospace
+);
 
 :root {
-  --dropdown-border-color: #{lighten($black, 12%)} !important;
-  --dropdown-background-color: #{lighten($black, 4%)} !important;
-  --dropdown-shadow: 0 20px 25px -5px #{rgba($base-shadow-color, 0.25)},
-    0 8px 10px -6px #{rgba($base-shadow-color, 0.25)} !important;
-  --modal-background-color: #{darken($black, 4%)} !important;
-  --modal-border-color: #{lighten($black, 4%)} !important;
+  --dropdown-border-color: #{color.adjust($black, $lightness: 12%)} !important;
+  --dropdown-background-color: #{color.adjust($black, $lightness: 4%)} !important;
+  --dropdown-shadow:
+    0 20px 25px -5px #{color.change($black, $alpha: 0.25)},
+    0 8px 10px -6px #{color.change($black, $alpha: 0.25)} !important;
+  --modal-background-color: #{color.adjust($black, $lightness: -4%)} !important;
+  --modal-border-color: #{color.adjust($black, $lightness: 4%)} !important;
 }
