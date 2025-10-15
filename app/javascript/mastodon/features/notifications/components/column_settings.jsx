@@ -162,16 +162,25 @@ class ColumnSettings extends PureComponent {
           </div>
         </section>
 
-        <section>
-          <div role='group' aria-labelledby='notifications-status_reference'>
-            <h3 id='notifications-status_reference'><FormattedMessage id='notifications.column_settings.status_reference' defaultMessage='Links:' /></h3>
+        <section role='group' aria-labelledby='notifications-status_reference'>
+          <h3 id='notifications-status_reference'><FormattedMessage id='notifications.column_settings.status_reference' defaultMessage='Links:' /></h3>
 
-            <div className='column-settings__row'>
-              <SettingToggle disabled={browserPermission === 'denied'} prefix='notifications_desktop' settings={settings} settingPath={['alerts', 'status_reference']} onChange={onChange} label={alertStr} />
-              {showPushSettings && <SettingToggle prefix='notifications_push' settings={pushSettings} settingPath={['alerts', 'status_reference']} onChange={this.onPushChange} label={pushStr} />}
-              <SettingToggle prefix='notifications' settings={settings} settingPath={['shows', 'status_reference']} onChange={onChange} label={showStr} />
-              <SettingToggle prefix='notifications' settings={settings} settingPath={['sounds', 'status_reference']} onChange={onChange} label={soundStr} />
-            </div>
+          <div className='column-settings__row'>
+            <SettingToggle disabled={browserPermission === 'denied'} prefix='notifications_desktop' settings={settings} settingPath={['alerts', 'status_reference']} onChange={onChange} label={alertStr} />
+            {showPushSettings && <SettingToggle prefix='notifications_push' settings={pushSettings} settingPath={['alerts', 'status_reference']} onChange={this.onPushChange} label={pushStr} />}
+            <SettingToggle prefix='notifications' settings={settings} settingPath={['shows', 'status_reference']} onChange={onChange} label={showStr} />
+            <SettingToggle prefix='notifications' settings={settings} settingPath={['sounds', 'status_reference']} onChange={onChange} label={soundStr} />
+          </div>
+        </section>
+        
+        <section role='group' aria-labelledby='notifications-quote'>
+          <h3 id='notifications-quote'><FormattedMessage id='notifications.column_settings.quote' defaultMessage='Quotes:' /></h3>
+
+          <div className='column-settings__row'>
+            <SettingToggle disabled={browserPermission === 'denied'} prefix='notifications_desktop' settings={settings} settingPath={['alerts', 'quote']} onChange={onChange} label={alertStr} />
+            {showPushSettings && <SettingToggle prefix='notifications_push' settings={pushSettings} settingPath={['alerts', 'quote']} onChange={this.onPushChange} label={pushStr} />}
+            <SettingToggle prefix='notifications' settings={settings} settingPath={['shows', 'quote']} onChange={onChange} label={showStr} />
+            <SettingToggle prefix='notifications' settings={settings} settingPath={['sounds', 'quote']} onChange={onChange} label={soundStr} />
           </div>
         </section>
 

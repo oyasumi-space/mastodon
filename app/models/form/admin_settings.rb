@@ -67,6 +67,7 @@ class Form::AdminSettings
     app_icon
     favicon
     min_age
+    auto_accept_legacy_quotes
   ).freeze
 
   INTEGER_KEYS = %i(
@@ -111,6 +112,7 @@ class Form::AdminSettings
     enable_local_timeline
     delete_content_cache_without_reaction
     hold_remote_new_accounts
+    auto_accept_legacy_quotes
   ).freeze
 
   UPLOAD_KEYS = %i(

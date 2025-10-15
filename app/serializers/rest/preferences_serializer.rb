@@ -6,6 +6,7 @@ class REST::PreferencesSerializer < ActiveModel::Serializer
   attribute :posting_default_searchability, key: 'posting:default:searchability'
   attribute :posting_default_sensitive, key: 'posting:default:sensitive'
   attribute :posting_default_language, key: 'posting:default:language'
+  attribute :posting_default_quote_policy, key: 'posting:default:quote_policy'
 
   attribute :reading_default_sensitive_media, key: 'reading:expand:media'
   attribute :reading_default_sensitive_text, key: 'reading:expand:spoilers'
@@ -21,6 +22,10 @@ class REST::PreferencesSerializer < ActiveModel::Serializer
 
   def posting_default_searchability
     object.user.setting_default_searchability
+  end
+
+  def posting_default_quote_policy
+    object.user.setting_default_quote_policy
   end
 
   def posting_default_sensitive

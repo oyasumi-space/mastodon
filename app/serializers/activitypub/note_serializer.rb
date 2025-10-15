@@ -3,21 +3,18 @@
 class ActivityPub::NoteSerializer < ActivityPub::Serializer
   include FormattingHelper
 
-  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :searchable_by, :references, :limited_scope, :quote_uri
+  context_extensions :atom_uri, :conversation, :sensitive, :voters_count, :quotes, :interaction_policies, :searchable_by, :references, :limited_scope, :quote_uri, :group_context
 
   attributes :id, :type, :summary,
              :in_reply_to, :published, :url,
              :attributed_to, :to, :cc, :sensitive,
              :atom_uri, :in_reply_to_atom_uri,
-             :conversation, :searchable_by, :context
+             :conversation, :searchable_by, :context, :group_context
 
   attribute :content
   attribute :content_map, if: :language?
   attribute :updated, if: :edited?
   attribute :limited_scope, if: :limited_visibility?
-
-  attribute :quote_uri, if: :quote?
-  attribute :misskey_quote, key: :_misskey_quote, if: :quote?
 
   has_many :virtual_attachments, key: :attachment
   has_many :virtual_tags, key: :tag
@@ -34,6 +31,13 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   attribute :closed, if: :poll_and_expired?
 
   attribute :voters_count, if: :poll_and_voters_count?
+
+  attribute :quote, if: :quote?
+  attribute :quote, key: :_misskey_quote, if: :quote?
+  attribute :quote, key: :quote_uri, if: :quote?
+  attribute :quote_authorization, if: :quote_authorization?
+
+  attribute :interaction_policy, if: -> { Mastodon::Feature.outgoing_quotes_enabled? }
 
   def id
     ActivityPub::TagManager.instance.uri_for(object)
@@ -53,10 +57,6 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def content_map
     { object.language => content }
-  end
-
-  def context
-    ActivityPub::TagManager.instance.uri_for(object.conversation)
   end
 
   def replies
@@ -179,7 +179,7 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
   end
 
   def virtual_tags_of_quote
-    return [] unless quote?
+    return [] unless quote_authorization?
 
     [NoteLink.new(href: quote_uri)]
   end
@@ -214,12 +214,18 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
     ActivityPub::TagManager.instance.limited_scope(object)
   end
 
-  def local?
-    object.account.local?
+  def context
+    return if object.conversation.nil?
+
+    ActivityPub::TagManager.instance.uri_for(object.conversation)
   end
 
-  def quote?
-    object.quote.present?
+  def group_context
+    ActivityPub::TagManager.instance.uri_for(object.conversation, group: true)
+  end
+
+  def local?
+    object.account.local?
   end
 
   def quote_post
@@ -266,6 +272,49 @@ class ActivityPub::NoteSerializer < ActivityPub::Serializer
 
   def poll_and_voters_count?
     object.preloadable_poll&.voters_count
+  end
+
+  def quote?
+    object.quote&.present?
+  end
+
+  def quote_authorization?
+    object.quote.present? && ActivityPub::TagManager.instance.approval_uri_for(object.quote).present?
+  end
+
+  def quote
+    # TODO: handle inlining self-quotes
+    ActivityPub::TagManager.instance.uri_for(object.quote.quoted_status)
+  end
+
+  def quote_authorization
+    ActivityPub::TagManager.instance.approval_uri_for(object.quote)
+  end
+
+  def interaction_policy
+    approved_uris = []
+
+    # On outgoing posts, only automatic approval is supported
+    policy = object.quote_approval_policy >> 16
+    approved_uris << ActivityPub::TagManager::COLLECTIONS[:public] if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:public])
+    approved_uris << ActivityPub::TagManager.instance.followers_uri_for(object.account) if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:followers])
+    approved_uris << ActivityPub::TagManager.instance.following_uri_for(object.account) if policy.anybits?(Status::QUOTE_APPROVAL_POLICY_FLAGS[:followed])
+    approved_uris << ActivityPub::TagManager.instance.uri_for(object.account) if approved_uris.empty?
+
+    {
+      canQuote: {
+        automaticApproval: approved_uris,
+      },
+      canReply: {
+        always: 'https://www.w3.org/ns/activitystreams#Public',
+      },
+      canLike: {
+        always: 'https://www.w3.org/ns/activitystreams#Public',
+      },
+      canAnnounce: {
+        always: 'https://www.w3.org/ns/activitystreams#Public',
+      },
+    }
   end
 
   class MediaAttachmentSerializer < ActivityPub::Serializer

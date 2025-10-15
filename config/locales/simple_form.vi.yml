@@ -61,6 +61,7 @@ vi:
         setting_display_media_default: Click để xem
         setting_display_media_hide_all: Luôn ẩn
         setting_display_media_show_all: Luôn hiện
+        setting_emoji_style: Cách hiển thị Emoji. "Tự động" sẽ dùng biểu tượng cảm xúc nguyên bản, nhưng đối với các trình duyệt cũ sẽ chuyển thành Twemoji.
         setting_system_scrollbars_ui: Chỉ áp dụng trình duyệt Chrome và Safari bản desktop
         setting_use_blurhash: Phủ lớp màu làm nhòe đi hình ảnh nhạy cảm
         setting_use_pending_items: Dồn lại toàn bộ tút mới và chỉ hiển thị khi nhấn vào
@@ -158,6 +159,10 @@ vi:
         name: Tên công khai của vai trò, nếu vai trò được đặt để hiển thị dưới dạng huy hiệu
         permissions_as_keys: Người có vai trò này sẽ có quyền truy cập vào...
         position: Vai trò cao hơn sẽ có quyền quyết định xung đột trong các tình huống. Các vai trò có mức độ ưu tiên thấp hơn chỉ có thể thực hiện một số hành động nhất định
+      username_block:
+        allow_with_approval: Thay vì cấm đăng ký ngay lập tức, bạn sẽ duyệt phù hợp trước khi đăng ký
+        comparison: Xin hãy lưu ý đến Vấn đề Scunthorpe khi chặn các từ trùng khớp một phần
+        username: Sẽ được khớp bất kể chữ hoa và chữ tượng hình phổ biến như "4" cho "a" hoặc "3" cho "e"
       webhook:
         events: Chọn sự kiện để gửi
         template: Soạn JSON payload của riêng bạn bằng phép nội suy biến. Để trống để dùng JSON mặc định.
@@ -240,6 +245,7 @@ vi:
         setting_display_media_default: Mặc định
         setting_display_media_hide_all: Ẩn toàn bộ
         setting_display_media_show_all: Hiện toàn bộ
+        setting_emoji_style: Phong cách Emoji
         setting_expand_spoilers: Luôn mở rộng tút chứa nội dung ẩn
         setting_hide_network: Ẩn quan hệ của bạn
         setting_missing_alt_text_modal: Hỏi trước khi đăng media không có văn bản thay thế
@@ -322,6 +328,7 @@ vi:
         follow_request: Ai đó yêu cầu theo dõi bạn
         mention: Ai đó nhắc đến bạn
         pending_account: Phê duyệt tài khoản mới
+        quote: Ai đó trích dẫn bạn
         reblog: Ai đó đăng lại tút của bạn
         report: Ai đó gửi báo cáo
         software_updates:
@@ -368,6 +375,10 @@ vi:
         name: Tên
         permissions_as_keys: Quyền
         position: Mức độ ưu tiên
+      username_block:
+        allow_with_approval: Cho đăng ký nhưng duyệt thủ công
+        comparison: Phương pháp so sánh
+        username: Khớp từ
       webhook:
         events: Những sự kiện đã bật
         template: Mẫu payload

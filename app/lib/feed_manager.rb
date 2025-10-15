@@ -482,7 +482,7 @@ class FeedManager
   # @param [Integer] receiver_id
   # @param [Hash] crutches
   # @return [void|Symbol] nil, :skip_home, or :filter
-  def filter_from_home(status, receiver_id, crutches, timeline_type = :home, stl_home: false) # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
+  def filter_from_home(status, receiver_id, crutches, timeline_type = :home, stl_home: false)
     return            if receiver_id == status.account_id
     return :filter    if status.reply? && (status.in_reply_to_id.nil? || status.in_reply_to_account_id.nil?) && !(timeline_type == :home && status.limited_visibility?)
     return :skip_home if (timeline_type != :list || stl_home) && (crutches[:exclusive_list_users][status.account_id].present? || crutches[:exclusive_antenna_users][status.account_id].present?)

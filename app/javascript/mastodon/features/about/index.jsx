@@ -33,6 +33,7 @@ const messages = defineMessages({
   publicUnlistedVisibility: { id: 'privacy.public_unlisted.short', defaultMessage: 'Local public' },
   publicVisibility: { id: 'about.public_visibility', defaultMessage: 'Public visibility' },
   emojiReaction: { id: 'status.emoji_reaction', defaultMessage: 'Emoji reaction' },
+  acceptLegacyQuotes: { id: 'about.accept_legacy_quotes', defaultMessage: 'Auto accept legacy quotes' },
   enabled: { id: 'about.enabled', defaultMessage: 'Enabled' },
   disabled: { id: 'about.disabled', defaultMessage: 'Disabled' },
   capabilities: { id: 'about.kmyblue_capabilities', defaultMessage: 'Features available in this server' },
@@ -100,6 +101,7 @@ class About extends PureComponent {
     const isLocalTimeline = !fedibirdCapabilities.includes('timeline_no_local');
 
     const isFullTextSearch = server.getIn(['configuration', 'search', 'enabled']);
+    const isAcceptLegacyQuotes = server.getIn(['configuration', 'quotes', 'auto_accept_legacy_quotes']);
 
     const email = server.getIn(['contact', 'email']) || '';
     const emailLink = email.startsWith('https://') ? email : `mailto:${email}`;
@@ -170,6 +172,9 @@ class About extends PureComponent {
                 </li>
                 <li>
                   <span className='rules-list__text'>{intl.formatMessage(messages.fullTextSearch)}: <CapabilityIcon state={isFullTextSearch} intl={intl} /></span>
+                </li>
+                <li>
+                  <span className='rules-list__text'>{intl.formatMessage(messages.acceptLegacyQuotes)}: <CapabilityIcon state={isAcceptLegacyQuotes} intl={intl} /></span>
                 </li>
               </ol>
             )}

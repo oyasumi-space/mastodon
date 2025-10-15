@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe ActivityPub::Activity::Create do
   let(:sender_bio) { '' }
-  let(:sender) { Fabricate(:account, followers_url: 'http://example.com/followers', domain: 'example.com', uri: 'https://example.com/actor', note: sender_bio) }
+  let(:sender) { Fabricate(:account, followers_url: 'http://example.com/followers', domain: 'example.com', uri: 'https://example.com/actor', inbox_url: 'https://example.com/actor', note: sender_bio) }
 
   let(:json) do
     {
@@ -1620,8 +1620,35 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
+      context 'with an unverifiable quote of a known post, with summary (CW) but no text' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            summary: 'beware of what she said',
+            content: nil,
+            quote: ActivityPub::TagManager.instance.uri_for(quoted_status)
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.spoiler_text).to eq 'beware of what she said'
+          expect(status.content).to eq ''
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
+        end
+      end
+
       context 'with an unverifiable quote of a known post' do
-        let(:quoted_status) { Fabricate(:status) }
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
 
         let(:object_json) do
           build_object(
@@ -1637,10 +1664,87 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
-          # kmyblue special spec for fedibird/misskey
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
+        end
+      end
+
+      context 'with a legacy quote of a known post' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            _misskey_quote: ActivityPub::TagManager.instance.uri_for(quoted_status)
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: nil
+          )
+        end
+
+        it 'creates a status with an unverified quote with auto accepting' do
+          Setting.auto_accept_legacy_quotes = true
+
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
           expect(status.quote).to have_attributes(
             state: 'accepted',
             approval_uri: nil
+          )
+        end
+      end
+
+      context 'with a legacy quote from other kmyblue server' do
+        let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
+        let(:sender_software) { 'misskey' }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            quote: ActivityPub::TagManager.instance.uri_for(quoted_status),
+            quoteAuthorization: 'http://kmy.blue/ns#LegacyQuote'
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'pending',
+            approval_uri: 'http://kmy.blue/ns#LegacyQuote'
+          )
+        end
+
+        it 'creates a status with an unverified quote with auto accepting' do
+          Setting.auto_accept_legacy_quotes = true
+
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'accepted',
+            approval_uri: 'http://kmy.blue/ns#LegacyQuote'
           )
         end
       end
@@ -1666,9 +1770,8 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote).to_not be_nil
-          # kmyblue special spec for fedibird/misskey
           expect(status.quote).to have_attributes(
-            state: 'accepted',
+            state: 'pending',
             approval_uri: nil
           )
         end
@@ -1727,6 +1830,28 @@ RSpec.describe ActivityPub::Activity::Create do
             state: 'accepted',
             approval_uri: approval_uri
           )
+        end
+      end
+
+      context 'with quote permission' do
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            interactionPolicy: {
+              canQuote: {
+                automaticApproval: ['https://www.w3.org/ns/activitystreams#Public'],
+              },
+            }
+          )
+        end
+
+        it 'creates a status with a permission of quoting' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote_approval_policy).to eq 131_072
         end
       end
 
@@ -2669,6 +2794,37 @@ RSpec.describe ActivityPub::Activity::Create do
 
         expect(status).to_not be_nil
         expect(status.text).to eq 'Lorem ipsum'
+      end
+    end
+
+    context 'when the post is from relay' do
+      subject { described_class.new(json, sender, delivery: true, relayed_through_actor: sender) }
+
+      before { Fabricate(:relay, inbox_url: sender.inbox_url, state: :accepted) }
+
+      let(:object_json) do
+        {
+          id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
+          type: 'Note',
+          content: 'Lorem ipsum',
+        }
+      end
+
+      it 'creates status' do
+        subject.perform
+        status = sender.statuses.first
+
+        expect(status).to_not be_nil
+        expect(status.text).to eq 'Lorem ipsum'
+      end
+
+      it 'when domain blocked not creates status' do
+        Fabricate(:domain_block, domain: sender.domain, reject_relay: true)
+
+        subject.perform
+        status = sender.statuses.first
+
+        expect(status).to be_nil
       end
     end
 

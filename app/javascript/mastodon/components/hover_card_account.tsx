@@ -19,7 +19,7 @@ import { FollowButton } from 'mastodon/components/follow_button';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { ShortNumber } from 'mastodon/components/short_number';
 import { useFetchFamiliarFollowers } from 'mastodon/features/account_timeline/hooks/familiar_followers';
-import { domain } from 'mastodon/initial_state';
+import { domain, isHideItem } from 'mastodon/initial_state';
 import { getAccountHidden } from 'mastodon/selectors/accounts';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
@@ -54,8 +54,10 @@ export const HoverCardAccount = forwardRef<
   const relationship = useAppSelector((state) =>
     accountId ? state.relationships.get(accountId) : undefined,
   );
-  const isMutual = relationship?.followed_by && relationship.following;
-  const isFollower = relationship?.followed_by;
+  const isHideRelationships = isHideItem('relationships');
+  const isMutual =
+    !isHideRelationships && relationship?.followed_by && relationship.following;
+  const isFollower = !isHideRelationships && relationship?.followed_by;
   const hasRelationshipLoaded = !!relationship;
 
   const shouldDisplayFamiliarFollowers =
@@ -102,7 +104,7 @@ export const HoverCardAccount = forwardRef<
             <>
               <div className='hover-card__text-row'>
                 <AccountBio
-                  note={account.note_emojified}
+                  accountId={account.id}
                   className='hover-card__bio'
                 />
                 <AccountFields fields={account.fields} limit={2} />

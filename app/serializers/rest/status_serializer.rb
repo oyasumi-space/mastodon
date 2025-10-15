@@ -9,7 +9,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
              :sensitive, :spoiler_text, :visibility, :visibility_ex, :limited_scope, :language,
              :uri, :url, :replies_count, :reblogs_count, :searchability,
              :status_reference_ids, :status_references_count, :status_referred_by_count,
-             :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :edited_at
+             :favourites_count, :emoji_reactions, :emoji_reactions_count, :reactions, :quotes_count, :edited_at
 
   attribute :favourited, if: :current_user?
   attribute :reblogged, if: :current_user?
@@ -33,9 +33,12 @@ class REST::StatusSerializer < ActiveModel::Serializer
   has_many :tags
   has_many :emojis, serializer: REST::CustomEmojiSlimSerializer
 
+  # Due to a ActiveModel::Serializer quirk, if you change any of the following, have a look at
+  # updating `app/serializers/rest/shallow_status_serializer.rb` as well
   has_one :quote, key: :quote, serializer: REST::QuoteSerializer
   has_one :preview_card, key: :card, serializer: REST::PreviewCardSerializer
   has_one :preloadable_poll, key: :poll, serializer: REST::PollSerializer
+  has_one :quote_approval, if: -> { Mastodon::Feature.outgoing_quotes_enabled? }
 
   def quote
     object.quote if object.quote&.acceptable?
@@ -124,6 +127,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   def favourites_count
     object.untrusted_favourites_count || relationships&.attributes_map&.dig(object.id, :favourites_count) || object.favourites_count
+  end
+
+  def quotes_count
+    relationships&.attributes_map&.dig(object.id, :quotes_count) || object.quotes_count
   end
 
   def favourited
@@ -234,6 +241,14 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   def expires_at
     object.scheduled_expiration_status.scheduled_at
+  end
+
+  def quote_approval
+    {
+      automatic: object.quote_policy_as_keys(:automatic),
+      manual: object.quote_policy_as_keys(:manual),
+      current_user: object.quote_policy_for_account(current_user&.account),
+    }
   end
 
   private

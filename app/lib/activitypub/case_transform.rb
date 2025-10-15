@@ -2,12 +2,6 @@
 
 module ActivityPub::CaseTransform
   class << self
-    NO_CONVERT_VALUES = %w(
-      _misskey_content
-      _misskey_license
-      _misskey_quote
-    ).freeze
-
     def camel_lower_cache
       @camel_lower_cache ||= {}
     end
@@ -18,12 +12,10 @@ module ActivityPub::CaseTransform
       when Hash then value.deep_transform_keys! { |key| camel_lower(key) }
       when Symbol then camel_lower(value.to_s).to_sym
       when String
-        camel_lower_cache[value] ||= if NO_CONVERT_VALUES.include?(value)
+        camel_lower_cache[value] ||= if value.start_with?('_misskey') || LanguagesHelper::ISO_639_1_REGIONAL.key?(value.to_sym)
                                        value
                                      elsif value.start_with?('_:')
                                        "_:#{value.delete_prefix('_:').underscore.camelize(:lower)}"
-                                     elsif LanguagesHelper::ISO_639_1_REGIONAL.key?(value.to_sym) # rubocop:disable Lint/DuplicateBranch
-                                       value
                                      else
                                        value.underscore.camelize(:lower)
                                      end

@@ -13,13 +13,12 @@ class ActivityPub::VerifyQuoteService < BaseService
     @fetching_error = nil
 
     fetch_quoted_post_if_needed!(fetchable_quoted_uri, prefetched_body: prefetched_quoted_object)
-    return if fast_track_approval!
 
-    # for current version of kmyblue, fedibird, misskey
-    if quote.approval_uri.blank?
-      quote.accept!
-      return
-    end
+    return quote.accept! if Setting.auto_accept_legacy_quotes && (quote.legacy || (legacy_quote_available? && quote.approval_uri == 'http://kmy.blue/ns#LegacyQuote'))
+
+    return if quote.approval_uri == 'http://kmy.blue/ns#LegacyQuote'
+    return if quote.quoted_account&.local?
+    return if fast_track_approval! || quote.approval_uri.blank?
 
     @json = fetch_approval_object(quote.approval_uri, prefetched_body: prefetched_approval)
     return quote.reject! if @json.nil?
@@ -39,6 +38,10 @@ class ActivityPub::VerifyQuoteService < BaseService
   end
 
   private
+
+  def legacy_quote_available?
+    @quote.quoted_account&.domain && InstanceInfo.legacy_quote_software?(@quote.quoted_account.domain)
+  end
 
   # FEP-044f defines rules that don't require the approval flow
   def fast_track_approval!

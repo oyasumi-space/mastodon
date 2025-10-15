@@ -51,10 +51,6 @@ module User::HasSettings
     settings['web.simple_timeline_menu']
   end
 
-  def setting_boost_menu
-    settings['web.boost_menu']
-  end
-
   def setting_default_sensitive
     settings['default_sensitive']
   end
@@ -281,6 +277,10 @@ module User::HasSettings
 
   def setting_use_custom_css
     settings['web.use_custom_css']
+  end
+
+  def setting_default_quote_policy
+    settings['default_quote_policy'] || 'public'
   end
 
   def allows_report_emails?

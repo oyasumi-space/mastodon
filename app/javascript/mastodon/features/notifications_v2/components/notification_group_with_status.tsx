@@ -3,13 +3,12 @@ import type { JSX } from 'react';
 
 import classNames from 'classnames';
 
-import { HotKeys } from 'react-hotkeys';
-
 import { replyComposeById } from 'mastodon/actions/compose';
 import { navigateToStatus } from 'mastodon/actions/statuses';
 import { Avatar } from 'mastodon/components/avatar';
 import { AvatarGroup } from 'mastodon/components/avatar_group';
 import EmojiView from 'mastodon/components/emoji_view';
+import { Hotkeys } from 'mastodon/components/hotkeys';
 import type { IconProp } from 'mastodon/components/icon';
 import { Icon } from 'mastodon/components/icon';
 import { RelativeTimestamp } from 'mastodon/components/relative_timestamp';
@@ -95,7 +94,7 @@ export const NotificationGroupWithStatus: React.FC<{
   );
 
   return (
-    <HotKeys handlers={handlers}>
+    <Hotkeys handlers={handlers}>
       <div
         role='button'
         className={classNames(
@@ -178,6 +177,6 @@ export const NotificationGroupWithStatus: React.FC<{
           )}
         </div>
       </div>
-    </HotKeys>
+    </Hotkeys>
   );
 };

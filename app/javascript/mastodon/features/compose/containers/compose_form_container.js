@@ -35,10 +35,11 @@ const mapStateToProps = state => ({
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
   lang: state.getIn(['compose', 'language']),
   circleId: state.getIn(['compose', 'circle_id']),
+  isCircleNeeded: state.getIn(['compose', 'privacy']) === 'circle' && !state.getIn(['compose', 'id']),
   maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, props) => ({
 
   onChange (text) {
     dispatch(changeCompose(text));
@@ -51,7 +52,11 @@ const mapDispatchToProps = (dispatch) => ({
         modalProps: {},
       }));
     } else {
-      dispatch(submitCompose());
+      dispatch(submitCompose((status) => {
+        if (props.redirectOnSuccess) {
+          window.location.assign(status.url);
+        }
+      }));
     }
   },
 

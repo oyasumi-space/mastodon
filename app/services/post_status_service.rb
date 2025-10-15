@@ -21,6 +21,7 @@ class PostStatusService < BaseService
   # @option [String] :text Message
   # @option [Status] :thread Optional status to reply to
   # @option [Status] :quoted_status Optional status to quote
+  # @option [String] :quote_approval_policy Approval policy for quotes, one of `public`, `followers` or `nobody`
   # @option [Boolean] :sensitive
   # @option [String] :visibility
   # @option [Boolean] :force_visibility
@@ -43,8 +44,6 @@ class PostStatusService < BaseService
     @text        = @options[:text] || ''
     @in_reply_to = @options[:thread]
     @quoted_status = @options[:quoted_status] || quoted_status_from_text
-
-    @antispam = Antispam.new
 
     return idempotency_duplicate if idempotency_given? && idempotency_duplicate?
 
@@ -104,6 +103,7 @@ class PostStatusService < BaseService
     v = :unlisted if %i(public public_unlisted login).include?(v) && @account.silenced?
     v = :public_unlisted if v == :public && !@options[:force_visibility] && !@options[:application]&.superapp && @account.user&.setting_public_post_to_unlisted && Setting.enable_public_unlisted_visibility
     v = Setting.enable_public_unlisted_visibility ? :public_unlisted : :unlisted if !Setting.enable_public_visibility && v == :public
+    v = :private if @quoted_status&.private_visibility?
     v
   end
 
@@ -168,7 +168,9 @@ class PostStatusService < BaseService
     UpdateStatusExpirationService.new.call(@status)
 
     attach_quote!(@status)
-    @antispam.local_preflight_check!(@status)
+
+    antispam = Antispam.new(@status)
+    antispam.local_preflight_check!
 
     # The following transaction block is needed to wrap the UPDATEs to
     # the media attachments when the status is created
@@ -181,17 +183,14 @@ class PostStatusService < BaseService
   def attach_quote!(status)
     return if @quoted_status.nil?
 
-    # NOTE: for now this is only for convenience in testing, as we don't support the request flow nor serialize quotes in ActivityPub
-    # we only support incoming quotes so far
+    status.quote = Quote.create(quoted_status: @quoted_status, status: status)
+    status.quote.ensure_quoted_access
 
-    status.quote = Quote.new(quoted_status: @quoted_status, activity_uri: nil, approval_uri: nil)
-    status.quote.accept!
-    # status.quote.accept! if @status.account == @quoted_status.account || @quoted_status.active_mentions.exists?(mentions: { account_id: status.account_id })
-
-    # TODO: the following has yet to be implemented:
-    # - handle approval of local users (requires the interactionPolicy PR)
-    # - produce a QuoteAuthorization for quotes of local users
-    # - send a QuoteRequest for quotes of remote users
+    if @quoted_status.local?
+      status.quote.accept! if StatusPolicy.new(@status.account, @quoted_status).quote?
+    elsif Setting.auto_accept_legacy_quotes
+      status.quote.accept! if InstanceInfo.legacy_quote_software?(@quoted_status.account.domain)
+    end
   end
 
   def safeguard_mentions!(status)
@@ -207,7 +206,9 @@ class PostStatusService < BaseService
 
   def schedule_status!
     status_for_validation = @account.statuses.build(status_attributes)
-    @antispam.local_preflight_check!(status_for_validation)
+
+    antispam = Antispam.new(status_for_validation)
+    antispam.local_preflight_check!
 
     if status_for_validation.valid?
       # Marking the status as destroyed is necessary to prevent the status from being
@@ -240,6 +241,7 @@ class PostStatusService < BaseService
     DistributionWorker.perform_async(@status.id)
     ActivityPub::DistributionWorker.perform_async(@status.id) unless @status.personal_limited?
     PollExpirationNotifyWorker.perform_at(@status.poll.expires_at, @status.poll.id) if @status.poll
+    ActivityPub::QuoteRequestWorker.perform_async(@status.quote.id) if @status.quote&.quoted_status.present? && !@status.quote&.quoted_status&.local?
   end
 
   def validate_status!
@@ -296,6 +298,8 @@ class PostStatusService < BaseService
   end
 
   def quoted_status_from_text
+    return unless Mastodon::Feature.outgoing_quotes_enabled?
+
     url = ProcessReferencesService.extract_quote(@text)
     return unless url
 
@@ -391,6 +395,7 @@ class PostStatusService < BaseService
       language: valid_locale_cascade(@options[:language], @account.user&.preferred_posting_language, I18n.default_locale),
       application: @options[:application],
       rate_limit: @options[:with_rate_limit],
+      quote_approval_policy: @options[:quote_approval_policy],
     }.compact
   end
 

@@ -34,6 +34,7 @@ export interface ApiServerFeaturesJSON {
   circle: boolean;
   emoji_reaction: boolean;
   status_reference: boolean;
+  legacy_quote: boolean;
 }
 
 // See app/serializers/rest/account_serializer.rb

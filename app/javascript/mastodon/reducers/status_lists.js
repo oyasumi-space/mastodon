@@ -43,6 +43,9 @@ import {
   UNPIN_SUCCESS,
 } from '../actions/interactions';
 import {
+  fetchQuotes
+} from '../actions/interactions_typed';
+import {
   PINNED_STATUSES_FETCH_SUCCESS,
 } from '../actions/pin_statuses';
 import {
@@ -53,7 +56,6 @@ import {
   TRENDS_STATUSES_EXPAND_SUCCESS,
   TRENDS_STATUSES_EXPAND_FAIL,
 } from '../actions/trends';
-
 
 const initialState = ImmutableMap({
   favourites: ImmutableMap({
@@ -83,6 +85,12 @@ const initialState = ImmutableMap({
   }),
   circle_statuses: ImmutableMap(),
   bookmark_category_statuses: ImmutableMap(),
+  quotes: ImmutableMap({
+    next: null,
+    loaded: false,
+    items: ImmutableOrderedSet(),
+    statusId: null,
+  }),
 });
 
 const normalizeList = (state, listType, statuses, next) => {
@@ -269,6 +277,13 @@ export default function statusLists(state = initialState, action) {
   case muteAccountSuccess.type:
     return state.updateIn(['trending', 'items'], ImmutableOrderedSet(), list => list.filterNot(statusId => action.payload.statuses.getIn([statusId, 'account']) === action.payload.relationship.id));
   default:
-    return state;
+    if (fetchQuotes.fulfilled.match(action))
+      return normalizeList(state, 'quotes', action.payload.statuses, action.payload.next).set('statusId', action.meta.arg.statusId);
+    else if (fetchQuotes.pending.match(action))
+      return state.setIn(['quotes', 'isLoading'], true).setIn(['quotes', 'statusId'], action.meta.arg.statusId);
+    else if (fetchQuotes.rejected.match(action))
+      return state.setIn(['quotes', 'isLoading', false]).setIn(['quotes', 'statusId'], action.meta.arg.statusId);
+    else
+      return state;
   }
 }

@@ -417,8 +417,6 @@
   "hints.profiles.see_more_followers": "Ikusi jarraitzaile gehiago {domain}-(e)n",
   "hints.profiles.see_more_follows": "Ikusi jarraitzaile gehiago {domain}-(e)n",
   "hints.profiles.see_more_posts": "Ikusi bidalketa gehiago {domain}-(e)n",
-  "hints.threads.replies_may_be_missing": "Baliteke beste zerbitzari batzuen erantzun batzuk ez erakustea.",
-  "hints.threads.see_more": "Ikusi erantzun gehiago {domain}-(e)n",
   "home.column_settings.show_quotes": "Erakutsi aipamenak",
   "home.column_settings.show_reblogs": "Erakutsi bultzadak",
   "home.column_settings.show_replies": "Erakutsi erantzunak",

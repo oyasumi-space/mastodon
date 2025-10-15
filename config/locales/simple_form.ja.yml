@@ -104,6 +104,7 @@ ja:
       form_admin_settings:
         activity_api_enabled: 週単位でローカルで公開された投稿数、アクティブユーザー数、新規登録者数を表示します
         app_icon: モバイル端末で表示されるデフォルトのアプリアイコンを独自のアイコンで上書きします。WEBP、PNG、GIF、JPGが利用可能です。
+        auto_accept_legacy_quotes: Misskey、Fedibird形式の引用を無条件で承認し、またローカルアカウントが当該投稿を自由に引用できるようにします。各ユーザーの引用許可設定は無視されます
         backups_retention_period: ユーザーには、後でダウンロードするために投稿のアーカイブを生成する機能があります。正の値に設定すると、これらのアーカイブは指定された日数後に自動的にストレージから削除されます。
         bootstrap_timeline_accounts: これらのアカウントは、新しいユーザー向けのおすすめユーザーの一番上にピン留めされます。
         closed_registrations_message: アカウント作成を停止している時に表示されます
@@ -272,7 +273,6 @@ ja:
         setting_auto_play_gif: アニメーションGIFを自動再生する
         setting_bio_markdown: プロフィールのMarkdownを有効にする
         setting_bookmark_category_needed: Webでブックマーク時にカテゴリの選択を必須にする
-        setting_boost_menu: ブーストボタンを押したときにポップアップメニューを表示する
         setting_boost_modal: ブーストする前に確認ダイアログを表示する
         setting_community_timeline_instead_of_search_menu: スマホ使用時の画面下ナビゲーションで、検索の代わりにローカルタイムラインを表示する
         setting_content_font_size: 投稿本文のフォントサイズ
@@ -283,7 +283,6 @@ ja:
           xx_large: 大きい大きい大きい
         setting_custom_css: カスタムCSS
         setting_default_language: 投稿する言語
-        setting_default_privacy: 投稿の公開範囲
         setting_default_quote_policy: 引用できるユーザー
         setting_default_reblog_privacy: BTの公開範囲
         setting_default_searchability: 自分の投稿の検索を許可する範囲
@@ -384,6 +383,7 @@ ja:
       form_admin_settings:
         activity_api_enabled: APIでユーザーアクティビティに関する集計統計を公開する
         app_icon: アプリアイコン
+        auto_accept_legacy_quotes: Mastodon形式の引用に対応していないサーバーとの引用の送受信時に制限を適用しない
         backups_retention_period: ユーザーアーカイブの保持期間
         bootstrap_timeline_accounts: おすすめユーザーに常に表示するアカウント
         check_lts_version_only: 更新チェックの時、LTSバージョンのみ確認する

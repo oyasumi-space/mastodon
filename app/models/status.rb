@@ -50,17 +50,11 @@ class Status < ApplicationRecord
   include Status::ThreadingConcern
   include Status::Visibility
   include DtlHelper
+  include Status::InteractionPolicyConcern
 
   MEDIA_ATTACHMENTS_LIMIT = 4
   MEDIA_ATTACHMENTS_LIMIT_WITH_POLL = 4
   MEDIA_ATTACHMENTS_LIMIT_FROM_REMOTE = 16
-
-  QUOTE_APPROVAL_POLICY_FLAGS = {
-    unknown: (1 << 0),
-    public: (1 << 1),
-    followers: (1 << 2),
-    followed: (1 << 3),
-  }.freeze
 
   rate_limit by: :account, family: :statuses
 
@@ -78,7 +72,7 @@ class Status < ApplicationRecord
   belongs_to :account, inverse_of: :statuses
   belongs_to :in_reply_to_account, class_name: 'Account', optional: true
   belongs_to :conversation, optional: true
-  has_one :owned_conversation, class_name: 'Conversation', foreign_key: 'ancestor_status_id', dependent: :nullify, inverse_of: false
+  has_one :owned_conversation, class_name: 'Conversation', foreign_key: 'parent_status_id', inverse_of: :parent_status, dependent: nil
   belongs_to :preloadable_poll, class_name: 'Poll', foreign_key: 'poll_id', optional: true, inverse_of: false
 
   with_options class_name: 'Status', optional: true do
@@ -132,7 +126,7 @@ class Status < ApplicationRecord
   has_one :quote, inverse_of: :status, dependent: :destroy
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
-  validates :text, presence: true, unless: -> { with_media? || reblog? }
+  validates :text, presence: true, unless: -> { with_media? || reblog? || with_quote? }
   validates_with StatusLengthValidator
   validates_with DisallowedHashtagsValidator
   validates :reblog, uniqueness: { scope: :account }, if: :reblog?
@@ -148,7 +142,10 @@ class Status < ApplicationRecord
   scope :without_replies, -> { not_reply.or(reply_to_account) }
   scope :not_reply, -> { where(reply: false) }
   scope :only_reblogs, -> { where.not(reblog_of_id: nil) }
+  scope :only_polls, -> { where.not(poll_id: nil) }
+  scope :without_polls, -> { where(poll_id: nil) }
   scope :reply_to_account, -> { where(arel_table[:in_reply_to_account_id].eq arel_table[:account_id]) }
+  scope :not_replying_to_account, ->(account) { where.not(in_reply_to_account: account) }
   scope :without_reblogs, -> { where(statuses: { reblog_of_id: nil }) }
   scope :with_public_visibility, -> { where(visibility: [:public, :public_unlisted, :login]) }
   scope :with_public_search_visibility, -> { merge(where(visibility: [:public, :public_unlisted, :login]).or(Status.where(searchability: [:public, :public_unlisted]))) }
@@ -298,6 +295,10 @@ class Status < ApplicationRecord
     # !expired_at.nil?
   end
 
+  def with_quote?
+    quote.present?
+  end
+
   def with_preview_card?
     preview_cards_status.present?
   end
@@ -364,6 +365,10 @@ class Status < ApplicationRecord
 
   def status_referred_by_count
     status_stat&.status_referred_by_count || 0
+  end
+
+  def quotes_count
+    status_stat&.quotes_count || 0
   end
 
   # Reblogs count received from an external instance
@@ -602,12 +607,9 @@ class Status < ApplicationRecord
       self.in_reply_to_account_id = carried_over_reply_to_account_id
       self.conversation_id        = thread.conversation_id if conversation_id.nil?
     elsif conversation_id.nil?
-      if local?
-        self.owned_conversation = Conversation.new
-        self.conversation = owned_conversation
-      else
-        self.conversation = Conversation.new
-      end
+      conversation = build_owned_conversation
+      conversation.ancestor_status = self
+      self.conversation = conversation
     end
   end
 

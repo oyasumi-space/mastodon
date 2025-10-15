@@ -2,24 +2,24 @@
 
 module Mastodon
   module Version
-    KMYBLUE_API_VERSION = 2
+    KMYBLUE_API_VERSION = 4
 
     module_function
 
     # If you change the version number, also change the image version in docker-compose.yml.
 
     def kmyblue_major
-      19
+      20
     end
 
     def kmyblue_minor
-      4
+      3
     end
 
     def kmyblue_flag
-      'lts'
+      # 'LTS'
       # 'dev'
-      # nil
+      nil
     end
 
     def major
@@ -35,7 +35,7 @@ module Mastodon
     end
 
     def default_prerelease
-      ''
+      'alpha.2'
     end
 
     def prerelease
@@ -96,7 +96,7 @@ module Mastodon
 
     def api_versions
       {
-        mastodon: 6,
+        mastodon: Mastodon::Feature.outgoing_quotes_enabled? ? 7 : 6,
         kmyblue: KMYBLUE_API_VERSION,
       }
     end

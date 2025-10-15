@@ -16,6 +16,7 @@ SimpleNavigation::Configuration.run do |navigation|
 
     n.item :preferences, safe_join([material_symbol('settings'), t('settings.preferences')]), settings_preferences_path, if: -> { current_user.functional? && !self_destruct } do |s|
       s.item :appearance, safe_join([material_symbol('computer'), t('settings.appearance')]), settings_preferences_appearance_path
+      s.item :posting_defaults, safe_join([material_symbol('edit_square'), t('preferences.posting_defaults')]), settings_preferences_posting_defaults_path
       s.item :notifications, safe_join([material_symbol('mail'), t('settings.notifications')]), settings_preferences_notifications_path
       s.item :reaching, safe_join([material_symbol('search'), t('preferences.reaching')]), settings_preferences_reaching_path
       s.item :custom_css, safe_join([material_symbol('inbox'), t('preferences.custom_css')]), settings_preferences_custom_css_path
@@ -68,6 +69,7 @@ SimpleNavigation::Configuration.run do |navigation|
       s.item :special_instances, safe_join([material_symbol('list'), t('admin.special_instances.title')]), admin_special_instances_path, highlights_on: %r{/admin/special_instances}, if: -> { current_user.can?(:manage_federation) }
       s.item :special_domains, safe_join([material_symbol('link'), t('admin.special_domains.title')]), admin_special_domains_path, highlights_on: %r{/admin/special_domains}, if: -> { current_user.can?(:manage_federation) }
       s.item :email_domain_blocks, safe_join([material_symbol('mail'), t('admin.email_domain_blocks.title')]), admin_email_domain_blocks_path, highlights_on: %r{/admin/email_domain_blocks}, if: -> { current_user.can?(:manage_blocks) }
+      s.item :username_blocks, safe_join([material_symbol('supervised_user_circle_off'), t('admin.username_blocks.title')]), admin_username_blocks_path, highlights_on: %r{/admin/username_blocks}, if: -> { current_user.can?(:manage_blocks) }
       s.item :ip_blocks, safe_join([material_symbol('hide_source'), t('admin.ip_blocks.title')]), admin_ip_blocks_path, highlights_on: %r{/admin/ip_blocks}, if: -> { current_user.can?(:manage_blocks) }
       s.item :action_logs, safe_join([material_symbol('list'), t('admin.action_logs.title')]), admin_action_logs_path, if: -> { current_user.can?(:view_audit_log) }
     end

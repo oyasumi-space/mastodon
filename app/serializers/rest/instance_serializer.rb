@@ -112,6 +112,10 @@ class REST::InstanceSerializer < ActiveModel::Serializer
         max_reactions_per_remote_account: EmojiReaction::EMOJI_REACTION_PER_REMOTE_ACCOUNT_LIMIT,
       },
 
+      quotes: {
+        auto_accept_legacy_quotes: Setting.auto_accept_legacy_quotes,
+      },
+
       reaction_deck: {
         max_emojis: User::REACTION_DECK_MAX,
       },

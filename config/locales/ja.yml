@@ -382,7 +382,6 @@ ja:
       title: カスタム絵文字
       uncategorized: 未分類
       unlist: 非表示
-      unlisted: 非表示
       update_failed_msg: 絵文字を更新できませんでした
       updated_msg: 絵文字の更新に成功しました！
       upload: アップロード
@@ -477,6 +476,8 @@ ja:
       reject_media_hint: ローカルに保存されたメディアファイルを削除し、今後のダウンロードを拒否します。停止とは無関係です
       reject_new_follow: 新規フォローを拒否
       reject_new_follow_hint: 今後の新規フォローを拒否します。停止とは無関係です
+      reject_relay: リレーサーバー経由の投稿を拒否
+      reject_relay_hint: 今後のリレーサーバー経由で送られてきた投稿を拒否します。停止とは無関係です
       reject_reply_exclude_followers: フォロー相手以外からのメンションと引用を拒否
       reject_reply_exclude_followers_hint: 今後のリプライを拒否します。停止とは無関係です
       reject_reports: 通報を拒否
@@ -619,6 +620,7 @@ ja:
           reject_hashtag: ハッシュタグを拒否
           reject_media: メディアを拒否する
           reject_new_follow: 新規フォローを拒否
+          reject_relay: リレー経由投稿を拒否
           reject_reply_exclude_followers: フォロー相手以外からのメンション・引用を拒否
           reject_reports: 通報を拒否
           reject_send_sensitive: センシティブ投稿配送なし
@@ -2147,8 +2149,6 @@ ja:
       limit: 固定できる投稿数の上限に達しました
       ownership: 他人の投稿を固定することはできません
       reblog: ブーストを固定することはできません
-    quote_policies:
-      public: 全員
     searchabilities:
       direct: 反応者
       direct_long: この投稿に反応した人しか検索できません
@@ -2183,7 +2183,7 @@ ja:
       public_unlisted: ローカル公開
       public_unlisted_long: 誰でも見ることができますが、他のサーバーの連合タイムラインには表示されません
       reply: 返信
-      unlisted: ひかえめな公開 (非収載)
+      unlisted: 非収載
       unlisted_long: 誰でも見ることができますが、公開タイムラインには表示されません
       unset: 設定なし
       unset_long: デフォルトの挙動に従います

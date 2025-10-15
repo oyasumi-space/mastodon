@@ -61,6 +61,7 @@ ca:
         setting_display_media_default: Amaga el contingut gràfic marcat com a sensible
         setting_display_media_hide_all: Oculta sempre tot el contingut multimèdia
         setting_display_media_show_all: Mostra sempre el contingut gràfic
+        setting_emoji_style: Com mostrar els emojis. "Automàtic" provarà de fer servir els emojis nadius, però revertirà a twemojis en els navegadors antics.
         setting_system_scrollbars_ui: S'aplica només als navegadors d'escriptori basats en Safari i Chrome
         setting_use_blurhash: Els degradats es basen en els colors de les imatges ocultes, però n'enfosqueixen els detalls
         setting_use_pending_items: Amaga les actualitzacions de la línia de temps després de fer un clic, en lloc de desplaçar-les automàticament
@@ -230,7 +231,7 @@ ca:
         setting_auto_play_gif: Reprodueix automàticament els GIF animats
         setting_boost_modal: Mostra la finestra de confirmació abans d'impulsar
         setting_default_language: Llengua dels tuts
-        setting_default_privacy: Privacitat dels tuts
+        setting_default_privacy: Visibilitat de la publicació
         setting_default_quote_policy: Qui pot citar
         setting_default_sensitive: Marcar sempre el contingut gràfic com a sensible
         setting_delete_modal: Mostra la finestra de confirmació abans d'esborrar un tut
@@ -240,6 +241,7 @@ ca:
         setting_display_media_default: Per defecte
         setting_display_media_hide_all: Amaga-ho tot
         setting_display_media_show_all: Mostra-ho tot
+        setting_emoji_style: Estil d'emojis
         setting_expand_spoilers: Desplega sempre els tuts marcats amb advertències de contingut
         setting_hide_network: Amaga la teva xarxa
         setting_missing_alt_text_modal: Mostra un diàleg de confirmació abans de publicar contingut sense text alternatiu
@@ -322,6 +324,7 @@ ca:
         follow_request: Algú sol·licita seguir-te
         mention: Algú et menciona
         pending_account: Un nou compte necessita revisió
+        quote: Algú us ha citat
         reblog: Algú comparteix el teu estat
         report: S'ha enviat l'informe nou
         software_updates:

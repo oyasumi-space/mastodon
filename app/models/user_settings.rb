@@ -73,8 +73,8 @@ class UserSettings
     setting :expand_content_warnings, default: false
     setting :display_media, default: 'default', in: %w(default show_all hide_all)
     setting :auto_play, default: true
+    setting :emoji_style, default: 'auto', in: %w(auto native twemoji)
     setting :simple_timeline_menu, default: false
-    setting :boost_menu, default: false
     setting :show_relationships, default: true
     setting :hide_emoji_reaction_unavailable_server, default: false
     setting :hide_status_reference_unavailable_server, default: false
@@ -93,6 +93,7 @@ class UserSettings
     setting :reblog, default: false
     setting :favourite, default: false
     setting :mention, default: true
+    setting :quote, default: true
     setting :follow_request, default: true
     setting :report, default: true
     setting :pending_account, default: true

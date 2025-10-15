@@ -1,6 +1,5 @@
 // @ts-check
 
-
 /**
  * @typedef { 'emoji_reaction_on_timeline'
  *   | 'emoji_reaction_unavailable_server'
@@ -56,7 +55,6 @@
  * @property {boolean} search_enabled
  * @property {boolean} trends_enabled
  * @property {boolean} simple_timeline_menu
- * @property {boolean} boost_menu
  * @property {boolean} single_user_mode
  * @property {string} source_url
  * @property {string} streaming_api_base_url
@@ -70,6 +68,7 @@
  * @property {string} sso_redirect
  * @property {string} status_page_url
  * @property {boolean} terms_of_service_enabled
+ * @property {string?} emoji_style
  */
 
 /**
@@ -88,6 +87,7 @@
  * @property {boolean=} critical_updates_pending
  * @property {InitialStateMeta} meta
  * @property {Role?} role
+ * @property {string[]} features
  */
 
 const element = document.getElementById('initial-state');
@@ -139,6 +139,7 @@ export const dtlTag = getMeta('dtl_tag');
 export const enableEmojiReaction = getMeta('enable_emoji_reaction');
 export const enableLocalTimeline = getMeta('enable_local_timeline');
 export const enableDtlMenu = getMeta('enable_dtl_menu');
+export const emojiStyle = getMeta('emoji_style') || 'auto';
 export const expandSpoilers = getMeta('expand_spoilers');
 export const featuredTags = getMeta('featured_tags') || [];
 export const forceSingleColumn = !getMeta('advanced_layout');
@@ -156,7 +157,6 @@ export const searchEnabled = getMeta('search_enabled');
 export const trendsEnabled = getMeta('trends_enabled');
 export const showTrends = getMeta('show_trends');
 export const simpleTimelineMenu = getMeta('simple_timeline_menu');
-export const boostMenu = getMeta('boost_menu');
 export const communityTimelineInsteadOfSearchMenu = getMeta('community_timeline_instead_of_search_menu');
 export const singleUserMode = getMeta('single_user_mode');
 export const source_url = getMeta('source_url');

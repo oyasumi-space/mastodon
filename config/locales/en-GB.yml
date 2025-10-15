@@ -361,7 +361,6 @@ en-GB:
       title: Custom emojis
       uncategorized: Uncategorised
       unlist: Unlist
-      unlisted: Unlisted
       update_failed_msg: Could not update that emoji
       updated_msg: Emoji successfully updated!
       upload: Upload
@@ -1349,6 +1348,10 @@ en-GB:
     basic_information: Basic information
     hint_html: "<strong>Customise what people see on your public profile and next to your posts.</strong> Other people are more likely to follow you back and interact with you when you have a filled out profile and a profile picture."
     other: Other
+  emoji_styles:
+    auto: Auto
+    native: Native
+    twemoji: Twemoji
   errors:
     '400': The request you submitted was invalid or malformed.
     '403': You don't have permission to view this page.
@@ -1878,13 +1881,10 @@ en-GB:
       public: Everyone
     title: '%{name}: "%{quote}"'
     visibilities:
-      direct: Direct
       private: Followers-only
       private_long: Only show to followers
       public: Public
-      public_long: Everyone can see
       unlisted: Unlisted
-      unlisted_long: Everyone can see, but not listed on public timelines
   statuses_cleanup:
     enabled: Automatically delete old posts
     enabled_hint: Automatically deletes your posts once they reach a specified age threshold, unless they match one of the exceptions below

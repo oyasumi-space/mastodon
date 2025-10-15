@@ -69,11 +69,10 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return nil if (mention_to_local_stranger? || reference_to_local_stranger?) && reject_reply_exclude_followers?
 
     ApplicationRecord.transaction do
-      @status = Status.create!(@params)
+      @status = Status.create!(@params.merge(quote: @quote))
       attach_tags(@status)
       attach_mentions(@status)
       attach_counts(@status)
-      attach_quote(@status)
     end
 
     resolve_thread(@status)
@@ -273,13 +272,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     end
   end
 
-  def attach_quote(status)
-    return if @quote.nil?
-
-    @quote.status = status
-    @quote.save
-  end
-
   def process_tags
     return if @object['tag'].nil?
 
@@ -299,7 +291,8 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     return if @quote_uri.blank?
 
     approval_uri = @status_parser.quote_approval_uri
-    approval_uri = nil if unsupported_uri_scheme?(approval_uri)
+    approval_uri = 'http://kmy.blue/ns#LegacyQuote' if approval_uri == 'kmyblue:LegacyQuote'
+    approval_uri = nil if unsupported_uri_scheme?(approval_uri) || (approval_uri != 'http://kmy.blue/ns#LegacyQuote' && TagManager.instance.local_url?(approval_uri))
     @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
   end
 
@@ -476,7 +469,16 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def conversation_from_activity
-    conversation_from_context(@object['context']) || conversation_from_uri(@object['conversation'])
+    conversation_from_context(@object['groupContext'] || @object['context']) || conversation_from_uri(@object['conversation'])
+  end
+
+  def fetch_and_verify_quote
+    return if @quote.nil?
+
+    embedded_quote = safe_prefetched_embed(@account, @status_parser.quoted_object, @json['context'])
+    ActivityPub::VerifyQuoteService.new.call(@quote, fetchable_quoted_uri: @quote_uri, prefetched_quoted_object: embedded_quote, request_id: @options[:request_id], depth: @options[:depth])
+  rescue Mastodon::RecursionLimitExceededError, Mastodon::UnexpectedResponseError, *Mastodon::HTTP_CONNECTION_ERRORS
+    ActivityPub::RefetchAndVerifyQuoteWorker.perform_in(rand(30..600).seconds, @quote.id, @quote_uri, { 'request_id' => @options[:request_id] })
   end
 
   def fetch_and_verify_quote
@@ -593,8 +595,12 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     @ignore_hashtags ||= DomainBlock.reject_hashtag?(@account.domain)
   end
 
+  def through_relay?
+    requested_through_relay? && !DomainBlock.reject_relay?(@account.domain)
+  end
+
   def related_to_local_activity?
-    fetch? || followed_by_local_accounts? || requested_through_relay? ||
+    fetch? || followed_by_local_accounts? || through_relay? ||
       responds_to_followed_account? || addresses_local_accounts? || quote_local? || free_friend_domain?
   end
 

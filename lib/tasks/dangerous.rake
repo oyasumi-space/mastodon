@@ -14,6 +14,7 @@ namespace :dangerous do
     end
 
     target_migrations = %w(
+      20250905105303
       20250216231904
       20250216231806
       20250130232529
@@ -167,6 +168,7 @@ namespace :dangerous do
       %w(domain_blocks reject_friend),
       %w(domain_blocks reject_hashtag),
       %w(domain_blocks reject_new_follow),
+      %w(domain_blocks reject_relay),
       # Removed: domain_blocks reject_reply
       %w(domain_blocks reject_reply_exclude_followers),
       # Removed: domain_blocks reject_send_dissubscribable
@@ -192,7 +194,6 @@ namespace :dangerous do
     ]
     target_indices = %w(
       index_statuses_on_url
-      index_statuses_on_conversation_id
       index_preview_cards_vacuum
       index_media_attachments_vacuum
     )

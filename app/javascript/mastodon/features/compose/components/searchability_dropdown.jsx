@@ -17,7 +17,7 @@ import { Icon }  from 'mastodon/components/icon';
 import { enabledVisibilites } from 'mastodon/initial_state';
 
 
-const messages = defineMessages({
+export const messages = defineMessages({
   public_short: { id: 'searchability.public.short', defaultMessage: 'Public' },
   public_long: { id: 'searchability.public.long', defaultMessage: 'Anyone can find' },
   public_unlisted_short: { id: 'searchability.public_unlisted.short', defaultMessage: 'Local public' },

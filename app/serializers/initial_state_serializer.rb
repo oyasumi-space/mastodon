@@ -7,7 +7,7 @@ class InitialStateSerializer < ActiveModel::Serializer
 
   attributes :meta, :compose, :accounts,
              :media_attachments, :settings,
-             :languages
+             :languages, :features
 
   attribute :critical_updates_pending, if: -> { object&.role&.can?(:view_devops) && SoftwareUpdate.check_enabled? }
 
@@ -36,7 +36,6 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:show_trends]       = Setting.trends && object_account_user.setting_trends
       store[:bookmark_category_needed] = object_account_user.setting_bookmark_category_needed
       store[:simple_timeline_menu] = object_account_user.setting_simple_timeline_menu
-      store[:boost_menu] = object_account_user.setting_boost_menu
       store[:community_timeline_instead_of_search_menu] = object_account_user.setting_community_timeline_instead_of_search_menu
       store[:hide_items] = [
         object_account_user.setting_hide_favourite_menu ? 'favourite_menu' : nil,
@@ -50,6 +49,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       ].compact
       store[:enabled_visibilities] = enabled_visibilities
       store[:featured_tags] = object.current_account.featured_tags.pluck(:name)
+      store[:emoji_style] = object_account_user.settings['web.emoji_style'] if Mastodon::Feature.modern_emojis_enabled?
     else
       store[:auto_play_gif] = Setting.auto_play_gif
       store[:display_media] = Setting.display_media
@@ -79,6 +79,7 @@ class InitialStateSerializer < ActiveModel::Serializer
       store[:default_searchability] = object.searchability || object_account_user.setting_default_searchability
       store[:default_sensitive]     = object_account_user.setting_default_sensitive
       store[:default_language]      = object_account_user.preferred_posting_language
+      store[:default_quote_policy]  = object_account_user.setting_default_quote_policy
     end
 
     store[:text] = object.text if object.text
@@ -116,6 +117,10 @@ class InitialStateSerializer < ActiveModel::Serializer
     vs -= %w(public_unlisted) unless Setting.enable_public_unlisted_visibility
     vs -= %w(public) unless Setting.enable_public_visibility
     vs
+  end
+
+  def features
+    Mastodon::Feature.enabled_features
   end
 
   private
