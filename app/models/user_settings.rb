@@ -68,6 +68,7 @@ class UserSettings
     setting :enable_emoji_reaction, default: true
     setting :show_emoji_reaction_on_timeline, default: true
     setting :reblog_modal, default: false
+    setting :quick_boosting, default: false
     setting :missing_alt_text_modal, default: true
     setting :reduce_motion, default: false
     setting :expand_content_warnings, default: false

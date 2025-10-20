@@ -59,9 +59,11 @@ en:
         person: This is normal account
         phrase: Will be matched regardless of casing in text or content warning of a post
         scopes: Which APIs the application will be allowed to access. If you select a top-level scope, you don't need to select individual ones.
+        setting_advanced_layout: Display Mastodon as a multi-column layout, allowing you to view the timeline, notifications, and a third column of your choosing. Not recommended for smaller screens.
         setting_aggregate_reblogs: Do not show new boosts for posts that have been recently boosted (only affects newly-received boosts)
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
+        setting_boost_modal: When enabled, boosting will first open a confirmation dialog in which you can change the visibility of your boost.
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
         setting_default_quote_policy: This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation.
         setting_default_quote_policy_private: Followers-only posts authored on Mastodon can't be quoted by others.
@@ -81,6 +83,7 @@ en:
         setting_enabled_visibilities: If turn off, you cannot select and post the privacy.
         setting_hide_network: フォローとフォロワーの情報がプロフィールページで見られないようにします
         setting_public_post_to_unlisted: 未対応のサードパーティアプリからもローカル公開で投稿できますが、公開投稿はWeb以外できなくなります
+        setting_quick_boosting_html: When enabled, clicking on the %{boost_icon} Boost icon will immediately boost instead of opening the boost/quote dropdown menu. Relocates the quoting action to the %{options_icon} (Options) menu.
         setting_reject_send_limited_to_suspects: This applies to "Mutual Only" posts. Circle posts will be delivered without exception. Some Misskey servers have independently supported limited posting, but this is a setting for those who are concerned about it, as mutual-only posting exposes some of the users you are mutual with to Misskey users!
         setting_reject_unlisted_subscription: Misskey and its forks can **subscribe and search** for "non-following" posts from accounts they do not follow. This differs from kmyblue's behavior. It delivers posts in the specified public range to such servers as "followers only". Please understand, however, that due to its structure, it is difficult to handle perfectly and will occasionally be delivered as non-subscribed.
         setting_reverse_search_quote: Double-quotes will result in a search with a wider range of notation, which is the opposite of Mastodon's default behavior.
@@ -283,7 +286,7 @@ en:
         setting_auto_play_gif: Auto-play animated GIFs
         setting_bio_markdown: Enable profile markdown
         setting_bookmark_category_needed: Category selection needed when registering bookmark on web
-        setting_boost_modal: Show confirmation dialog before boosting
+        setting_boost_modal: Control boosting visibility
         setting_community_timeline_instead_of_search_menu: Show local timeline on phone navigation instead of search
         setting_content_font_size: Font size of posts
         setting_content_font_size_items:
@@ -299,7 +302,7 @@ en:
         setting_default_searchability: Searchability of your own post
         setting_default_searchability_of_search: Your search setting
         setting_default_sensitive: Always mark media as sensitive
-        setting_delete_modal: Show confirmation dialog before deleting a post
+        setting_delete_modal: Warn me before deleting a post
         setting_disable_hover_cards: Disable profile preview on hover
         setting_disable_swiping: Disable swiping motions
         setting_disallow_unlisted_public_searchability: Disallow everyone or local searchability when unlisted visibility
@@ -327,8 +330,9 @@ en:
         setting_hide_network: Hide your social graph
         setting_hide_status_reference_unavailable_server: Hide link (reference named by Fedibird) menu from unavailable server
         setting_lock_follow_from_bot: Request approval about bot follow
-        setting_missing_alt_text_modal: Show confirmation dialog before posting media without alt text
+        setting_missing_alt_text_modal: Warn me before posting media without alt text
         setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
+        setting_quick_boosting: Enable quick boosting
         setting_reduce_motion: Reduce motion in animations
         setting_reject_public_unlisted_subscription: Reject sending public unlisted visibility/non-public searchability posts to Misskey, Calckey
         setting_reject_send_limited_to_suspects: Reject sending mutual posts to Misskey
