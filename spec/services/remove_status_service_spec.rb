@@ -208,7 +208,7 @@ RSpec.describe RemoveStatusService, :inline_jobs do
 
     it 'sends deletion without crashing' do
       expect { subject.call(status.reload) }
-        .to enqueue_sidekiq_job(ActivityPub::DeliveryWorker).with(/Delete/, jeff.id, bill.inbox_url)
+        .to enqueue_sidekiq_job(ActivityPub::DeliveryWorker).with(/Delete/, jeff.id, bill.shared_inbox_url)
     end
   end
 end

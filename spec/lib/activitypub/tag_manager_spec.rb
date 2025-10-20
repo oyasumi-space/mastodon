@@ -452,7 +452,7 @@ RSpec.describe ActivityPub::TagManager do
     end
 
     it 'returns followers collection for public_unlisted status' do
-      status = Fabricate(:status, visibility: :public_unlisted)
+      status = Fabricate(:status, visibility: :public_unlisted, account: Fabricate(:account, id_scheme: :username_ap_id))
       expect(subject.to(status)).to eq [account_followers_url(status.account)]
     end
 
@@ -518,18 +518,20 @@ RSpec.describe ActivityPub::TagManager do
   end
 
   describe '#to_for_friend' do
+    let(:account) { Fabricate(:account, id_scheme: :username_ap_id) }
+
     it 'returns followers collection for public_unlisted status' do
-      status = Fabricate(:status, visibility: :public_unlisted)
+      status = Fabricate(:status, visibility: :public_unlisted, account: account)
       expect(subject.to_for_friend(status)).to eq [account_followers_url(status.account), 'kmyblue:LocalPublic']
     end
 
     it 'returns followers collection for unlisted status' do
-      status = Fabricate(:status, visibility: :unlisted)
+      status = Fabricate(:status, visibility: :unlisted, account: account)
       expect(subject.to_for_friend(status)).to eq [account_followers_url(status.account)]
     end
 
     it 'returns followers collection for private status' do
-      status = Fabricate(:status, visibility: :private)
+      status = Fabricate(:status, visibility: :private, account: account)
       expect(subject.to_for_friend(status)).to eq [account_followers_url(status.account)]
     end
   end
@@ -607,7 +609,8 @@ RSpec.describe ActivityPub::TagManager do
   end
 
   describe '#cc_for_misskey' do
-    let(:user) { Fabricate(:user) }
+    let(:account) { Fabricate(:account, id_scheme: :username_ap_id) }
+    let(:user) { Fabricate(:user, account: account) }
 
     before do
       user.settings.update(reject_unlisted_subscription: true, reject_public_unlisted_subscription: true)
