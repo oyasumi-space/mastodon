@@ -1438,10 +1438,7 @@ ja:
       over_stl_limit: 所持できるSTLモード付きアンテナ数 (ホーム/リストそれぞれにつき%{limit}) を超えています
       too_short_keyword: キーワードが短すぎます
   appearance:
-    advanced_web_interface: 上級者向けUI
-    advanced_web_interface_hint: ディスプレイを幅いっぱいまで活用したい場合、上級者向け UI をおすすめします。ホーム、通知、連合タイムライン、更にはリストやハッシュタグなど、様々な異なるカラムから望む限りの情報を一度に受け取れるような設定が可能になります。
     animations_and_accessibility: アニメーションとアクセシビリティー
-    confirmation_dialogs: 確認ダイアログ
     custom_emoji_and_emoji_reactions: カスタム絵文字と絵文字リアクション
     discovery: 見つける
     localization:
