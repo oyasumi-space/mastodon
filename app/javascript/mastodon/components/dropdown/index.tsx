@@ -7,6 +7,7 @@ import type { MessageDescriptor } from 'react-intl';
 import classNames from 'classnames';
 
 import Overlay from 'react-overlays/Overlay';
+import type { Placement } from 'react-overlays/esm/usePopper';
 
 import UnfoldMoreIcon from '@/material-icons/400-24px/unfold_more.svg?react';
 
@@ -25,6 +26,8 @@ interface DropdownProps {
   descriptionId?: string;
   emptyText?: MessageDescriptor;
   classPrefix: string;
+  placement?: Placement;
+  target?: React.RefObject<HTMLElement>;
 }
 
 export const Dropdown: FC<
@@ -39,6 +42,8 @@ export const Dropdown: FC<
   classPrefix,
   className,
   id,
+  placement,
+  target,
   ...buttonProps
 }) => {
   const intl = useIntl();
@@ -106,10 +111,10 @@ export const Dropdown: FC<
       <Overlay
         show={open}
         offset={[0, 0]}
-        placement='bottom-start'
+        placement={placement ?? 'bottom-start'}
         onHide={handleClose}
         flip
-        target={buttonRef.current}
+        target={target?.current ?? buttonRef.current}
         popperConfig={{
           strategy: 'fixed',
           modifiers: [matchWidth],

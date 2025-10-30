@@ -49,7 +49,6 @@ import { ShortNumber } from 'mastodon/components/short_number';
 import { AccountNote } from 'mastodon/features/account/components/account_note';
 import { DomainPill } from 'mastodon/features/account/components/domain_pill';
 import FollowRequestNoteContainer from 'mastodon/features/account/containers/follow_request_note_container';
-import { useLinks } from 'mastodon/hooks/useLinks';
 import { useIdentity } from 'mastodon/identity_context';
 import {
   autoPlayGif,
@@ -216,7 +215,6 @@ export const AccountHeader: React.FC<{
     state.relationships.get(accountId),
   );
   const hidden = useAppSelector((state) => getAccountHidden(state, accountId));
-  const handleLinkClick = useLinks();
 
   const isHideRelationships = isHideItem('relationships');
 
@@ -939,10 +937,7 @@ export const AccountHeader: React.FC<{
 
           {!(suspended || hidden) && (
             <div className='account__header__extra'>
-              <div
-                className='account__header__bio'
-                onClickCapture={handleLinkClick}
-              >
+              <div className='account__header__bio'>
                 {account.id !== me && signedIn && (
                   <AccountNote accountId={accountId} />
                 )}

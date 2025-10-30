@@ -1,6 +1,5 @@
 import Trie from 'substring-trie';
 
-import { isModernEmojiEnabled } from '@/mastodon/utils/environment';
 import { assetHost } from 'mastodon/utils/config';
 
 import { autoPlayGif } from '../../initial_state';
@@ -86,6 +85,9 @@ const emojifyTextNode = (node, customEmojis) => {
       replacement.setAttribute('src', filename);
       replacement.setAttribute('data-original', custom_emoji.url);
       replacement.setAttribute('data-static', custom_emoji.static_url);
+      if (custom_emoji.width && custom_emoji.height) {
+        replacement.style.aspectRatio = `${custom_emoji.width} / ${custom_emoji.height}`;
+      }
     } else { // start of an unicode emoji
       rend = i + unicode_emoji.length;
 
@@ -153,13 +155,9 @@ const emojifyNode = (node, customEmojis) => {
  * Legacy emoji processing function.
  * @param {string} str
  * @param {object} customEmojis
- * @param {boolean} force If true, always emojify even if modern emoji is enabled
  * @returns {string}
  */
-const emojify = (str, customEmojis = {}, force = false) => {
-  if (isModernEmojiEnabled() && !force) {
-    return str;
-  }
+const emojify = (str, customEmojis = {}) => {
   const wrapper = document.createElement('div');
   wrapper.innerHTML = str;
 

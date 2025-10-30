@@ -108,7 +108,9 @@ const ReactionEmoji: React.FC<{
   }
 
   if (overlay) {
-    return <div>{content}</div>;
+    return (
+      <div className='reaction_deck_container__row__overlay'>{content}</div>
+    );
   }
 
   return (

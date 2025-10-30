@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 class ActivityPub::Activity::Create < ActivityPub::Activity
-  include FormattingHelper
   include NgRuleHelper
-
-  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
 
   def perform
     @account.schedule_refresh_if_stale!
@@ -116,9 +113,9 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       uri: @status_parser.uri,
       url: @status_parser.url || @status_parser.uri,
       account: @account,
-      text: converted_object_type? ? converted_text : (@status_parser.text || ''),
+      text: @status_parser.processed_text,
       language: @status_parser.language,
-      spoiler_text: converted_object_type? ? '' : (@status_parser.spoiler_text || ''),
+      spoiler_text: @status_parser.processed_spoiler_text,
       created_at: @status_parser.created_at,
       edited_at: @status_parser.edited_at && @status_parser.edited_at != @status_parser.created_at ? @status_parser.edited_at : nil,
       override_timestamps: @options[:override_timestamps],
@@ -527,18 +524,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def in_reply_to_uri
     value_or_id(@object['inReplyTo'])
-  end
-
-  def converted_text
-    [formatted_title, @status_parser.spoiler_text.presence, formatted_url].compact.join("\n\n")
-  end
-
-  def formatted_title
-    "<h2>#{@status_parser.title}</h2>" if @status_parser.title.present?
-  end
-
-  def formatted_url
-    linkify(@status_parser.url || @status_parser.uri)
   end
 
   def unsupported_media_type?(mime_type)

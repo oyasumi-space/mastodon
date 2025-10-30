@@ -49,6 +49,7 @@ import {
   me,
 } from 'mastodon/initial_state';
 import { transientSingleColumn } from 'mastodon/is_mobile';
+import { canViewFeed } from 'mastodon/permissions';
 import { selectUnreadNotificationGroupsCount } from 'mastodon/selectors/notifications';
 import { useAppSelector, useAppDispatch } from 'mastodon/store';
 
@@ -68,6 +69,10 @@ const messages = defineMessages({
   },
   explore: { id: 'explore.title', defaultMessage: 'Trending' },
   firehose: { id: 'column.firehose', defaultMessage: 'Live feeds' },
+  firehose_singular: {
+    id: 'column.firehose_singular',
+    defaultMessage: 'Live feed',
+  },
   direct: { id: 'navigation_bar.direct', defaultMessage: 'Private mentions' },
   favourites: { id: 'navigation_bar.favourites', defaultMessage: 'Favorites' },
   bookmarks: { id: 'navigation_bar.bookmarks', defaultMessage: 'Bookmarks' },
@@ -207,7 +212,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
   multiColumn = false,
 }) => {
   const intl = useIntl();
-  const { signedIn, disabledAccountId } = useIdentity();
+  const { signedIn, permissions, disabledAccountId } = useIdentity();
   const location = useLocation();
   const showSearch = useBreakpoint('full') && !multiColumn;
 
@@ -279,16 +284,18 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
           />
         )}
 
-        {signedIn && enableLocalTimeline && (
-          <ColumnLink
-            transparent
-            to='/public/local/fixed'
-            icon='users'
-            iconComponent={PeopleIcon}
-            activeIconComponent={PeopleIcon}
-            text={intl.formatMessage(messages.local)}
-          />
-        )}
+        {signedIn &&
+          enableLocalTimeline &&
+          localLiveFeedAccess !== 'disabled' && (
+            <ColumnLink
+              transparent
+              to='/public/local/fixed'
+              icon='users'
+              iconComponent={PeopleIcon}
+              activeIconComponent={PeopleIcon}
+              text={intl.formatMessage(messages.local)}
+            />
+          )}
 
         {signedIn && enableDtlMenu && (
           <ColumnLink
@@ -301,22 +308,25 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
           />
         )}
 
-        {(signedIn ||
-          localLiveFeedAccess === 'public' ||
-          remoteLiveFeedAccess === 'public') && (
+        {(canViewFeed(signedIn, permissions, localLiveFeedAccess) ||
+          canViewFeed(signedIn, permissions, remoteLiveFeedAccess)) && (
           <ColumnLink
             transparent
             to={
-              signedIn ||
-              !enableLocalTimeline ||
-              localLiveFeedAccess !== 'public'
-                ? '/public/remote'
-                : '/public/local'
+              canViewFeed(signedIn, permissions, localLiveFeedAccess) &&
+              enableLocalTimeline
+                ? '/public/local'
+                : '/public/remote'
             }
             icon='globe'
             iconComponent={PublicIcon}
             isActive={isFirehoseActive}
-            text={intl.formatMessage(messages.firehose)}
+            text={intl.formatMessage(
+              canViewFeed(signedIn, permissions, localLiveFeedAccess) &&
+                canViewFeed(signedIn, permissions, remoteLiveFeedAccess)
+                ? messages.firehose
+                : messages.firehose_singular,
+            )}
           />
         )}
 

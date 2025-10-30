@@ -20,6 +20,7 @@ class PublicFeed
   # @return [Array<Status>]
   def get(limit, max_id = nil, since_id = nil, min_id = nil)
     return [] if local_only? && !Setting.enable_local_timeline
+    return [] if incompatible_feed_settings?
 
     scope = public_scope
 
@@ -40,6 +41,21 @@ class PublicFeed
 
   attr_reader :account, :options
 
+  def incompatible_feed_settings?
+    (local_only? && !user_has_access_to_feed?(local_feed_setting)) || (remote_only? && !user_has_access_to_feed?(remote_feed_setting))
+  end
+
+  def user_has_access_to_feed?(setting)
+    case setting
+    when 'public'
+      true
+    when 'authenticated'
+      @account&.user&.functional?
+    when 'disabled'
+      @account&.user&.can?(:view_feeds)
+    end
+  end
+
   def with_reblogs?
     options[:with_reblogs]
   end
@@ -48,12 +64,20 @@ class PublicFeed
     options[:with_replies]
   end
 
+  def local_feed_setting
+    Setting.local_live_feed_access
+  end
+
+  def remote_feed_setting
+    Setting.remote_live_feed_access
+  end
+
   def local_only?
-    options[:local] && !options[:remote]
+    (options[:local] && !options[:remote]) || !user_has_access_to_feed?(remote_feed_setting)
   end
 
   def remote_only?
-    options[:remote] && !options[:local] && Setting.enable_local_timeline
+    (options[:remote] && !options[:local] && Setting.enable_local_timeline) || !user_has_access_to_feed?(local_feed_setting)
   end
 
   def account?

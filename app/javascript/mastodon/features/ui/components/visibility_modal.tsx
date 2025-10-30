@@ -1,4 +1,11 @@
-import { forwardRef, useCallback, useId, useMemo, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { FC } from 'react';
 
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
@@ -21,6 +28,7 @@ import type { SelectItem } from '@/mastodon/components/dropdown_selector';
 import { IconButton } from '@/mastodon/components/icon_button';
 import { messages as privacyMessages } from '@/mastodon/features/compose/components/privacy_dropdown';
 import { enabledVisibilites } from '@/mastodon/initial_state';
+import { isUserTouching } from '@/mastodon/is_mobile';
 import { createAppSelector, useAppSelector } from '@/mastodon/store';
 import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
@@ -420,6 +428,8 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
     const circleLabelId = `${uniqueId}-circle-label`;
     const circleDescriptionId = `${uniqueId}-circle-desc`;
 
+    const saveRef = useRef<HTMLDivElement>(null);
+
     return (
       <div className='modal-root__modal dialog-modal visibility-modal'>
         <div className='dialog-modal__header'>
@@ -477,6 +487,8 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
                 descriptionId={visibilityDescriptionId}
                 classPrefix='visibility-dropdown'
                 disabled={disableVisibility}
+                placement={isUserTouching() ? 'top' : 'bottom-start'}
+                target={isUserTouching() ? saveRef : undefined}
               />
               {!!statusId && (
                 <p
@@ -570,6 +582,7 @@ export const VisibilityModal: FC<VisibilityModalProps> = forwardRef(
             </div>
 
             <div
+              ref={saveRef}
               className={classNames('visibility-dropdown', {
                 disabled: disableQuotePolicy,
               })}
