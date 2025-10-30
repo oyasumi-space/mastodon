@@ -668,7 +668,7 @@ const startServer = async () => {
 
   /**
    * @param {string} antennaId
-   * @param {any} req
+   * @param {Request} req
    * @returns {Promise.<void>}
    */
   const authorizeAntennaAccess = (antennaId, req) =>
