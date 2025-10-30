@@ -61,11 +61,16 @@ export const Emoji: FC<EmojiProps> = ({
 
   if (state.type === EMOJI_TYPE_CUSTOM) {
     const shortcode = `:${state.code}:`;
+    const style =
+      state.data.width && state.data.height
+        ? { aspectRatio: `${state.data.width} / ${state.data.height}` }
+        : {};
     return (
       <img
         src={animate ? state.data.url : state.data.static_url}
         alt={shortcode}
         title={shortcode}
+        style={style}
         className='emojione custom-emoji'
         loading='lazy'
       />

@@ -33,7 +33,7 @@ export type AnyEmojiData = CustomEmojiData | UnicodeEmojiData;
 
 type CustomEmojiRenderFields = Pick<
   CustomEmojiData,
-  'shortcode' | 'static_url' | 'url'
+  'shortcode' | 'static_url' | 'url' | 'width' | 'height'
 >;
 
 export interface EmojiStateUnicode {

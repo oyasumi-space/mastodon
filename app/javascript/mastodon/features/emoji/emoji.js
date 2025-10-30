@@ -85,6 +85,9 @@ const emojifyTextNode = (node, customEmojis) => {
       replacement.setAttribute('src', filename);
       replacement.setAttribute('data-original', custom_emoji.url);
       replacement.setAttribute('data-static', custom_emoji.static_url);
+      if (custom_emoji.width && custom_emoji.height) {
+        replacement.style.aspectRatio = `${custom_emoji.width} / ${custom_emoji.height}`;
+      }
     } else { // start of an unicode emoji
       rend = i + unicode_emoji.length;
 
