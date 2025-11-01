@@ -15,24 +15,24 @@ export interface IAnnouncement extends ApiAnnouncementJSON {
 
 interface AnnouncementProps {
   announcement: IAnnouncement;
-  active?: boolean;
+  selected: boolean;
 }
 
 export const Announcement: FC<AnnouncementProps> = ({
   announcement,
-  active,
+  selected,
 }) => {
   const [unread, setUnread] = useState(!announcement.read);
   useEffect(() => {
     // Only update `unread` marker once the announcement is out of view
-    if (!active && unread !== !announcement.read) {
+    if (!selected && unread !== !announcement.read) {
       setUnread(!announcement.read);
     }
-  }, [announcement.read, active, unread]);
+  }, [announcement.read, selected, unread]);
 
   return (
-    <AnimateEmojiProvider>
-      <strong className='announcements__range'>
+    <AnimateEmojiProvider className='announcements__item'>
+      <strong className='announcements__item__range'>
         <FormattedMessage
           id='announcement.announcement'
           defaultMessage='Announcement'
@@ -44,14 +44,14 @@ export const Announcement: FC<AnnouncementProps> = ({
       </strong>
 
       <EmojiHTML
-        className='announcements__content translate'
+        className='announcements__item__content translate'
         htmlString={announcement.contentHtml}
         extraEmojis={announcement.emojis}
       />
 
       <ReactionsBar reactions={announcement.reactions} id={announcement.id} />
 
-      {unread && <span className='announcements__unread' />}
+      {unread && <span className='announcements__item__unread' />}
     </AnimateEmojiProvider>
   );
 };
