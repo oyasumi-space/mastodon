@@ -17,8 +17,8 @@ module Mastodon
     end
 
     def kmyblue_flag
-      # 'LTS'
-      'dev'
+      'lts'
+      # 'dev'
       # nil
     end
 
