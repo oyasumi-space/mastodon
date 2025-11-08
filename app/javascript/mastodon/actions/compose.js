@@ -5,6 +5,7 @@ import { throttle } from 'lodash';
 
 import api from 'mastodon/api';
 import { browserHistory } from 'mastodon/components/router';
+import { countableText } from 'mastodon/features/compose/util/counter';
 import { search as emojiSearch } from 'mastodon/features/emoji/emoji_mart_search_light';
 import { tagHistory } from 'mastodon/settings';
 
@@ -57,9 +58,6 @@ export const COMPOSE_UNMOUNT = 'COMPOSE_UNMOUNT';
 export const COMPOSE_SENSITIVITY_CHANGE  = 'COMPOSE_SENSITIVITY_CHANGE';
 export const COMPOSE_SPOILERNESS_CHANGE  = 'COMPOSE_SPOILERNESS_CHANGE';
 export const COMPOSE_SPOILER_TEXT_CHANGE = 'COMPOSE_SPOILER_TEXT_CHANGE';
-export const COMPOSE_MARKDOWN_CHANGE     = 'COMPOSE_MARKDOWN_CHANGE';
-export const COMPOSE_VISIBILITY_CHANGE   = 'COMPOSE_VISIBILITY_CHANGE';
-export const COMPOSE_SEARCHABILITY_CHANGE= 'COMPOSE_SEARCHABILITY_CHANGE';
 export const COMPOSE_COMPOSING_CHANGE    = 'COMPOSE_COMPOSING_CHANGE';
 export const COMPOSE_LANGUAGE_CHANGE     = 'COMPOSE_LANGUAGE_CHANGE';
 
@@ -79,8 +77,6 @@ export const COMPOSE_POLL_OPTION_CHANGE   = 'COMPOSE_POLL_OPTION_CHANGE';
 export const COMPOSE_POLL_OPTION_REMOVE   = 'COMPOSE_POLL_OPTION_REMOVE';
 export const COMPOSE_POLL_SETTINGS_CHANGE = 'COMPOSE_POLL_SETTINGS_CHANGE';
 
-export const COMPOSE_CIRCLE_CHANGE = 'COMPOSE_CIRCLE_CHANGE';
-
 export const INIT_MEDIA_EDIT_MODAL = 'INIT_MEDIA_EDIT_MODAL';
 
 export const COMPOSE_CHANGE_MEDIA_DESCRIPTION = 'COMPOSE_CHANGE_MEDIA_DESCRIPTION';
@@ -97,6 +93,7 @@ const messages = defineMessages({
   open: { id: 'compose.published.open', defaultMessage: 'Open' },
   published: { id: 'compose.published.body', defaultMessage: 'Post published.' },
   saved: { id: 'compose.saved.body', defaultMessage: 'Post saved.' },
+  blankPostError: { id: 'compose.error.blank_post', defaultMessage: 'Post can\'t be blank.' },
 });
 
 export const ensureComposeIsVisible = (getState) => {
@@ -208,7 +205,15 @@ export function submitCompose(successCallback) {
     const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);
     const spoiler_text = getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '';
 
-    if (!(status?.length || media.size !== 0 || (hasQuote && spoiler_text?.length))) {
+    const fulltext = `${spoiler_text ?? ''}${countableText(status ?? '')}`;
+    const hasText = fulltext.trim().length > 0;
+
+    if (!(hasText || media.size !== 0 || (hasQuote && spoiler_text?.length))) {
+      dispatch(showAlert({
+        message: messages.blankPostError,
+      }));
+      dispatch(focusCompose());
+
       return;
     }
 
@@ -811,26 +816,6 @@ export function changeComposeSpoilerText(text) {
   };
 }
 
-export function changeComposeMarkdown() {
-  return {
-    type: COMPOSE_MARKDOWN_CHANGE,
-  };
-}
-
-export function changeComposeVisibility(value) {
-  return {
-    type: COMPOSE_VISIBILITY_CHANGE,
-    value,
-  };
-}
-
-export function changeComposeSearchability(value) {
-  return {
-    type: COMPOSE_SEARCHABILITY_CHANGE,
-    value,
-  };
-}
-
 export function insertEmojiCompose(position, emoji, needsSpace) {
   return {
     type: COMPOSE_EMOJI_INSERT,
@@ -924,10 +909,3 @@ export const changeMediaOrder = (a, b) => ({
   a,
   b,
 });
-
-export function changeCircle(circleId) {
-  return {
-    type: COMPOSE_CIRCLE_CHANGE,
-    circleId,
-  };
-}

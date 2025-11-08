@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
 import type { FC } from 'react';
+import { useEffect, useState } from 'react';
 
 import { FormattedDate, FormattedMessage } from 'react-intl';
 
+import { dismissAnnouncement } from '@/mastodon/actions/announcements';
 import type { ApiAnnouncementJSON } from '@/mastodon/api_types/announcements';
 import { AnimateEmojiProvider } from '@/mastodon/components/emoji/context';
 import { EmojiHTML } from '@/mastodon/components/emoji/html';
+import { useAppDispatch } from '@/mastodon/store';
 
 import { ReactionsBar } from './reactions';
 
@@ -15,24 +17,34 @@ export interface IAnnouncement extends ApiAnnouncementJSON {
 
 interface AnnouncementProps {
   announcement: IAnnouncement;
-  active?: boolean;
+  selected: boolean;
 }
 
 export const Announcement: FC<AnnouncementProps> = ({
   announcement,
-  active,
+  selected,
 }) => {
-  const [unread, setUnread] = useState(!announcement.read);
+  const { read, id } = announcement;
+
+  // Dismiss announcement when it becomes active.
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    // Only update `unread` marker once the announcement is out of view
-    if (!active && unread !== !announcement.read) {
-      setUnread(!announcement.read);
+    if (selected && !read) {
+      dispatch(dismissAnnouncement(id));
     }
-  }, [announcement.read, active, unread]);
+  }, [selected, id, dispatch, read]);
+
+  // But visually show the announcement as read only when it goes out of view.
+  const [unread, setUnread] = useState(!read);
+  useEffect(() => {
+    if (!selected && unread !== !read) {
+      setUnread(!read);
+    }
+  }, [selected, unread, read]);
 
   return (
-    <AnimateEmojiProvider>
-      <strong className='announcements__range'>
+    <AnimateEmojiProvider className='announcements__item'>
+      <strong className='announcements__item__range'>
         <FormattedMessage
           id='announcement.announcement'
           defaultMessage='Announcement'
@@ -44,14 +56,14 @@ export const Announcement: FC<AnnouncementProps> = ({
       </strong>
 
       <EmojiHTML
-        className='announcements__content translate'
+        className='announcements__item__content translate'
         htmlString={announcement.contentHtml}
         extraEmojis={announcement.emojis}
       />
 
       <ReactionsBar reactions={announcement.reactions} id={announcement.id} />
 
-      {unread && <span className='announcements__unread' />}
+      {unread && <span className='announcements__item__unread' />}
     </AnimateEmojiProvider>
   );
 };
