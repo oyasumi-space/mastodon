@@ -50,15 +50,15 @@ export function importFetchedStatus(status, options = {}) {
   return importFetchedStatuses([status], options);
 }
 
-export function importFetchedStatuses(statuses) {
+export function importFetchedStatuses(statuses, options = {}) {
   return (dispatch, getState) => {
     const accounts = [];
     const normalStatuses = [];
     const polls = [];
     const filters = [];
 
-    function processStatus(status, options = undefined) {
-      pushUnique(normalStatuses, normalizeStatus(status, getState().getIn(['statuses', status.id]), options));
+    function processStatus(status, processOptions = {}) {
+      pushUnique(normalStatuses, normalizeStatus(status, getState().getIn(['statuses', status.id]), { ...options, ...processOptions }));
       pushUnique(accounts, status.account);
 
       if (status.filtered) {
