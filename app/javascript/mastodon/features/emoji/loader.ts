@@ -1,7 +1,5 @@
 import { flattenEmojiData } from 'emojibase';
-import type { CompactEmoji, FlatCompactEmoji } from 'emojibase';
-
-import type { ApiCustomEmojiJSON } from '@/mastodon/api_types/custom_emoji';
+import type { CompactEmoji, FlatCompactEmoji, Locale } from 'emojibase';
 
 import {
   putEmojiData,
@@ -10,7 +8,7 @@ import {
   putLatestEtag,
 } from './database';
 import { toSupportedLocale, toSupportedLocaleOrCustom } from './locale';
-import type { LocaleOrCustom } from './types';
+import type { CustomEmojiData, LocaleOrCustom } from './types';
 import { emojiLogger } from './utils';
 
 const log = emojiLogger('loader');
@@ -27,7 +25,7 @@ export async function importEmojiData(localeString: string) {
 }
 
 export async function importCustomEmojiData() {
-  const emojis = await fetchAndCheckEtag<ApiCustomEmojiJSON[]>('custom');
+  const emojis = await fetchAndCheckEtag<CustomEmojiData[]>('custom');
   if (!emojis) {
     return;
   }
@@ -45,9 +43,8 @@ async function fetchAndCheckEtag<ResultType extends object[]>(
   if (locale === 'custom') {
     url.pathname = '/api/v1/custom_emojis';
   } else {
-    // This doesn't use isDevelopment() as that module loads initial state
-    // which breaks workers, as they cannot access the DOM.
-    url.pathname = `/packs${import.meta.env.DEV ? '-dev' : ''}/emoji/${locale}.json`;
+    const modulePath = await localeToPath(locale);
+    url.pathname = modulePath;
   }
 
   const oldEtag = await loadLatestEtag(locale);
@@ -81,4 +78,20 @@ async function fetchAndCheckEtag<ResultType extends object[]>(
   }
 
   return data;
+}
+
+const modules = import.meta.glob<string>(
+  '../../../../../node_modules/emojibase-data/**/compact.json',
+  {
+    query: '?url',
+    import: 'default',
+  },
+);
+
+function localeToPath(locale: Locale) {
+  const key = `../../../../../node_modules/emojibase-data/${locale}/compact.json`;
+  if (!modules[key] || typeof modules[key] !== 'function') {
+    throw new Error(`Unsupported locale: ${locale}`);
+  }
+  return modules[key]();
 }

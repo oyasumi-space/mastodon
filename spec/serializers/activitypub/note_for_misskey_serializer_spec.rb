@@ -45,7 +45,7 @@ RSpec.describe ActivityPub::NoteForMisskeySerializer do
 
   it 'has private visibility' do
     expect(subject['to']).to_not include('https://www.w3.org/ns/activitystreams#Public')
-    expect(subject['to'].any? { |to| to.end_with?("#{account.username}/followers") }).to be true
+    expect(subject['to'].any? { |to| to.end_with?("#{account.id}/followers") }).to be true
     expect(subject['cc']).to_not include('https://www.w3.org/ns/activitystreams#Public')
   end
 end

@@ -998,7 +998,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/conversation',
+            groupContext: 'http://example.com/conversation',
           }
         end
 
@@ -1035,7 +1035,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: 'http://example.com/invalid-conversation',
+            groupContext: 'http://example.com/invalid-conversation',
           }
         end
 
@@ -1057,7 +1057,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: "https://cb6e6126.ngrok.io/contexts/#{existing.id}",
+            groupContext: "https://cb6e6126.ngrok.io/group_contexts/#{existing.id}",
           }
         end
 
@@ -1100,7 +1100,7 @@ RSpec.describe ActivityPub::Activity::Create do
             id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
             type: 'Note',
             content: 'Lorem ipsum',
-            context: ActivityPub::TagManager.instance.uri_for(conversation),
+            groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
             inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
           }
         end
@@ -1142,7 +1142,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {
@@ -1197,7 +1197,7 @@ RSpec.describe ActivityPub::Activity::Create do
               id: [ActivityPub::TagManager.instance.uri_for(sender), '#bar'].join,
               type: 'Note',
               content: 'Lorem ipsum',
-              context: ActivityPub::TagManager.instance.uri_for(conversation),
+              groupContext: ActivityPub::TagManager.instance.uri_for(conversation, group: true),
               inReplyTo: ActivityPub::TagManager.instance.uri_for(original_status),
               tag: [
                 {
@@ -1709,6 +1709,30 @@ RSpec.describe ActivityPub::Activity::Create do
         end
       end
 
+      context 'with an unverifiable quote of a dead post' do
+        let(:quoted_status) { Fabricate(:status) }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            quote: { type: 'Tombstone' }
+          )
+        end
+
+        it 'creates a status with an unverified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote).to have_attributes(
+            state: 'deleted',
+            approval_uri: nil
+          )
+        end
+      end
+
       context 'with a legacy quote from other kmyblue server' do
         let(:quoted_status) { Fabricate(:status, account: Fabricate(:account, domain: 'example.com')) }
         let(:sender_software) { 'misskey' }
@@ -1852,6 +1876,60 @@ RSpec.describe ActivityPub::Activity::Create do
           status = sender.statuses.first
           expect(status).to_not be_nil
           expect(status.quote_approval_policy).to eq 131_072
+        end
+      end
+
+      context 'with a quote of a known reblog that is otherwise valid' do
+        let(:quoted_account) { Fabricate(:account, domain: 'quoted.example.com') }
+        let(:quoted_status) { Fabricate(:status, account: quoted_account, reblog: Fabricate(:status)) }
+        let(:approval_uri) { 'https://quoted.example.com/quote-approval' }
+
+        let(:object_json) do
+          build_object(
+            type: 'Note',
+            content: 'woah what she said is amazing',
+            quote: ActivityPub::TagManager.instance.uri_for(quoted_status),
+            quoteAuthorization: approval_uri
+          )
+        end
+
+        before do
+          stub_request(:get, approval_uri).to_return(headers: { 'Content-Type': 'application/activity+json' }, body: Oj.dump({
+            '@context': [
+              'https://www.w3.org/ns/activitystreams',
+              {
+                QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
+                gts: 'https://gotosocial.org/ns#',
+                interactionPolicy: {
+                  '@id': 'gts:interactionPolicy',
+                  '@type': '@id',
+                },
+                interactingObject: {
+                  '@id': 'gts:interactingObject',
+                  '@type': '@id',
+                },
+                interactionTarget: {
+                  '@id': 'gts:interactionTarget',
+                  '@type': '@id',
+                },
+              },
+            ],
+            type: 'QuoteAuthorization',
+            id: approval_uri,
+            attributedTo: ActivityPub::TagManager.instance.uri_for(quoted_status.account),
+            interactingObject: object_json[:id],
+            interactionTarget: ActivityPub::TagManager.instance.uri_for(quoted_status),
+          }))
+        end
+
+        it 'creates a status without the verified quote' do
+          expect { subject.perform }.to change(sender.statuses, :count).by(1)
+
+          status = sender.statuses.first
+          expect(status).to_not be_nil
+          expect(status.quote).to_not be_nil
+          expect(status.quote.state).to_not eq 'accepted'
+          expect(status.quote.quoted_status).to be_nil
         end
       end
 

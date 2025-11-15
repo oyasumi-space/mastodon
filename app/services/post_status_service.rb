@@ -73,7 +73,7 @@ class PostStatusService < BaseService
 
   def preprocess_attributes!
     @sensitive    = (@options[:sensitive].nil? ? @account.user&.setting_default_sensitive : @options[:sensitive]) || @options[:spoiler_text].present?
-    @text         = @options.delete(:spoiler_text) if @text.blank? && @options[:spoiler_text].present?
+    @text         = @options.delete(:spoiler_text) if @text.blank? && @options[:spoiler_text].present? && @quoted_status.blank?
     @visibility   = visibility
     @limited_scope = @options[:visibility]&.to_sym if @visibility == :limited && @options[:visibility] != 'limited'
     @searchability = searchability
@@ -103,7 +103,7 @@ class PostStatusService < BaseService
     v = :unlisted if %i(public public_unlisted login).include?(v) && @account.silenced?
     v = :public_unlisted if v == :public && !@options[:force_visibility] && !@options[:application]&.superapp && @account.user&.setting_public_post_to_unlisted && Setting.enable_public_unlisted_visibility
     v = Setting.enable_public_unlisted_visibility ? :public_unlisted : :unlisted if !Setting.enable_public_visibility && v == :public
-    v = :private if @quoted_status&.private_visibility?
+    v = :private if @quoted_status&.private_visibility? && %i(public public_unlisted login unlisted).include?(v)
     v
   end
 
@@ -167,6 +167,7 @@ class PostStatusService < BaseService
 
     UpdateStatusExpirationService.new.call(@status)
 
+    safeguard_private_mention_quote!(@status)
     attach_quote!(@status)
 
     antispam = Antispam.new(@status)
@@ -178,6 +179,16 @@ class PostStatusService < BaseService
       @status.save!
       @status.capability_tokens.create! if @status.limited_visibility?
     end
+  end
+
+  def safeguard_private_mention_quote!(status)
+    return if @quoted_status.nil? || @visibility.to_sym != :direct
+
+    # The mentions array test here is awkward because the relationship is not persisted at this time
+    return if @quoted_status.account_id == @account.id || status.mentions.to_a.any? { |mention| mention.account_id == @quoted_status.account_id && !mention.silent }
+
+    status.errors.add(:base, I18n.t('statuses.errors.quoted_user_not_mentioned'))
+    raise ActiveRecord::RecordInvalid, status
   end
 
   def attach_quote!(status)
@@ -206,6 +217,7 @@ class PostStatusService < BaseService
 
   def schedule_status!
     status_for_validation = @account.statuses.build(status_attributes)
+    safeguard_private_mention_quote!(status_for_validation)
 
     antispam = Antispam.new(status_for_validation)
     antispam.local_preflight_check!
@@ -298,8 +310,6 @@ class PostStatusService < BaseService
   end
 
   def quoted_status_from_text
-    return unless Mastodon::Feature.outgoing_quotes_enabled?
-
     url = ProcessReferencesService.extract_quote(@text)
     return unless url
 

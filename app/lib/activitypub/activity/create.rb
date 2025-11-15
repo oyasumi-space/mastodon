@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 class ActivityPub::Activity::Create < ActivityPub::Activity
-  include FormattingHelper
   include NgRuleHelper
-
-  LINK_MEDIA_TYPES = ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'].freeze
 
   def perform
     @account.schedule_refresh_if_stale!
@@ -103,6 +100,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
     @status_parser = ActivityPub::Parser::StatusParser.new(
       @json,
       followers_collection: @account.followers_url,
+      following_collection: @account.following_url,
       actor_uri: ActivityPub::TagManager.instance.uri_for(@account),
       object: @object,
       account: @account,
@@ -115,9 +113,9 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
       uri: @status_parser.uri,
       url: @status_parser.url || @status_parser.uri,
       account: @account,
-      text: converted_object_type? ? converted_text : (@status_parser.text || ''),
+      text: @status_parser.processed_text,
       language: @status_parser.language,
-      spoiler_text: converted_object_type? ? '' : (@status_parser.spoiler_text || ''),
+      spoiler_text: @status_parser.processed_spoiler_text,
       created_at: @status_parser.created_at,
       edited_at: @status_parser.edited_at && @status_parser.edited_at != @status_parser.created_at ? @status_parser.edited_at : nil,
       override_timestamps: @options[:override_timestamps],
@@ -288,12 +286,12 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def process_quote
     @quote_uri = @status_parser.quote_uri
-    return if @quote_uri.blank?
+    return unless @status_parser.quote?
 
     approval_uri = @status_parser.quote_approval_uri
     approval_uri = 'http://kmy.blue/ns#LegacyQuote' if approval_uri == 'kmyblue:LegacyQuote'
     approval_uri = nil if unsupported_uri_scheme?(approval_uri) || (approval_uri != 'http://kmy.blue/ns#LegacyQuote' && TagManager.instance.local_url?(approval_uri))
-    @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?)
+    @quote = Quote.new(account: @account, approval_uri: approval_uri, legacy: @status_parser.legacy_quote?, state: @status_parser.deleted_quote? ? :deleted : :pending)
   end
 
   def process_hashtag(tag)
@@ -502,7 +500,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def conversation_from_context(uri)
-    return nil if uri.nil? || (!uri.start_with?('https://') && !uri.start_with?('http://'))
+    return nil if uri.nil? || !uri.start_with?('https://', 'http://')
     return Conversation.find_by(id: ActivityPub::TagManager.instance.uri_to_local_id(uri)) if ActivityPub::TagManager.instance.local_uri?(uri)
 
     begin
@@ -535,18 +533,6 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def in_reply_to_uri
     value_or_id(@object['inReplyTo'])
-  end
-
-  def converted_text
-    [formatted_title, @status_parser.spoiler_text.presence, formatted_url].compact.join("\n\n")
-  end
-
-  def formatted_title
-    "<h2>#{@status_parser.title}</h2>" if @status_parser.title.present?
-  end
-
-  def formatted_url
-    linkify(@status_parser.url || @status_parser.uri)
   end
 
   def unsupported_media_type?(mime_type)

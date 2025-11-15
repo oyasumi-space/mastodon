@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class ActivityPub::Activity::Update < ActivityPub::Activity
+  # Updates to unknown objects older than that are ignored
+  OBJECT_AGE_THRESHOLD = 1.day
+
   def perform
     @account.schedule_refresh_if_stale!
 
@@ -8,10 +11,8 @@ class ActivityPub::Activity::Update < ActivityPub::Activity
 
     if equals_or_includes_any?(@object['type'], %w(Application Group Organization Person Service))
       update_account
-    elsif equals_or_includes_any?(@object['type'], %w(Note Question))
+    elsif supported_object_type? || converted_object_type?
       update_status
-    elsif converted_object_type?
-      Status.find_by(uri: object_uri, account_id: @account.id)
     end
   end
 
@@ -27,6 +28,9 @@ class ActivityPub::Activity::Update < ActivityPub::Activity
     return reject_payload! if non_matching_uri_hosts?(@account.uri, object_uri)
 
     @status = Status.find_by(uri: object_uri, account_id: @account.id)
+
+    # Ignore updates for old unknown objects, since those are updates we are not interested in
+    return if @status.nil? && object_too_old?
 
     # We may be getting `Create` and `Update` out of order
     @status ||= ActivityPub::Activity::Create.new(@json, @account, **@options).perform
@@ -44,5 +48,11 @@ class ActivityPub::Activity::Update < ActivityPub::Activity
     return unless @status.conversation.present? && @status.conversation.local? && @json['signature'].present?
 
     ActivityPub::ForwardConversationWorker.perform_async(Oj.dump(@json), @status.id, true)
+  end
+
+  def object_too_old?
+    @object['published'].present? && @object['published'].to_datetime < OBJECT_AGE_THRESHOLD.ago
+  rescue Date::Error
+    false
   end
 end

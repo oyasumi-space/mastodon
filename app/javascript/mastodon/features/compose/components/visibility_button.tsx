@@ -9,8 +9,8 @@ import {
   changeCircle,
   changeComposeSearchability,
   changeComposeVisibility,
-} from '@/mastodon/actions/compose';
-import { setComposeQuotePolicy } from '@/mastodon/actions/compose_typed';
+  setComposeQuotePolicy,
+} from '@/mastodon/actions/compose_typed';
 import { openModal } from '@/mastodon/actions/modal';
 import type { ApiQuotePolicy } from '@/mastodon/api_types/quotes';
 import type {
@@ -19,7 +19,6 @@ import type {
 } from '@/mastodon/api_types/statuses';
 import { Icon } from '@/mastodon/components/icon';
 import { useAppSelector, useAppDispatch } from '@/mastodon/store';
-import { isFeatureEnabled } from '@/mastodon/utils/environment';
 import CircleIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
 import BlockIcon from '@/material-icons/400-24px/block.svg?react';
@@ -34,10 +33,52 @@ import LimitedIcon from '@/material-icons/400-24px/shield.svg?react';
 import PersonalIcon from '@/material-icons/400-24px/sticky_note.svg?react';
 
 import type { VisibilityModalCallback } from '../../ui/components/visibility_modal';
-import PrivacyDropdownContainer from '../containers/privacy_dropdown_container';
 
 import { messages as privacyMessages } from './privacy_dropdown';
-import { messages as searchabilityMessages } from './searchability_dropdown';
+
+const searchabilityMessages = defineMessages({
+  public_short: { id: 'searchability.public.short', defaultMessage: 'Public' },
+  public_long: {
+    id: 'searchability.public.long',
+    defaultMessage: 'Anyone can find',
+  },
+  public_unlisted_short: {
+    id: 'searchability.public_unlisted.short',
+    defaultMessage: 'Local public',
+  },
+  public_unlisted_long: {
+    id: 'searchability.public_unlisted.long',
+    defaultMessage: 'Local users and followers can find',
+  },
+  private_short: {
+    id: 'searchability.unlisted.short',
+    defaultMessage: 'Followers',
+  },
+  private_long: {
+    id: 'searchability.unlisted.long',
+    defaultMessage: 'Your followers can find',
+  },
+  direct_short: {
+    id: 'searchability.private.short',
+    defaultMessage: 'Reactionners',
+  },
+  direct_long: {
+    id: 'searchability.private.long',
+    defaultMessage: 'Reacter of this post can find',
+  },
+  limited_short: {
+    id: 'searchability.direct.short',
+    defaultMessage: 'Self only',
+  },
+  limited_long: {
+    id: 'searchability.direct.long',
+    defaultMessage: 'Nobody can find, but you can',
+  },
+  change_searchability: {
+    id: 'searchability.change',
+    defaultMessage: 'Set status searchability',
+  },
+});
 
 const messages = defineMessages({
   anyone_quote: {
@@ -59,9 +100,6 @@ interface PrivacyDropdownProps {
 }
 
 export const VisibilityButton: FC<PrivacyDropdownProps> = (props) => {
-  if (!isFeatureEnabled('outgoing_quotes')) {
-    return <PrivacyDropdownContainer {...props} />;
-  }
   return <PrivacyModalButton {...props} />;
 };
 

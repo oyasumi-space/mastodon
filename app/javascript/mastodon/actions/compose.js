@@ -5,6 +5,7 @@ import { throttle } from 'lodash';
 
 import api from 'mastodon/api';
 import { browserHistory } from 'mastodon/components/router';
+import { countableText } from 'mastodon/features/compose/util/counter';
 import { search as emojiSearch } from 'mastodon/features/emoji/emoji_mart_search_light';
 import { tagHistory } from 'mastodon/settings';
 
@@ -57,9 +58,6 @@ export const COMPOSE_UNMOUNT = 'COMPOSE_UNMOUNT';
 export const COMPOSE_SENSITIVITY_CHANGE  = 'COMPOSE_SENSITIVITY_CHANGE';
 export const COMPOSE_SPOILERNESS_CHANGE  = 'COMPOSE_SPOILERNESS_CHANGE';
 export const COMPOSE_SPOILER_TEXT_CHANGE = 'COMPOSE_SPOILER_TEXT_CHANGE';
-export const COMPOSE_MARKDOWN_CHANGE     = 'COMPOSE_MARKDOWN_CHANGE';
-export const COMPOSE_VISIBILITY_CHANGE   = 'COMPOSE_VISIBILITY_CHANGE';
-export const COMPOSE_SEARCHABILITY_CHANGE= 'COMPOSE_SEARCHABILITY_CHANGE';
 export const COMPOSE_COMPOSING_CHANGE    = 'COMPOSE_COMPOSING_CHANGE';
 export const COMPOSE_LANGUAGE_CHANGE     = 'COMPOSE_LANGUAGE_CHANGE';
 
@@ -79,8 +77,6 @@ export const COMPOSE_POLL_OPTION_CHANGE   = 'COMPOSE_POLL_OPTION_CHANGE';
 export const COMPOSE_POLL_OPTION_REMOVE   = 'COMPOSE_POLL_OPTION_REMOVE';
 export const COMPOSE_POLL_SETTINGS_CHANGE = 'COMPOSE_POLL_SETTINGS_CHANGE';
 
-export const COMPOSE_CIRCLE_CHANGE = 'COMPOSE_CIRCLE_CHANGE';
-
 export const INIT_MEDIA_EDIT_MODAL = 'INIT_MEDIA_EDIT_MODAL';
 
 export const COMPOSE_CHANGE_MEDIA_DESCRIPTION = 'COMPOSE_CHANGE_MEDIA_DESCRIPTION';
@@ -97,6 +93,7 @@ const messages = defineMessages({
   open: { id: 'compose.published.open', defaultMessage: 'Open' },
   published: { id: 'compose.published.body', defaultMessage: 'Post published.' },
   saved: { id: 'compose.saved.body', defaultMessage: 'Post saved.' },
+  blankPostError: { id: 'compose.error.blank_post', defaultMessage: 'Post can\'t be blank.' },
 });
 
 export const ensureComposeIsVisible = (getState) => {
@@ -205,8 +202,18 @@ export function submitCompose(successCallback) {
     const statusId = getState().getIn(['compose', 'id'], null);
     const circleId = getState().getIn(['compose', 'circle_id'], null);
     const privacy  = getState().getIn(['compose', 'privacy']);
+    const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);
+    const spoiler_text = getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '';
 
-    if ((!status || !status.length) && media.size === 0) {
+    const fulltext = `${spoiler_text ?? ''}${countableText(status ?? '')}`;
+    const hasText = fulltext.trim().length > 0;
+
+    if (!(hasText || media.size !== 0 || (hasQuote && spoiler_text?.length))) {
+      dispatch(showAlert({
+        message: messages.blankPostError,
+      }));
+      dispatch(focusCompose());
+
       return;
     }
 
@@ -238,11 +245,11 @@ export function submitCompose(successCallback) {
       method: statusId === null ? 'post' : 'put',
       data: {
         status,
+        spoiler_text,
         in_reply_to_id: getState().getIn(['compose', 'in_reply_to'], null),
         media_ids: media.map(item => item.get('id')),
         media_attributes,
-        sensitive: media.size > 0 ? getState().getIn(['compose', 'spoiler']) : false,
-        spoiler_text: getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '',
+        sensitive: getState().getIn(['compose', 'spoiler']),
         markdown: getState().getIn(['compose', 'markdown']),
         visibility: visibility,
         searchability: getState().getIn(['compose', 'searchability']),
@@ -647,6 +654,7 @@ export function fetchComposeSuggestions(token) {
       fetchComposeSuggestionsEmojis(dispatch, getState, token);
       break;
     case '#':
+    case '＃':
       fetchComposeSuggestionsTags(dispatch, getState, token);
       break;
     default:
@@ -688,11 +696,11 @@ export function selectComposeSuggestion(position, token, suggestion, path) {
 
       dispatch(useEmoji(suggestion));
     } else if (suggestion.type === 'hashtag') {
-      completion    = `#${suggestion.name}`;
-      startPosition = position - 1;
+      completion    = suggestion.name.slice(token.length - 1);
+      startPosition = position + token.length;
     } else if (suggestion.type === 'account') {
-      completion    = getState().getIn(['accounts', suggestion.id, 'acct']);
-      startPosition = position;
+      completion    = `@${getState().getIn(['accounts', suggestion.id, 'acct'])}`;
+      startPosition = position - 1;
     }
 
     // We don't want to replace hashtags that vary only in case due to accessibility, but we need to fire off an event so that
@@ -752,7 +760,7 @@ function insertIntoTagHistory(recognizedTags, text) {
     // complicated because of new normalization rules, it's no longer just
     // a case sensitivity issue
     const names = recognizedTags.map(tag => {
-      const matches = text.match(new RegExp(`#${tag.name}`, 'i'));
+      const matches = text.match(new RegExp(`[#＃]${tag.name}`, 'i'));
 
       if (matches && matches.length > 0) {
         return matches[0].slice(1);
@@ -805,26 +813,6 @@ export function changeComposeSpoilerText(text) {
   return {
     type: COMPOSE_SPOILER_TEXT_CHANGE,
     text,
-  };
-}
-
-export function changeComposeMarkdown() {
-  return {
-    type: COMPOSE_MARKDOWN_CHANGE,
-  };
-}
-
-export function changeComposeVisibility(value) {
-  return {
-    type: COMPOSE_VISIBILITY_CHANGE,
-    value,
-  };
-}
-
-export function changeComposeSearchability(value) {
-  return {
-    type: COMPOSE_SEARCHABILITY_CHANGE,
-    value,
   };
 }
 
@@ -921,10 +909,3 @@ export const changeMediaOrder = (a, b) => ({
   a,
   b,
 });
-
-export function changeCircle(circleId) {
-  return {
-    type: COMPOSE_CIRCLE_CHANGE,
-    circleId,
-  };
-}

@@ -59,11 +59,15 @@ en:
         person: This is normal account
         phrase: Will be matched regardless of casing in text or content warning of a post
         scopes: Which APIs the application will be allowed to access. If you select a top-level scope, you don't need to select individual ones.
+        setting_advanced_layout: Display Mastodon as a multi-column layout, allowing you to view the timeline, notifications, and a third column of your choosing. Not recommended for smaller screens.
         setting_aggregate_reblogs: Do not show new boosts for posts that have been recently boosted (only affects newly-received boosts)
         setting_always_send_emails: Normally e-mail notifications won't be sent when you are actively using Mastodon
         setting_bookmark_category_needed: When removing from all category, unbookmarked automatically
+        setting_boost_modal: When enabled, boosting will first open a confirmation dialog in which you can change the visibility of your boost.
         setting_custom_css_lead: 'Be sure to remember: In the unlikely event that you make a mistake in entering your custom CSS and the screen does not display properly, you can disable your custom CSS from the link at the bottom of the sign-in screen. Open the sign-in screen in private mode of your browser, for example, and disable it.'
         setting_default_quote_policy: This setting will only take effect for posts created with the next Mastodon version, but you can select your preference in preparation.
+        setting_default_quote_policy_private: Followers-only posts authored on Mastodon can't be quoted by others.
+        setting_default_quote_policy_unlisted: When people quote you, their post will also be hidden from trending timelines.
         setting_default_searchability: On kmyblue and Fedibird, the search is based on the search permission setting; on Misskey, all public, local public, and non-public posts are searched regardless of this setting; on Mastodon and Firefish, instead of search permission, the "Make public posts freely searchable on other servers" setting in the profile settings is applied. In Mastodon and Firefish, the "Make public posts freely searchable on other servers" setting in the profile settings is applied instead of the search permission.
         setting_default_sensitive: Sensitive media is hidden by default and can be revealed with a click
         setting_disallow_unlisted_public_searchability: この設定を有効にすると、非収載投稿と検索範囲「誰でも」は両立できず不特定多数からの検索が不可になります。Fedibirdと同じ挙動になります
@@ -79,6 +83,7 @@ en:
         setting_enabled_visibilities: If turn off, you cannot select and post the privacy.
         setting_hide_network: フォローとフォロワーの情報がプロフィールページで見られないようにします
         setting_public_post_to_unlisted: 未対応のサードパーティアプリからもローカル公開で投稿できますが、公開投稿はWeb以外できなくなります
+        setting_quick_boosting_html: When enabled, clicking on the %{boost_icon} Boost icon will immediately boost instead of opening the boost/quote dropdown menu. Relocates the quoting action to the %{options_icon} (Options) menu.
         setting_reject_send_limited_to_suspects: This applies to "Mutual Only" posts. Circle posts will be delivered without exception. Some Misskey servers have independently supported limited posting, but this is a setting for those who are concerned about it, as mutual-only posting exposes some of the users you are mutual with to Misskey users!
         setting_reject_unlisted_subscription: Misskey and its forks can **subscribe and search** for "non-following" posts from accounts they do not follow. This differs from kmyblue's behavior. It delivers posts in the specified public range to such servers as "followers only". Please understand, however, that due to its structure, it is difficult to handle perfectly and will occasionally be delivered as non-subscribed.
         setting_reverse_search_quote: Double-quotes will result in a search with a wider range of notation, which is the opposite of Mastodon's default behavior.
@@ -117,6 +122,7 @@ en:
         enable_public_unlisted_visibility: If true, your community maybe closed-minded. If turn it false, strongly recommend that you disclose that you have disabled this setting!
         enable_public_visibility: If disabled, public posts will be forcibly replaced with "Local public" or "Unlisted" posts.
         favicon: WEBP, PNG, GIF or JPG. Overrides the default Mastodon favicon with a custom icon.
+        landing_page: Selects what page new visitors see when they first arrive on your server. If you select "Trends", then trends needs to be enabled in the Discovery Settings. If you select "Local feed", then "Access to live feeds featuring local posts" needs to be set to "Everyone" in the Discovery Settings.
         mascot: Overrides the illustration in the advanced web interface.
         media_cache_retention_period: Media files from posts made by remote users are cached on your server. When set to a positive value, media will be deleted after the specified number of days. If the media data is requested after it is deleted, it will be re-downloaded, if the source content is still available. Due to restrictions on how often link preview cards poll third-party sites, it is recommended to set this value to at least 14 days, or link preview cards will not be updated on demand before that time.
         min_age: Users will be asked to confirm their date of birth during sign-up
@@ -138,10 +144,8 @@ en:
         streaming_other_servers_emoji_reaction: Check network lines and server load as large amounts of data are delivered. If the server load is high, try unchecking the box temporarily.
         theme: Theme that logged out visitors and new users see.
         thumbnail: A roughly 2:1 image displayed alongside your server information.
-        timeline_preview: Logged out visitors will be able to browse the most recent public posts available on the server.
         trendable_by_default: Skip manual review of trending content. Individual items can still be removed from trends after the fact.
         trends: Trends show which posts, hashtags and news stories are gaining traction on your server.
-        trends_as_landing_page: Show trending content to logged-out users and visitors instead of a description of this server. Requires trends to be enabled.
       form_challenge:
         current_password: You are entering a secure area
       imports:
@@ -282,7 +286,7 @@ en:
         setting_auto_play_gif: Auto-play animated GIFs
         setting_bio_markdown: Enable profile markdown
         setting_bookmark_category_needed: Category selection needed when registering bookmark on web
-        setting_boost_modal: Show confirmation dialog before boosting
+        setting_boost_modal: Control boosting visibility
         setting_community_timeline_instead_of_search_menu: Show local timeline on phone navigation instead of search
         setting_content_font_size: Font size of posts
         setting_content_font_size_items:
@@ -298,7 +302,7 @@ en:
         setting_default_searchability: Searchability of your own post
         setting_default_searchability_of_search: Your search setting
         setting_default_sensitive: Always mark media as sensitive
-        setting_delete_modal: Show confirmation dialog before deleting a post
+        setting_delete_modal: Warn me before deleting a post
         setting_disable_hover_cards: Disable profile preview on hover
         setting_disable_swiping: Disable swiping motions
         setting_disallow_unlisted_public_searchability: Disallow everyone or local searchability when unlisted visibility
@@ -326,8 +330,9 @@ en:
         setting_hide_network: Hide your social graph
         setting_hide_status_reference_unavailable_server: Hide link (reference named by Fedibird) menu from unavailable server
         setting_lock_follow_from_bot: Request approval about bot follow
-        setting_missing_alt_text_modal: Show confirmation dialog before posting media without alt text
+        setting_missing_alt_text_modal: Warn me before posting media without alt text
         setting_public_post_to_unlisted: Convert public post to public unlisted if not using Web app
+        setting_quick_boosting: Enable quick boosting
         setting_reduce_motion: Reduce motion in animations
         setting_reject_public_unlisted_subscription: Reject sending public unlisted visibility/non-public searchability posts to Misskey, Calckey
         setting_reject_send_limited_to_suspects: Reject sending mutual posts to Misskey
@@ -407,6 +412,9 @@ en:
         enable_public_unlisted_visibility: Enable public-unlisted visibility / public-unlisted searchability
         enable_public_visibility: Enable public visibility
         favicon: Favicon
+        landing_page: Landing page for new visitors
+        local_live_feed_access: Access to live feeds featuring local posts
+        local_topic_feed_access: Access to hashtag and link feeds featuring local posts
         mascot: Custom mascot (legacy)
         media_cache_retention_period: Media cache retention period
         min_age: Minimum age requirement
@@ -422,6 +430,8 @@ en:
         registrations_secondary_end_hour_hint: If input 0, secondary hour is disabled.
         registrations_secondary_start_hour: Secondary registration start hour (UTC 0-24)
         registrations_start_hour: Registration-without-approval start hour (UTC 0-24)
+        remote_live_feed_access: Access to live feeds featuring remote posts
+        remote_topic_feed_access: Access to hashtag and link feeds featuring remote posts
         require_invite_text: Require a reason to join
         show_domain_blocks: Show domain blocks
         show_domain_blocks_rationale: Show why domains were blocked
@@ -436,10 +446,8 @@ en:
         streaming_other_servers_emoji_reaction: Streaming emoji reactions between other server users
         theme: Default theme
         thumbnail: Server thumbnail
-        timeline_preview: Allow unauthenticated access to public timelines
         trendable_by_default: Allow trends without prior review
         trends: Enable trends
-        trends_as_landing_page: Use trends as the landing page
         unlocked_friend: Accept all friend server follows automatically
       interactions:
         must_be_follower: Block notifications from non-followers

@@ -36,6 +36,7 @@ class UserRole < ApplicationRecord
     manage_roles: (1 << 17),
     manage_user_access: (1 << 18),
     delete_user_data: (1 << 19),
+    view_feeds: (1 << 20),
     manage_sensitive_words: (1 << 29),
     manage_ng_words: (1 << 30),
   }.freeze
@@ -70,6 +71,7 @@ class UserRole < ApplicationRecord
         manage_blocks
         manage_taxonomies
         manage_invites
+        view_feeds
         manage_ng_words
         manage_sensitive_words
       ).freeze,

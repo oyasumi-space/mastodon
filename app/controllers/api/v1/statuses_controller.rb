@@ -75,7 +75,7 @@ class Api::V1::StatusesController < Api::BaseController
     if async_refresh.running?
       add_async_refresh_header(async_refresh)
     elsif !current_account.nil? && @status.should_fetch_replies?
-      add_async_refresh_header(AsyncRefresh.create(refresh_key))
+      add_async_refresh_header(AsyncRefresh.create(refresh_key, count_results: true))
 
       WorkerBatch.new.within do |batch|
         batch.connect(refresh_key, threshold: 1.0)
@@ -171,9 +171,7 @@ class Api::V1::StatusesController < Api::BaseController
   end
 
   def set_quoted_status
-    return unless Mastodon::Feature.outgoing_quotes_enabled?
-
-    @quoted_status = Status.find(status_params[:quoted_status_id]) if status_params[:quoted_status_id].present?
+    @quoted_status = Status.find(status_params[:quoted_status_id])&.proper if status_params[:quoted_status_id].present?
     authorize(@quoted_status, :quote?) if @quoted_status.present?
   rescue ActiveRecord::RecordNotFound, Mastodon::NotPermittedError
     # TODO: distinguish between non-existing and non-quotable posts

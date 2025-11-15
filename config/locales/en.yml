@@ -1029,6 +1029,8 @@ en:
         view_dashboard_description: Allows users to access the dashboard and various metrics
         view_devops: DevOps
         view_devops_description: Allows users to access Sidekiq and pgHero dashboards
+        view_feeds: View live and topic feeds
+        view_feeds_description: Allows users to access the live and topic feeds regardless of server settings
       title: Roles
     rules:
       add_new: Add rule
@@ -1085,7 +1087,7 @@ en:
         emoji_reactions: Emoji reaction
         follow_recommendations: Follow recommendations
         friend_servers: Friend servers
-        preamble: Surfacing interesting content is instrumental in onboarding new users who may not know anyone Mastodon. Control how various discovery features work on your server.
+        preamble: Surfacing interesting content is instrumental in onboarding new users who may not know anyone on Mastodon. Control how various discovery features work on your server.
         privacy: Privacy
         profile_directory: Profile directory
         public_timelines: Public timelines
@@ -1097,6 +1099,16 @@ en:
         all: To everyone
         disabled: To no one
         users: To logged-in local users
+      feed_access:
+        modes:
+          authenticated: Authenticated users only
+          disabled: Require specific user role
+          public: Everyone
+      landing_page:
+        values:
+          about: About
+          local_feed: Local feed
+          trends: Trends
       registrations:
         moderation_recommandation: Please make sure you have an adequate and reactive moderation team before you open registrations to everyone!
         preamble: Control who can create an account on your server.
@@ -1165,6 +1177,7 @@ en:
       no_status_selected: No posts were changed as none were selected
       open: Open post
       original_status: Original post
+      quotes: Quotes
       reblogs: Reblogs
       remove: Remove
       remove_history: Remove edit history
@@ -1175,6 +1188,7 @@ en:
       title: Account posts - @%{name}
       trending: Trending
       view_publicly: View publicly
+      view_quoted_post: View quoted post
       visibility: Visibility
       with_media: With media
     strikes:
@@ -1471,10 +1485,10 @@ en:
       over_stl_limit: You have exceeded the limit of %{limit} stl antennas
       too_short_keyword: Keyword is too short
   appearance:
-    advanced_web_interface: Advanced web interface
-    advanced_web_interface_hint: 'If you want to make use of your entire screen width, the advanced web interface allows you to configure many different columns to see as much information at the same time as you want: Home, notifications, federated timeline, any number of lists and hashtags.'
+    advanced_settings: Advanced settings
     animations_and_accessibility: Animations and accessibility
-    confirmation_dialogs: Confirmation dialogs
+    boosting_preferences: Boosting preferences
+    boosting_preferences_info_html: "<strong>Tip:</strong> Regardless of settings, <kbd>Shift</kbd> + <kbd>Click</kbd> on the %{icon} Boost icon will immediately boost."
     custom_emoji_and_emoji_reactions: Custom emoji and emoji reactions
     discovery: Discovery
     localization:
@@ -1895,6 +1909,13 @@ en:
       expires_at: Expires
       uses: Uses
     title: Invite people
+  link_preview:
+    author_html: By %{name}
+    potentially_sensitive_content:
+      action: Click to show
+      confirm_visit: Are you sure you wish to open this link?
+      hide_button: Hide
+      label: Potentially sensitive content
   lists:
     errors:
       limit: You have reached the maximum number of lists
@@ -2234,6 +2255,9 @@ en:
     boosted_from_html: Boosted from %{acct_link}
     contains_ng_words: The post contains NG words
     content_warning: 'Content warning: %{warning}'
+    content_warnings:
+      hide: Hide post
+      show: Show more
     default_language: Same as interface language
     disallowed_hashtags:
       one: 'contained a disallowed hashtag: %{tags}'
@@ -2242,16 +2266,22 @@ en:
     errors:
       in_reply_not_found: The post you are trying to reply to does not appear to exist.
       quoted_status_not_found: The post you are trying to quote does not appear to exist.
+      quoted_user_not_mentioned: Cannot quote a non-mentioned user in a Private Mention post.
     over_character_limit: character limit of %{max} exceeded
     pin_errors:
       direct: Posts that are only visible to mentioned users cannot be pinned
       limit: You have already pinned the maximum number of posts
       ownership: Someone else's post cannot be pinned
       reblog: A boost cannot be pinned
+    quote_error:
+      not_available: Post unavailable
+      pending_approval: Post pending
+      revoked: Post removed by author
     quote_policies:
       followers: Followers only
       nobody: Just me
       public: Anyone
+    quote_post_author: Quoted a post by %{acct}
     searchabilities:
       direct: Reactionners
       direct_long: Reacter of this post can find
@@ -2279,7 +2309,7 @@ en:
       login: Login-only
       login_long: Only logined users
       mutual: Mutual-only
-      private: Followers-only
+      private: Followers only
       private_long: Only show to followers
       public: Public
       public_long: Anyone on and off Mastodon
