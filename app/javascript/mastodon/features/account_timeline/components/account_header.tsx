@@ -218,8 +218,6 @@ export const AccountHeader: React.FC<{
 
   const isHideRelationships = isHideItem('relationships');
 
-  const isHideRelationships = isHideItem('relationships');
-
   const handleBlock = useCallback(() => {
     if (!account) {
       return;
